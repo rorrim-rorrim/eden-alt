@@ -4,19 +4,15 @@ To build Eden, you MUST have a C++ compiler.
 
 * On Linux, this is usually [GCC](https://gcc.gnu.org/) 11+ or [Clang](https://clang.llvm.org/) v14+
   * GCC 12 also requires Clang 14+
-* On Windows, we support:
-  * **[MSVC](https://visualstudio.microsoft.com/downloads/)** (default)
-    * It's STRONGLY RECOMMENDED to use the **Community** option and **Visual Studio 2022**
-    * You need to install: **[Desktop development with C++](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170)**
-  * **[clang-cl](https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-180)**
-    * You need to install: **C++ Clang tools for Windows**
-  * **[MSYS2](https://www.msys2.org)**
+* On Windows, install **[MSYS2](https://www.msys2.org)**
+  * MINGW64 is preferred for x86_64/amd64 compilation, but this is subject to change.
+  * ARM should use CLANGARM64
 * On macOS, this is Apple Clang
   * This can be installed with `xcode-select --install`
 
 The following additional tools are also required:
 
-* **[CMake](https://www.cmake.org/)** 3.22+ - already included with the Android SDK
+* **[CMake](https://www.cmake.org/)** 3.22+
 * **[Git](https://git-scm.com/)** for version control
   * **[Windows installer](https://gitforwindows.org)**
 * **[Python3](https://www.python.org/downloads/)** 3.10+ - necessary to download external repositories
@@ -29,13 +25,8 @@ If you are on desktop and plan to use the Qt frontend, you *must* install Qt 6, 
 
 * On Linux, *BSD and macOS, this can be done by the package manager
   * If you wish to use Qt Creator, append `qtcreator` or `qt-creator` to the commands seen below.
-* MSVC/clang-cl users on Windows must install through the official [Qt](https://www.qt.io/download-qt-installer-oss) installer
 * Linux and macOS users may choose to use the installer as well.
-* MSYS2 can also install Qt 6 via the package manager
-
-* For help setting up Qt Creator, run `./install.sh -h qtcreator`
-
-If you are on **Windows** and building with **MSVC** or **clang-cl**, you may go [back home](Build.md) and continue.
+* MSYS2 must install Qt 6 via the package manager (`pacman`)
 
 ## Externals
 
@@ -44,7 +35,7 @@ The following are handled by Eden's externals:
 * [FFmpeg](https://ffmpeg.org/) (should use `-DYUZU_USE_EXTERNAL_FFMPEG=ON`)
 * [SDL2](https://www.libsdl.org/download-2.0.php) 2.0.18+ (should use `-DYUZU_USE_EXTERNAL_SDL2=ON` OR `-DYUZU_USE_BUNDLED_SDL2=ON` to reduce compile time)
 
-All other dependencies will be downloaded and built by [CPM](https://github.com/cpm-cmake/CPM.cmake/) if `YUZU_USE_CPM` is on, but will always use system dependencies if available (UNIX-like only):
+All other dependencies will be downloaded and built by [CPM](https://github.com/cpm-cmake/CPM.cmake/). System dependencies can be used if available.
 
 * [Boost](https://www.boost.org/users/download/) 1.57.0+
 * [Catch2](https://github.com/catchorg/Catch2) 3.0.1 if `YUZU_TESTS` or `DYNARMIC_TESTS` are on
@@ -56,26 +47,22 @@ All other dependencies will be downloaded and built by [CPM](https://github.com/
 * [zstd](https://facebook.github.io/zstd/) 1.5+
 * [enet](http://enet.bespin.org/) 1.3+
 * [Opus](https://opus-codec.org/) 1.3+
-
-Vulkan 1.3.274+ is also needed:
-
-* [VulkanUtilityLibraries](https://github.com/KhronosGroup/Vulkan-Utility-Libraries)
-* [VulkanHeaders](https://github.com/KhronosGroup/Vulkan-Headers)
-* [SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools)
-* [SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers)
-
-Certain other dependencies will be fetched by CPM regardless. System packages *can* be used for these libraries, but many are either not packaged by most distributions OR have issues when used by the system:
-
 * [SimpleIni](https://github.com/brofield/simpleini)
 * [DiscordRPC](https://github.com/eden-emulator/discord-rpc)
 * [cubeb](https://github.com/mozilla/cubeb)
 * [libusb](https://github.com/libusb/libusb)
 * [VulkanMemoryAllocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
-* [sirit](https://github.com/eden-emulator/sirit)
-* [httplib](https://github.com/yhirose/cpp-httplib) - if `ENABLE_UPDATE_CHECKER` or `ENABLE_WEB_SERVICE` are on
-  * This package is known to be broken on the AUR.
+* [sirit](https://github.com/eden-emulator/sirit) 1.0.1+
+* [httplib](https://github.com/yhirose/cpp-httplib) 0.19+
 * [cpp-jwt](https://github.com/arun11299/cpp-jwt) 1.4+ - if `ENABLE_WEB_SERVICE` is on
 * [unordered-dense](https://github.com/martinus/unordered_dense)
+
+Vulkan 1.4.317+ is also needed:
+
+* [VulkanUtilityLibraries](https://github.com/KhronosGroup/Vulkan-Utility-Libraries)
+* [VulkanHeaders](https://github.com/KhronosGroup/Vulkan-Headers)
+* [SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools)
+* [SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers)
 
 On amd64:
 

@@ -7,7 +7,7 @@ To change these options, add `-DOPTION_NAME=NEWVALUE` to the command line.
 Notes:
 
 - Defaults are marked per-platform.
-- "Non-UNIX" just means Windows/MSVC and Android (yes, macOS is UNIX
+- "Non-UNIX" just means everything except Android (yes, macOS is UNIX)
 - Android generally doesn't need to change anything; if you do, go to `src/android/app/build.gradle.kts`
 - To set a boolean variable to on, use `ON` for the value; to turn it off, use `OFF`
 - If a variable is mentioned as being e.g. "ON" for a specific platform(s), that means it is defaulted to OFF on others
@@ -28,9 +28,9 @@ These options control dependencies.
   - Currently, build fails without this
 - `YUZU_TZDB_PATH` (string) Path to a pre-downloaded timezone database (useful for nixOS and Gentoo)
 - `YUZU_USE_BUNDLED_MOLTENVK` (ON, macOS only) Download bundled MoltenVK lib
-- `YUZU_USE_BUNDLED_OPENSSL` (ON for MSVC, Android, Solaris, and OpenBSD) Download bundled OpenSSL build
+- `YUZU_USE_BUNDLED_OPENSSL` (ON for Android, Solaris, and OpenBSD) Download bundled OpenSSL build
 - `YUZU_USE_EXTERNAL_SDL2` (OFF) Compiles SDL2 from source
-- `YUZU_USE_BUNDLED_SDL2` (ON for MSVC) Download a prebuilt SDL2
+- `YUZU_USE_BUNDLED_SDL2` (OFF) Download a prebuilt SDL2
 
 ### Miscellaneous
 
@@ -81,7 +81,7 @@ Also desktop-only, but apply strictly to Qt
 
 - `ENABLE_QT` (ON) Enable the Qt frontend (recommended)
 - `ENABLE_QT_TRANSLATION` (OFF) Enable translations for the Qt frontend
-- `YUZU_USE_BUNDLED_QT` (ON for MSVC) Download bundled Qt binaries
+- `YUZU_USE_BUNDLED_QT` (OFF) Download bundled Qt binaries
   - Not recommended on Linux. For Windows and macOS, the provided build is statically linked.
 - `YUZU_QT_MIRROR` (string) What mirror to use for downloading the bundled Qt libraries
 - `YUZU_USE_QT_MULTIMEDIA` (OFF) Use QtMultimedia for camera support

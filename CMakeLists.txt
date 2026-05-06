@@ -1,6 +1,15 @@
 # SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+if (MSVC AND NOT I_WANT_A_BROKEN_MSVC_BUILD)
+    message(FATAL_ERROR "Support for the MSVC compiler has been dropped indefinitely. "
+        "This is not a bug. You will not receive support with issues related "
+        "to using Eden with MSVC, and there is ABSOLUTELY NO GUARANTEE that Eden "
+        "can be built on MSVC. Read more on our blog: https://eden-emu.dev/blog"
+        "\nSwitch to using MSYS2 instead: https://www.msys2.org"
+        "\nIf you *really* want to build anyways, set I_WANT_A_BROKEN_MSVC_BUILD=ON.")
+endif()
+
 cmake_minimum_required(VERSION 3.22)
 
 project(yuzu)
@@ -564,7 +573,7 @@ if (ENABLE_QT)
     else()
         message(STATUS "Using system Qt")
         if (NOT Qt6_DIR)
-            set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries like C:/Qt/6.8.3/msvc2022_64/lib/cmake/Qt6")
+            set(Qt6_DIR "" CACHE PATH "Additional path to search for Qt6 libraries")
         endif()
         list(APPEND CMAKE_PREFIX_PATH "${Qt6_DIR}")
     endif()
