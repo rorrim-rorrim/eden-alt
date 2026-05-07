@@ -22,6 +22,7 @@ Tools for Eden and other subprojects.
 - `clang-format.sh`: Runs `clang-format` on the entire codebase.
     * Requires: clang
 - `find-unused-strings.sh`: Find any unused strings in the Android app (XML -> Kotlin).
+- `sysvpatch.c`: Patches ELF files so their OS/ABI is SYSV (managarm workaround).
 
 ## Android
 It's recommended to run these scritps after almost any Android change, as they are relatively fast and important both for APK bloat and CI.
