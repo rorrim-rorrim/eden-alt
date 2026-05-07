@@ -37,6 +37,9 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
     elseif (NOT (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES CMAKE_SYSTEM_PROCESSOR
     AND CMAKE_HOST_SYSTEM_NAME MATCHES CMAKE_SYSTEM_NAME))
         string(TOLOWER "${CMAKE_SYSTEM_NAME}" FFmpeg_SYSTEM_NAME)
+        if (FFmpeg_SYSTEM_NAME STREQUAL "openorbis" OR FFmpeg_SYSTEM_NAME STREQUAL "managarm")
+            set(FFmpeg_SYSTEM_NAME "none")
+        endif()
         # TODO: Can we really do better? Auto-detection? Something clever?
         list(APPEND FFmpeg_CROSS_COMPILE_FLAGS
             --enable-cross-compile
