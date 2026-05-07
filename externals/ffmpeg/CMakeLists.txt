@@ -155,7 +155,6 @@ endif()
 
 if (PLATFORM_PS4)
     list(APPEND FFmpeg_CROSS_COMPILE_LIBS
-        -lc
         -lkernel
         -lSceUserService
         -lSceSysmodule
@@ -170,11 +169,6 @@ if (PLATFORM_PS4)
     )
 elseif (PLATFORM_MANAGARM)
     # Required for proper stuff
-    list(APPEND FFmpeg_CROSS_COMPILE_LIBS
-        -lc
-        -lm
-        -lgcc
-    )
     list(APPEND FFmpeg_CROSS_COMPILE_FLAGS 
         --disable-pthreads
         --extra-libs="${FFmpeg_CROSS_COMPILE_LIBS}"
