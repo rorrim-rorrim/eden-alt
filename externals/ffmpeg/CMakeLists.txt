@@ -30,131 +30,152 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
             --extra-ldflags="--ld-path=${TOOLCHAIN}/bin/ld.lld"
             --extra-ldflags="-nostdlib"
         )
+        set(FFmpeg_IS_CROSS_COMPILING TRUE)
     # User attempts to do a FFmpeg cross compilation because...
     # Here we just quickly test against host/system processors not matching
     # TODO: Test for versions not matching as well?
-    elseif (NOT CMAKE_HOST_SYSTEM_PROCESSOR MATCHES CMAKE_SYSTEM_PROCESSOR OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES CMAKE_SYSTEM_NAME)
+    elseif (NOT (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES CMAKE_SYSTEM_PROCESSOR
+    AND CMAKE_HOST_SYSTEM_NAME MATCHES CMAKE_SYSTEM_NAME))
         string(TOLOWER "${CMAKE_SYSTEM_NAME}" FFmpeg_SYSTEM_NAME)
         # TODO: Can we really do better? Auto-detection? Something clever?
-        if (NOT DEFINED FFmpeg_CROSS_PREFIX)
-            message(ERROR "Please set FFmpeg_CROSS_PREFIX to your cross toolchain prefix, for example: \${CMAKE_STAGING_PREFIX}/bin/${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_SYSTEM_NAME}-")
-        endif()
         list(APPEND FFmpeg_CROSS_COMPILE_FLAGS
             --enable-cross-compile
             --arch="${CMAKE_SYSTEM_PROCESSOR}"
             --target-os="${FFmpeg_SYSTEM_NAME}"
             --sysroot="${CMAKE_SYSROOT}"
-            --cross-prefix="${FFmpeg_CROSS_PREFIX}"
         )
+        if (DEFINED FFmpeg_CROSS_PREFIX)
+            list(APPEND FFmpeg_CROSS_COMPILE_FLAGS --cross-prefix="${FFmpeg_CROSS_PREFIX}")
+        else()
+            message(WARNING "Please set FFmpeg_CROSS_PREFIX to your cross toolchain prefix, for example: \${CMAKE_STAGING_PREFIX}/bin/${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_SYSTEM_NAME}-")
+        endif()
+        set(FFmpeg_IS_CROSS_COMPILING TRUE)
     endif()
 endif()
 
-# Logic below looks for all hw accels related to X11 (vdpau and stuff)
-# please note that this is NOT guaranteed to exist on some systems (for example
-# headless cross compilations), or testing environments/CI
-if (UNIX AND NOT ANDROID)
-    find_package(PkgConfig)
-    if (PkgConfig_FOUND)
-        pkg_check_modules(LIBVA libva)
-        pkg_check_modules(CUDA cuda)
-        pkg_check_modules(FFNVCODEC ffnvcodec)
-        pkg_check_modules(VDPAU vdpau)
-        find_package(X11)
-        if(X11_FOUND)
-            if (NOT APPLE)
-                # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
-                if(PLATFORM_SUN)
-                find_library(LIBDRM_LIB libdrm PATHS /usr/lib/64 /usr/lib/amd64 /usr/lib)
-                if(LIBDRM_LIB)
-                    list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                        X11
-                        "${LIBDRM_LIB}")
-                    message(STATUS "Found libdrm at: ${LIBDRM_LIB}")
-                else()
-                    message(WARNING "libdrm not found, disabling libdrm support")
-                    list(APPEND FFmpeg_HWACCEL_FLAGS
-                        --disable-libdrm)
-                endif()
-                else()
-                    pkg_check_modules(LIBDRM libdrm REQUIRED)
-                    list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                        ${LIBDRM_LIBRARIES})
-                    list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-                        ${LIBDRM_INCLUDE_DIRS})
-                endif()
-                list(APPEND FFmpeg_HWACCEL_FLAGS
-                    --enable-libdrm)
-            endif()
-            if(LIBVA_FOUND)
-                pkg_check_modules(LIBVA-DRM libva-drm REQUIRED)
-                pkg_check_modules(LIBVA-X11 libva-x11 REQUIRED)
+if (PLATFORM_PS4 OR PLATFORM_MANAGARM)
+    # Doesn't support VA-API, don't go thru the embarrassment of trying to enable it
+    list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
+elseif (UNIX AND NOT DEFINED FFmpeg_IS_CROSS_COMPILING)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(LIBVA libva)
+    pkg_check_modules(CUDA cuda)
+    pkg_check_modules(FFNVCODEC ffnvcodec)
+    pkg_check_modules(VDPAU vdpau)
+
+    find_package(X11)
+    if(X11_FOUND)
+        if (NOT APPLE)
+            # In Solaris needs explicit linking for ffmpeg which links to /lib/amd64/libX11.so
+            if(PLATFORM_SUN)
                 list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                    ${X11_LIBRARIES}
-                    ${LIBVA-DRM_LIBRARIES}
-                    ${LIBVA-X11_LIBRARIES}
-                    ${LIBVA_LIBRARIES})
-                list(APPEND FFmpeg_HWACCEL_FLAGS
-                    --enable-hwaccel=h264_vaapi
-                    --enable-hwaccel=vp8_vaapi
-                    --enable-hwaccel=vp9_vaapi)
-                list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-                    ${X11_INCLUDE_DIRS}
-                    ${LIBVA-DRM_INCLUDE_DIRS}
-                    ${LIBVA-X11_INCLUDE_DIRS}
-                    ${LIBVA_INCLUDE_DIRS}
-                )
-                message(STATUS "ffmpeg: va-api libraries version ${LIBVA_VERSION} found")
+                    X11
+                    "${CMAKE_SYSROOT}/usr/lib/xorg/amd64/libdrm.so")
             else()
-                list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
-                message(WARNING "ffmpeg: libva-dev not found, disabling Video Acceleration API (VA-API)...")
+                pkg_check_modules(LIBDRM libdrm REQUIRED)
+                list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                    ${LIBDRM_LIBRARIES})
+                list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
+                    ${LIBDRM_INCLUDE_DIRS})
             endif()
+            list(APPEND FFmpeg_HWACCEL_FLAGS
+                --enable-libdrm)
+        endif()
+        if(LIBVA_FOUND)
+            pkg_check_modules(LIBVA-DRM libva-drm REQUIRED)
+            pkg_check_modules(LIBVA-X11 libva-x11 REQUIRED)
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES
+                ${X11_LIBRARIES}
+                ${LIBVA-DRM_LIBRARIES}
+                ${LIBVA-X11_LIBRARIES}
+                ${LIBVA_LIBRARIES})
+            list(APPEND FFmpeg_HWACCEL_FLAGS
+                --enable-hwaccel=h264_vaapi
+                --enable-hwaccel=vp8_vaapi
+                --enable-hwaccel=vp9_vaapi)
+            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
+                ${X11_INCLUDE_DIRS}
+                ${LIBVA-DRM_INCLUDE_DIRS}
+                ${LIBVA-X11_INCLUDE_DIRS}
+                ${LIBVA_INCLUDE_DIRS}
+            )
+            message(STATUS "ffmpeg: va-api libraries version ${LIBVA_VERSION} found")
         else()
             list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
-            message(WARNING "ffmpeg: X11 libraries not found, disabling VA-API...")
-        endif()
-
-        if (FFNVCODEC_FOUND)
-            list(APPEND FFmpeg_HWACCEL_FLAGS
-                --enable-cuvid
-                --enable-ffnvcodec
-                --enable-nvdec
-                --enable-hwaccel=h264_nvdec
-                --enable-hwaccel=vp8_nvdec
-                --enable-hwaccel=vp9_nvdec
-            )
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES ${FFNVCODEC_LIBRARIES})
-            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${FFNVCODEC_INCLUDE_DIRS})
-            list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
-            message(STATUS "ffmpeg: ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
-            # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
-            # here we handle the hard-linking scenario where CUDA is linked during compilation
-            if (CUDA_FOUND)
-                # This line causes build error if CUDA_INCLUDE_DIRS is anything but a single non-empty value
-                #list(APPEND FFmpeg_HWACCEL_FLAGS --extra-cflags=-I${CUDA_INCLUDE_DIRS})
-                list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
-                list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
-                list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
-                message(STATUS "ffmpeg: CUDA libraries version ${CUDA_VERSION} found, hard-linking will be performed")
-            endif(CUDA_FOUND)
-        endif()
-
-        if (VDPAU_FOUND AND NOT APPLE)
-            list(APPEND FFmpeg_HWACCEL_FLAGS
-                --enable-vdpau
-                --enable-hwaccel=h264_vdpau
-                --enable-hwaccel=vp9_vdpau
-            )
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES ${VDPAU_LIBRARIES})
-            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${VDPAU_INCLUDE_DIRS})
-            list(APPEND FFmpeg_HWACCEL_LDFLAGS ${VDPAU_LDFLAGS})
-            message(STATUS "ffmpeg: vdpau libraries version ${VDPAU_VERSION} found")
-        else()
-            list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
-            message(WARNING "ffmpeg: libvdpau-dev not found, disabling Video Decode and Presentation API for Unix (VDPAU)...")
+            message(WARNING "ffmpeg: libva-dev not found, disabling Video Acceleration API (VA-API)...")
         endif()
     else()
-        message(WARNING "ffmpeg: PkgConfig not found -- assuming headless")
+        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vaapi)
+        message(WARNING "ffmpeg: X11 libraries not found, disabling VA-API...")
     endif()
+
+    if (FFNVCODEC_FOUND)
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-cuvid
+            --enable-ffnvcodec
+            --enable-nvdec
+            --enable-hwaccel=h264_nvdec
+            --enable-hwaccel=vp8_nvdec
+            --enable-hwaccel=vp9_nvdec
+        )
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES ${FFNVCODEC_LIBRARIES})
+        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${FFNVCODEC_INCLUDE_DIRS})
+        list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
+        message(STATUS "ffmpeg: ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
+        # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
+        # here we handle the hard-linking scenario where CUDA is linked during compilation
+        if (CUDA_FOUND)
+            # This line causes build error if CUDA_INCLUDE_DIRS is anything but a single non-empty value
+            #list(APPEND FFmpeg_HWACCEL_FLAGS --extra-cflags=-I${CUDA_INCLUDE_DIRS})
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
+            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
+            list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
+            message(STATUS "ffmpeg: CUDA libraries version ${CUDA_VERSION} found, hard-linking will be performed")
+        endif(CUDA_FOUND)
+    endif()
+
+    if (VDPAU_FOUND AND NOT APPLE)
+        list(APPEND FFmpeg_HWACCEL_FLAGS
+            --enable-vdpau
+            --enable-hwaccel=h264_vdpau
+            --enable-hwaccel=vp9_vdpau
+        )
+        list(APPEND FFmpeg_HWACCEL_LIBRARIES ${VDPAU_LIBRARIES})
+        list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${VDPAU_INCLUDE_DIRS})
+        list(APPEND FFmpeg_HWACCEL_LDFLAGS ${VDPAU_LDFLAGS})
+        message(STATUS "ffmpeg: vdpau libraries version ${VDPAU_VERSION} found")
+    else()
+        list(APPEND FFmpeg_HWACCEL_FLAGS --disable-vdpau)
+        message(WARNING "ffmpeg: libvdpau-dev not found, disabling Video Decode and Presentation API for Unix (VDPAU)...")
+    endif()
+endif()
+
+if (PLATFORM_PS4)
+    list(APPEND FFmpeg_CROSS_COMPILE_LIBS
+        -lc
+        -lkernel
+        -lSceUserService
+        -lSceSysmodule
+        -lSceNet
+        -lSceLibcInternal
+    )
+    list(APPEND FFmpeg_CROSS_COMPILE_FLAGS
+        --disable-pthreads
+        --extra-cflags=${CMAKE_SYSROOT}/usr/include
+        --extra-cxxflags=${CMAKE_SYSROOT}/usr/include
+        --extra-libs="${FFmpeg_CROSS_COMPILE_LIBS}"
+    )
+elseif (PLATFORM_MANAGARM)
+    # Required for proper stuff
+    list(APPEND FFmpeg_CROSS_COMPILE_LIBS
+        -lc
+        -lm
+        -lgcc
+    )
+    list(APPEND FFmpeg_CROSS_COMPILE_FLAGS 
+        --disable-pthreads
+        --extra-libs="${FFmpeg_CROSS_COMPILE_LIBS}"
+    )
 endif()
 
 if (YUZU_USE_BUNDLED_FFMPEG)
@@ -249,8 +270,12 @@ else()
                 --enable-decoder=vp9
                 --enable-filter=yadif,scale
                 --enable-pic
-                --cc="${FFmpeg_CC}"
-                --cxx="${FFmpeg_CXX}"
+                --cc=${FFmpeg_CC}
+                --cxx=${FFmpeg_CXX}
+                --ld=${CMAKE_LINKER}
+                --extra-cflags=${CMAKE_C_FLAGS}
+                --extra-cxxflags=${CMAKE_CXX_FLAGS}
+                --extra-ldflags=${CMAKE_C_LINK_FLAGS}
                 ${FFmpeg_HWACCEL_FLAGS}
                 ${FFmpeg_CROSS_COMPILE_FLAGS}
         WORKING_DIRECTORY
