@@ -168,7 +168,8 @@ if (PLATFORM_PS4)
         --extra-libs="${FFmpeg_CROSS_COMPILE_LIBS}"
     )
 elseif (PLATFORM_MANAGARM)
-    # Required for proper stuff
+    # Required for proper stuff, otherwise truncf and cosf won't get detected
+    list(APPEND FFmpeg_CROSS_COMPILE_LIBS -lm)
     list(APPEND FFmpeg_CROSS_COMPILE_FLAGS 
         --disable-pthreads
         --extra-libs="${FFmpeg_CROSS_COMPILE_LIBS}"

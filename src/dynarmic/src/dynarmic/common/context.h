@@ -121,6 +121,9 @@
 #    elif defined(__DragonFly__)
 #        define CTX_RIP (mctx.mc_rip)
 #        define CTX_RSP (mctx.mc_rsp)
+#    elif defined(__managarm__)
+#        define CTX_RIP (mctx.__pollution(gregs)[REG_RIP])
+#        define CTX_RSP (mctx.__pollution(gregs)[REG_RSP])
 #    else
 #        error "unknown platform"
 #    endif
