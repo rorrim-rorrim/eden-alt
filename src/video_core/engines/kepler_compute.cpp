@@ -13,6 +13,7 @@
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/decoders.h"
+#include "video_core/engines/crash_guard.h"
 
 namespace Tegra::Engines {
 
@@ -97,6 +98,10 @@ void KeplerCompute::ProcessLaunch() {
     const GPUVAddr launch_desc_loc = regs.launch_desc_loc.Address();
     memory_manager.ReadBlockUnsafe(launch_desc_loc, &launch_description,
                                    LaunchParams::NUM_LAUNCH_PARAMETERS * sizeof(u32));
+
+    if (Settings::getDebugKnobAt(2) && ShouldDiscardCorruptedCompute(launch_description)) {
+        return;
+    }
     rasterizer->DispatchCompute();
 }
 
