@@ -187,10 +187,10 @@ if(MSVC)
 
     # Add this to ensure Cubeb uses the same runtime
     add_compile_options(
-        $<$<CONFIG:Debug>:/${libflag}d>
-        $<$<CONFIG:Release>:/${libflag}>
-        $<$<CONFIG:RelWithDebInfo>:/${libflag}>
-        $<$<CONFIG:MinSizeRel>:/${libflag}>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:Debug>:/${libflag}d>>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:Release>:/${libflag}>>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:RelWithDebInfo>:/${libflag}>>
+        $<$<COMPILE_LANGUAGE:C,CXX>:$<$<CONFIG:MinSizeRel>:/${libflag}>>
     )
 endif()
 
