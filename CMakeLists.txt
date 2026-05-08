@@ -78,6 +78,9 @@ cmake_dependent_option(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSV
 # non-linux bundled qt are static
 if (YUZU_USE_BUNDLED_QT AND (APPLE OR NOT UNIX))
     set(YUZU_STATIC_BUILD ON)
+    if (MSVC AND ARCHITECTURE_arm64)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
+    endif()
 endif()
 
 # TODO: does mingw need any of this anymore
