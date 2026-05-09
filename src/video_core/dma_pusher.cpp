@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -21,7 +21,7 @@
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
-[[maybe_unused]] constexpr u32 ComputeInline = 0x6D;
+constexpr u32 ComputeInline = 0x6D;
 
 DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
                      Control::ChannelState& channel_state_)
@@ -62,6 +62,8 @@ bool DmaPusher::Step() {
     }
 
     if (prefetch_size > 0) {
+        processing_dma_segment = false;
+        dma_segment_safe_read = false;
         ProcessCommands(command_list.prefetch_command_list);
         dma_pushbuffer.pop();
         return true;
@@ -78,18 +80,24 @@ bool DmaPusher::Step() {
         synced = false;
     }
 
-    if (header.size > 0 && dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
+    if (!Settings::getDebugKnobAt(1) && header.size > 0 && dma_state.method >= MacroRegistersStart && subchannels[dma_state.subchannel]) {
         subchannels[dma_state.subchannel]->current_dirty = memory_manager.IsMemoryDirty(dma_state.dma_get, header.size * sizeof(u32));
     }
 
     if (header.size > 0) {
-        if (Settings::IsDMALevelDefault() ? (Settings::IsGPULevelMedium() || Settings::IsGPULevelHigh()) : Settings::IsDMALevelSafe()) {
+        processing_dma_segment = true;
+        dma_segment_safe_read = Settings::IsDMALevelDefault()
+                                ? !Settings::IsGPULevelLow()
+                                : Settings::IsDMALevelSafe();
+        if (dma_segment_safe_read) {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::SafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
         } else {
             Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader, Tegra::Memory::GuestMemoryFlags::UnsafeRead>headers(memory_manager, dma_state.dma_get, header.size, &command_headers);
             ProcessCommands(headers);
         }
+        processing_dma_segment = false;
+        dma_segment_safe_read = false;
     }
 
     if (++dma_pushbuffer_subindex >= command_list_size) {
@@ -117,7 +125,19 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             auto const& command_header = commands[index]; //must ref (MUltiMethod re)
             dma_state.dma_word_offset = u32(index * sizeof(u32));
             const u32 max_write = u32(std::min<std::size_t>(index + dma_state.method_count, commands.size()) - index);
-            CallMultiMethod(&command_header.argument, max_write);
+            const auto engine = subchannel_type[dma_state.subchannel];
+            const bool is_kepler_payload = engine == Engines::EngineTypes::KeplerCompute && dma_state.method == ComputeInline;
+            const bool is_macro_payload = engine == Engines::EngineTypes::Maxwell3D && dma_state.method >= MacroRegistersStart;
+            const bool refresh_payload = !dma_segment_safe_read && processing_dma_segment && (is_kepler_payload || is_macro_payload);
+            if (refresh_payload && Settings::getDebugKnobAt(1)) {
+                const GPUVAddr payload_addr = dma_state.dma_get + dma_state.dma_word_offset;
+                Tegra::Memory::GpuGuestMemory<Tegra::CommandHeader,
+                                              Tegra::Memory::GuestMemoryFlags::SafeRead>
+                    payload(memory_manager, payload_addr, max_write, &refreshed_command_payload);
+                CallMultiMethod(&payload[0].argument, max_write);
+            } else {
+                CallMultiMethod(&command_header.argument, max_write);
+            }
             dma_state.method_count -= max_write;
             dma_state.is_last_call = true;
             index += max_write;

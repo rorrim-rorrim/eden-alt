@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -157,6 +157,8 @@ private:
 
     Common::ScratchBuffer<CommandHeader>
         command_headers; ///< Buffer for list of commands fetched at once
+    Common::ScratchBuffer<CommandHeader>
+        refreshed_command_payload; ///< Buffer for small payload refreshes inside unsafe DMA segments
 
     std::queue<CommandList> dma_pushbuffer; ///< Queue of command lists to be processed
     std::size_t dma_pushbuffer_subindex{};  ///< Index within a command list within the pushbuffer
@@ -174,6 +176,8 @@ private:
 
     DmaState dma_state{};
     bool dma_increment_once{};
+    bool processing_dma_segment{};
+    bool dma_segment_safe_read{};
 
     const bool ib_enable{true}; ///< IB mode enabled
 
