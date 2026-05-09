@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/settings.h"
-#include "core/game_settings.h"
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"
 #include "shader_recompiler/frontend/ir/modifiers.h"
@@ -345,10 +344,10 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
 } // Anonymous namespace
 
 bool FragmentShaderNeedsRescalingPass(const IR::Program& program) {
-    // Only apply for Luigi's Mansion 3
-    if (Settings::values.program_id != static_cast<std::uint64_t>(Core::GameSettings::TitleID::LuigisMansion3)) {
-        return false;
-    }
+#ifdef __ANDROID__
+    // Disable this workaround on Android to preserve performance
+    return false;
+#endif
 
     if (program.stage != Stage::Fragment) return false;
 
