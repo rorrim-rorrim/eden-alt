@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <cstring>
 #include <vector>
@@ -43,6 +44,40 @@ static_assert(sizeof(MODHeader) == 0x1c, "MODHeader has incorrect size.");
 
 constexpr u32 PageAlignSize(u32 size) {
     return static_cast<u32>((size + Core::Memory::YUZU_PAGEMASK) & ~Core::Memory::YUZU_PAGEMASK);
+}
+
+constexpr u64 PaperMarioTTYDProgramId = 0x0100ECD018EBE000ULL;
+constexpr u32 PaperMarioTTYDTrapOffset = 0x112F50;
+
+bool IsPaperMarioTTYD(u64 program_id) {
+    return (program_id & ~0xFFFULL) == PaperMarioTTYDProgramId;
+}
+
+void ApplyPaperMarioTTYDWorkaround(const Kernel::KProcess& process, std::string_view module_name,
+                                   std::span<u8> image, size_t module_start) {
+    static constexpr std::array<u8, 8> kTrapThenRet{
+        0xFE, 0xDE, 0xFF, 0xE7, 0xC0, 0x03, 0x5F, 0xD6,
+    };
+    static constexpr std::array<u8, 4> kNop{
+        0x1F, 0x20, 0x03, 0xD5,
+    };
+
+    if (!IsPaperMarioTTYD(process.GetProgramId()) || module_name != "sdk") {
+        return;
+    }
+
+    const size_t trap_offset = module_start + PaperMarioTTYDTrapOffset;
+    if (trap_offset + kTrapThenRet.size() > image.size()) {
+        return;
+    }
+
+    if (!std::equal(kTrapThenRet.begin(), kTrapThenRet.end(), image.begin() + trap_offset)) {
+        return;
+    }
+
+    std::copy(kNop.begin(), kNop.end(), image.begin() + trap_offset);
+    LOG_WARNING(Loader, "Applied Paper Mario TTYD boot workaround for {:016X} at nnSdk+{:#x}",
+                process.GetProgramId(), PaperMarioTTYDTrapOffset);
 }
 } // Anonymous namespace
 
@@ -148,6 +183,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::
 
         std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), patchable_section.data());
     }
+
+    ApplyPaperMarioTTYDWorkaround(process, name, codeset.memory, module_start);
 
 #ifdef HAS_NCE
     // If we are computing the process code layout and using nce backend, patch.
