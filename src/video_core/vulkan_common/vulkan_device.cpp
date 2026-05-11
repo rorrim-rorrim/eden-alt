@@ -486,11 +486,21 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        // Qualcomm Adreno GPUs doesn't handle scaled vertex attributes; keep emulation enabled
+        // Qualcomm doesn't handle scaled vertex attributes
         must_emulate_scaled_formats = true;
         LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers require scaled vertex format emulation; forcing fallback");
-
+                    "Qualcomm drivers require scaled vertex format emulation");
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm has slow push descriptors, disabling VK_KHR_push_descriptor");
+        RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+        
+        if (!features.shader_float16_int8.shaderFloat16) {
+        LOG_WARNING(Render_Vulkan,
+                        "Qualcomm has broken VK_EXT_sampler_filter_minmax");
+        RemoveExtension(extensions.sampler_filter_minmax,
+                            VK_EXT_SAMPLER_FILTER_MINMAX_EXTENSION_NAME);
+        has_broken_cube_compatibility = true;
+        }
         LOG_WARNING(Render_Vulkan,
                     "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
