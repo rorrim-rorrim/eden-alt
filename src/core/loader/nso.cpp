@@ -76,7 +76,7 @@ void ApplyPaperMarioTTYDWorkaround(const Kernel::KProcess& process, std::string_
     }
 
     std::copy(kNop.begin(), kNop.end(), image.begin() + trap_offset);
-    LOG_WARNING(Loader, "Applied Paper Mario TTYD boot workaround for {:016X} at nnSdk+{:#x}",
+    LOG_WARNING(Loader, "Applied Paper Mario TTYD crash workaround for {:016X} at nnSdk+{:#x}",
                 process.GetProgramId(), PaperMarioTTYDTrapOffset);
 }
 } // Anonymous namespace
