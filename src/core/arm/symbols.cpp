@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -52,12 +55,6 @@ static Symbols GetSymbols(F&& ReadBytes) {
         ReadBytes(&ret, index, sizeof(u8));
         return ret;
     };
-    const auto Read32 = [&](u64 index) {
-        u32 ret;
-        ReadBytes(&ret, index, sizeof(u32));
-        return ret;
-    };
-
     ModuleHeaderLocation loc{};
     ReadBytes(&loc, 0, sizeof(ModuleHeaderLocation));
     ModuleHeader hdr;
