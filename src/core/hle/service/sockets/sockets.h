@@ -69,6 +69,7 @@ enum class Protocol : u32 {
     ICMP = 1,
     TCP = 6,
     UDP = 17,
+    SCTP = 132,
 };
 
 enum class SocketLevel : u32 {

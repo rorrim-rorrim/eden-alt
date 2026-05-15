@@ -326,52 +326,37 @@ Errno GetAndLogLastError(CallType call_type = CallType::Other) {
 
 GetAddrInfoError TranslateGetAddrInfoErrorFromNative(int gai_err) {
     switch (gai_err) {
-    case 0:
-        return GetAddrInfoError::SUCCESS;
+    case 0: return GetAddrInfoError::SUCCESS;
+    case EAI_AGAIN: return GetAddrInfoError::AGAIN;
+    case EAI_BADFLAGS: return GetAddrInfoError::BADFLAGS;
+    case EAI_FAIL: return GetAddrInfoError::FAIL;
+    case EAI_FAMILY: return GetAddrInfoError::FAMILY;
+    case EAI_MEMORY: return GetAddrInfoError::MEMORY;
+    case EAI_NONAME: return GetAddrInfoError::NONAME;
+    case EAI_SERVICE: return GetAddrInfoError::SERVICE;
+    case EAI_SOCKTYPE: return GetAddrInfoError::SOCKTYPE;
+    // These codes may not be defined on all systems:
 #ifdef EAI_ADDRFAMILY
-    case EAI_ADDRFAMILY:
-        return GetAddrInfoError::ADDRFAMILY;
+    case EAI_ADDRFAMILY: return GetAddrInfoError::ADDRFAMILY;
 #endif
-    case EAI_AGAIN:
-        return GetAddrInfoError::AGAIN;
-    case EAI_BADFLAGS:
-        return GetAddrInfoError::BADFLAGS;
-    case EAI_FAIL:
-        return GetAddrInfoError::FAIL;
-    case EAI_FAMILY:
-        return GetAddrInfoError::FAMILY;
-    case EAI_MEMORY:
-        return GetAddrInfoError::MEMORY;
-    case EAI_NONAME:
-        return GetAddrInfoError::NONAME;
-    case EAI_SERVICE:
-        return GetAddrInfoError::SERVICE;
-    case EAI_SOCKTYPE:
-        return GetAddrInfoError::SOCKTYPE;
-        // These codes may not be defined on all systems:
 #ifdef EAI_SYSTEM
-    case EAI_SYSTEM:
-        return GetAddrInfoError::SYSTEM;
+    case EAI_SYSTEM: return GetAddrInfoError::SYSTEM;
 #endif
 #ifdef EAI_BADHINTS
-    case EAI_BADHINTS:
-        return GetAddrInfoError::BADHINTS;
+    case EAI_BADHINTS: return GetAddrInfoError::BADHINTS;
 #endif
 #ifdef EAI_PROTOCOL
-    case EAI_PROTOCOL:
-        return GetAddrInfoError::PROTOCOL;
+    case EAI_PROTOCOL: return GetAddrInfoError::PROTOCOL;
 #endif
 #ifdef EAI_OVERFLOW
-    case EAI_OVERFLOW:
-        return GetAddrInfoError::OVERFLOW_;
+    case EAI_OVERFLOW: return GetAddrInfoError::OVERFLOW_;
 #endif
     default:
 #ifdef EAI_NODATA
         // This can't be a case statement because it would create a duplicate
         // case on Windows where EAI_NODATA is an alias for EAI_NONAME.
-        if (gai_err == EAI_NODATA) {
+        if (gai_err == EAI_NODATA)
             return GetAddrInfoError::NODATA;
-        }
 #endif
         return GetAddrInfoError::OTHER;
     }
@@ -405,14 +390,10 @@ Type TranslateTypeFromNative(int type) {
     switch (type) {
     case 0:
         return Type::Unspecified;
-    case SOCK_STREAM:
-        return Type::STREAM;
-    case SOCK_DGRAM:
-        return Type::DGRAM;
-    case SOCK_RAW:
-        return Type::RAW;
-    case SOCK_SEQPACKET:
-        return Type::SEQPACKET;
+    case SOCK_STREAM: return Type::STREAM;
+    case SOCK_DGRAM: return Type::DGRAM;
+    case SOCK_RAW: return Type::RAW;
+    case SOCK_SEQPACKET: return Type::SEQPACKET;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return Type::STREAM;
@@ -423,26 +404,135 @@ int TranslateTypeToNative(Type type) {
     switch (type) {
     case Type::Unspecified:
         return 0;
-    case Type::STREAM:
-        return SOCK_STREAM;
-    case Type::DGRAM:
-        return SOCK_DGRAM;
-    case Type::RAW:
-        return SOCK_RAW;
+    case Type::STREAM: return SOCK_STREAM;
+    case Type::DGRAM: return SOCK_DGRAM;
+    case Type::RAW: return SOCK_RAW;
+    case Type::SEQPACKET: return SOCK_SEQPACKET;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return 0;
     }
 }
 
+#define NETWORK_PROTOCOL_TRANSLATE_LIST \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RAW) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPV4) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ST) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RCCMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NVPII) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PUP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ARGUS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EMCON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(XNET) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CHAOS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MUX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MEAS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PRM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TRUNK1) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TRUNK2) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LEAF1) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LEAF2) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IRTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BLT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(INP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DCCP) \
+    /*NETWORK_PROTOCOL_TRANSLATE_ELEM(3PC)*/ \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDPR) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(XTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DDP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TPXX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IL) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SDRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ROUTING) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(FRAGMENT) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IDRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RSVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GRE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MHRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BHA) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ESP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(INLSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SWIPE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NHRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MOBILE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TLSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SKIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ICMPV6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(NONE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DSTOPTS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AHIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CFTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HELLO) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SATEXPAK) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(KRYPTOLAN) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(RVD) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPPC) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ADFS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SATMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VISA) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPCV) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CPNX) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CPHB) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WSN) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PVP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(BRSATMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ND) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WBMON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(WBEXPAK) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(EON) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SVMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(VINES) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(DGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(TCF) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IGRP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(OSPFIGP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SRPC) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(LARP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(AX25) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPEIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MICP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCCSP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ETHERIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(ENCAP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(APES) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(GMTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(IPCOMP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MH) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(UDPLITE) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(HIP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(SHIM6) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PIM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(CARP) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PGM) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(MPLS) \
+    NETWORK_PROTOCOL_TRANSLATE_ELEM(PFSYNC)
+
 Protocol TranslateProtocolFromNative(int protocol) {
     switch (protocol) {
-    case 0:
-        return Protocol::Unspecified;
-    case IPPROTO_TCP:
-        return Protocol::TCP;
-    case IPPROTO_UDP:
-        return Protocol::UDP;
+#define NETWORK_PROTOCOL_TRANSLATE_ELEM(x) case IPPROTO_##x: return Protocol::x;
+    NETWORK_PROTOCOL_TRANSLATE_LIST
+#undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return Protocol::Unspecified;
@@ -451,12 +541,9 @@ Protocol TranslateProtocolFromNative(int protocol) {
 
 int TranslateProtocolToNative(Protocol protocol) {
     switch (protocol) {
-    case Protocol::Unspecified:
-        return 0;
-    case Protocol::TCP:
-        return IPPROTO_TCP;
-    case Protocol::UDP:
-        return IPPROTO_UDP;
+#define NETWORK_PROTOCOL_TRANSLATE_ELEM(x) case Protocol::x: return IPPROTO_##x;
+    NETWORK_PROTOCOL_TRANSLATE_LIST
+#undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return 0;
@@ -464,14 +551,10 @@ int TranslateProtocolToNative(Protocol protocol) {
 }
 
 SockAddrIn TranslateToSockAddrIn(sockaddr_in input, size_t input_len) {
-    SockAddrIn result;
-
+    SockAddrIn result{};
     result.family = TranslateDomainFromNative(input.sin_family);
-
     result.portno = ntohs(input.sin_port);
-
     result.ip = TranslateIPv4(input.sin_addr);
-
     return result;
 }
 
