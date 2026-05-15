@@ -12,20 +12,13 @@
 #define OperationMode 1
 #define EdgeThreshold 8.0/255.0
 // #define EdgeSharpness 2.0
-// #define UseUniformBlock
 
-#if defined(UseUniformBlock)
 layout( push_constant ) uniform constants {
     highp vec4 ViewportInfo[1];
     highp vec2 ResizeFactor;
     highp float EdgeSharpness;
 };
 layout(set = 0, binding = 0) uniform mediump sampler2D ps0;
-#else
-uniform highp vec4 ViewportInfo[1];
-uniform mediump sampler2D ps0;
-#endif
-
 layout(location=0) in highp vec2 in_TEXCOORD0;
 layout(location=0) out vec4 out_Target0;
 

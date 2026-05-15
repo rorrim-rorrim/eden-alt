@@ -27,11 +27,11 @@ SGSR::SGSR(const Device& device, MemoryAllocator& memory_allocator, size_t image
     // Not finished yet initializing at ctor time?
     m_dynamic_images.resize(m_image_count);
     for (auto& images : m_dynamic_images) {
-        images.images[0] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        images.image_views[0] = CreateWrappedImageView(m_device, images.images[0], VK_FORMAT_R16G16B16A16_SFLOAT);
+        images.images[0] = CreateWrappedImage(m_memory_allocator, m_extent, VK_FORMAT_B8G8R8A8_UNORM);
+        images.image_views[0] = CreateWrappedImageView(m_device, images.images[0], VK_FORMAT_B8G8R8A8_UNORM);
     }
 
-    m_renderpass = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
+    m_renderpass = CreateWrappedRenderPass(m_device, VK_FORMAT_B8G8R8A8_UNORM);
     for (auto& images : m_dynamic_images)
         images.framebuffers[0] = CreateWrappedFramebuffer(m_device, m_renderpass, images.image_views[0], m_extent);
 
@@ -78,9 +78,8 @@ void SGSR::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
 void SGSR::UploadImages(Scheduler& scheduler) {
     if (!m_images_ready) {
         scheduler.Record([&](vk::CommandBuffer cmdbuf) {
-            for (auto& image : m_dynamic_images) {
+            for (auto& image : m_dynamic_images)
                 ClearColorImage(cmdbuf, *image.images[0]);
-            }
         });
         scheduler.Finish();
         m_images_ready = true;
@@ -131,9 +130,7 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
         BeginRenderPass(cmdbuf, renderpass, stage0_framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, stage0_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, stage0_descriptor_set, {});
-        cmdbuf.PushConstants(pipeline_layout,
-                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                     viewport_con);
+        cmdbuf.PushConstants(pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, viewport_con);
         cmdbuf.Draw(3, 1, 0, 0);
         cmdbuf.EndRenderPass();
         TransitionImageLayout(cmdbuf, stage0_image, VK_IMAGE_LAYOUT_GENERAL);
