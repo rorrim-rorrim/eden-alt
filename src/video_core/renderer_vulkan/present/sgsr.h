@@ -31,16 +31,16 @@ private:
     vk::DescriptorSetLayout m_descriptor_set_layout;
     vk::PipelineLayout m_pipeline_layout;
     vk::ShaderModule m_vert_shader;
-    std::array<vk::ShaderModule, SGSR_STAGE_COUNT> m_stage_shader;
-    std::array<vk::Pipeline, SGSR_STAGE_COUNT> m_stage_pipeline;
+    vk::ShaderModule m_stage_shader;
+    vk::Pipeline m_stage_pipeline;
     vk::RenderPass m_renderpass;
     vk::Sampler m_sampler;
 
     struct Images {
         vk::DescriptorSets descriptor_sets;
-        std::array<vk::Image, SGSR_STAGE_COUNT> images;
-        std::array<vk::ImageView, SGSR_STAGE_COUNT> image_views;
-        std::array<vk::Framebuffer, SGSR_STAGE_COUNT> framebuffers;
+        vk::Image image;
+        vk::ImageView image_view;
+        vk::Framebuffer framebuffer;
     };
     std::vector<Images> m_dynamic_images;
     bool m_images_ready{};
