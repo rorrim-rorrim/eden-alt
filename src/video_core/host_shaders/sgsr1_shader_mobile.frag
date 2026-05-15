@@ -10,8 +10,9 @@ precision highp int;
 #define OPERATION_MODE 1
 #define EDGE_THRESHOLD (8.0 / 255.0)
 
-layout( push_constant ) uniform constants {
-    vec4 viewport[1];
+layout(push_constant) uniform constants {
+    vec2 scale;
+    vec2 size;
     vec2 resize_factor;
     float edge_sharpness;
 };
@@ -27,48 +28,45 @@ vec4 weightY(vec4 dx, vec4 dy, vec4 std) {
 void main() {
     vec4 color = textureLod(sampler0, texcoord.xy, 0.0f);
     // image coord
-    vec2 icoord = ((texcoord.xy * viewport[0].zw) + vec2(-0.5f, 0.5f));
+    vec2 icoord = (texcoord * size + vec2(-0.5f, 0.5f));
     vec2 icoord_pixel = floor(icoord);
-    vec2 coord = icoord_pixel * viewport[0].xy;
+    vec2 coord = icoord_pixel * scale;
     vec2 pl = icoord - icoord_pixel;
-    vec4 left = textureGather(sampler0, coord, 1);
-    float edgeVote = abs(left.z - left.y) + abs(color[1] - left.y)  + abs(color[1] - left.z);
+    // left: 0, right: 1, upDown: 2
+    mat3x4 dg = mat3x4(
+        textureGather(sampler0, coord, 1),
+        textureGather(sampler0, coord + vec2(2.f * scale.x, 0.0f), 1),
+        vec4(
+            textureGather(sampler0, coord + vec2(scale.x, -scale.y), 1).wz,
+            textureGather(sampler0, coord + vec2(scale.x, +scale.y), 1).yx
+        )
+    );
+    float edgeVote = abs(dg[0].z - dg[0].y) + abs(color.y - dg[0].y) + abs(color.y - dg[0].z);
     if (edgeVote > EDGE_THRESHOLD) {
-        coord.x += viewport[0].x;
-        vec4 right = textureGather(sampler0, coord + vec2(viewport[0].x, 0.0f), 1);
-        vec4 upDown = vec4(
-            textureGather(sampler0, coord + vec2(0.0f, -viewport[0].y), 1).wz,
-            textureGather(sampler0, coord + vec2(0.0f, +viewport[0].y), 1).yx
-        );
-        float mean = (left.y + left.z + right.x + right.w) * 0.25f;
-        left = left - vec4(mean);
-        right = right - vec4(mean);
-        upDown = upDown - vec4(mean);
-        color.w = color[1] - mean;
-
-        vec4 sum = abs(left) + abs(right) + abs(upDown);
+        float mean = (dg[0].y + dg[0].z + dg[1].x + dg[1].w) * 0.25f;
+        dg = dg - mean;
+        vec4 sum = abs(dg[0]) + abs(dg[1]) + abs(dg[2]);
         float std = 2.181818f / (sum.x + sum.y + sum.z + sum.w);
-
         mat2x4 w = mat2x4(
             weightY(
-                pl.xxxx + vec4(+0.0f, -1.0f, -1.0f, +0.0f),
-                pl.yyyy + vec4(+1.0f, +1.0f, -2.0f, -2.0f),
-                clamp(abs(upDown) * std, 0.0f, 1.0f)
-            ) + weightY(
                 pl.xxxx + vec4(+1.0f, +0.0f, +0.0f, +1.0f),
                 pl.yyyy + vec4(-1.0f, -1.0f, +0.0f, +0.0f),
-                clamp(abs(left) * std, 0.0f, 1.0f)
+                clamp(abs(dg[0]) * std, 0.0f, 1.0f)
             ) + weightY(
                 pl.xxxx + vec4(-1.0f, -2.0f, -2.0f, -1.0f),
                 pl.yyyy + vec4(-1.0f, -1.0f, +0.0f, +0.0f),
-                clamp(abs(right) * std, 0.0f, 1.0f)
+                clamp(abs(dg[1]) * std, 0.0f, 1.0f)
+            ) + weightY(
+                pl.xxxx + vec4(+0.0f, -1.0f, -1.0f, +0.0f),
+                pl.yyyy + vec4(+1.0f, +1.0f, -2.0f, -2.0f),
+                clamp(abs(dg[2]) * std, 0.0f, 1.0f)
             ),
-            upDown + left + right
+            dg[0] + dg[1] + dg[2]
         );
         // compute final y with bounds
         vec2 yb = vec2(
-            min(min(left.y, left.z), min(right.x, right.w)), // min
-            max(max(left.y, left.z), max(right.x, right.w))  // max
+            min(min(dg[0].y, dg[0].z), min(dg[1].x, dg[1].w)), // min
+            max(max(dg[0].y, dg[0].z), max(dg[1].x, dg[1].w))  // max
         );
         vec2 fvy = vec2(
             w[0].x + w[0].y + w[0].z + w[0].w,
@@ -76,7 +74,7 @@ void main() {
         );
         float fy = clamp((fvy.y / fvy.x) * edge_sharpness, yb[0], yb[1]);
         // Smooth high contrast input
-        float dy = clamp(fy - color.w, -23.0f / 255.0f, 23.0f / 255.0f);
+        float dy = clamp(fy - color.y + mean, -23.0f / 255.0f, 23.0f / 255.0f);
         color = clamp(color + dy, 0.0f, 1.0f);
     }
     color.w = 1.0f;  //assume alpha channel is not used

@@ -101,8 +101,8 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
 
     const f32 input_image_width = f32(input_image_extent.width);
     const f32 input_image_height = f32(input_image_extent.height);
-    const f32 viewport_width = f32(crop_rect.right - crop_rect.left) * input_image_width;
-    const f32 viewport_height = f32(crop_rect.bottom - crop_rect.top) * input_image_height;
+    const f32 viewport_width = (crop_rect.right - crop_rect.left) * input_image_width;
+    const f32 viewport_height = (crop_rect.bottom - crop_rect.top) * input_image_height;
     // expected [0, 2]
     const f32 sharpening = f32(Settings::values.fsr_sharpening_slider.GetValue()) / 100.0f;
 
@@ -114,10 +114,10 @@ VkImageView SGSR::Draw(Scheduler& scheduler, size_t image_index, VkImage source_
     //     highp float EdgeSharpness;
     // };
     PushConstants viewport_con{};
-    viewport_con[0] = std::bit_cast<u32>(1.f / viewport_width);
-    viewport_con[1] = std::bit_cast<u32>(1.f / viewport_height);
-    viewport_con[2] = std::bit_cast<u32>(viewport_width);
-    viewport_con[3] = std::bit_cast<u32>(viewport_height);
+    viewport_con[0] = std::bit_cast<u32>(std::abs(1.f / viewport_width));
+    viewport_con[1] = std::bit_cast<u32>(std::abs(1.f / viewport_height));
+    viewport_con[2] = std::bit_cast<u32>(std::abs(viewport_width));
+    viewport_con[3] = std::bit_cast<u32>(std::abs(viewport_height));
     viewport_con[4] = std::bit_cast<u32>(viewport_width / input_image_width);
     viewport_con[5] = std::bit_cast<u32>(viewport_height / input_image_height);
     viewport_con[6] = std::bit_cast<u32>(sharpening);
