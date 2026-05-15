@@ -31,7 +31,11 @@ BlitScreen::~BlitScreen() = default;
 
 void BlitScreen::WaitIdle() {
     present_manager.WaitPresent();
-    void(device.GetLogical().WaitIdle());
+    scheduler.Finish();
+    {
+        std::scoped_lock lock{scheduler.submit_mutex};
+        device.GetLogical().WaitIdle();
+    }
 }
 
 void BlitScreen::SetWindowAdaptPass() {
