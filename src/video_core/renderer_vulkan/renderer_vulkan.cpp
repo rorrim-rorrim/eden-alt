@@ -172,11 +172,7 @@ try
 
 RendererVulkan::~RendererVulkan() {
     scheduler.RegisterOnSubmit([] {});
-    scheduler.Finish();
-    {
-        std::scoped_lock lock{scheduler.submit_mutex};
-        void(device.GetLogical().WaitIdle());
-    }
+    void(device.GetLogical().WaitIdle());
 }
 
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
