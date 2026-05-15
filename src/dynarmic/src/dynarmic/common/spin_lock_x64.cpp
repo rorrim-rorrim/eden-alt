@@ -40,10 +40,15 @@ void EmitSpinLockLock(Xbyak::CodeGenerator& code, Xbyak::Address ptr, Xbyak::Reg
 
         // XBYAK BUG: code.umonitor(ptr); see issue #255
         // replace once xbyak has been fixed
-        code.db(0xF3);
-        if (ptr.getIdx() >= 8) code.db(0x41);
-        code.db(0x0F); code.db(0xAE);
-        code.db(uint8_t((3 << 6) | ((6 & 7) << 3) | (ptr.getIdx() & 7)));
+        if (ptr.isREG()) {
+            code.db(0xF3);
+            if (ptr.getIdx() >= 8) code.db(0x41);
+            code.db(0x0F); code.db(0xAE);
+            code.db(uint8_t((3 << 6) | ((6 & 7) << 3) | (ptr.getIdx() & 7)));
+        } else {
+            code.mov(Xbyak::util::rax, ptr);
+            code.umonitor(Xbyak::util::rax);
+        }
 
         // tmp.bit[0] = 0: C0.1 | Slow Wakup | Better Savings
         // tmp.bit[0] = 1: C0.2 | Fast Wakup | Lesser Savings
