@@ -156,12 +156,13 @@ public:
 
         ReserveHostQuery();
 
+        scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([query_pool = current_query_pool,
-                          query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+                  query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
             cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
             cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
-                              use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
+                      use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
 
         has_started = true;
@@ -221,8 +222,7 @@ public:
         }
         PauseCounter();
         const auto driver_id = device.GetDriverID();
-        if (driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY ||
-            driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        if (driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
             pending_sync.clear();
             sync_values_stash.clear();
             return;
