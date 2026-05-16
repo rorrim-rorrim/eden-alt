@@ -155,17 +155,15 @@ public:
         }
 
         ReserveHostQuery();
-        
-        {
-            const VkQueryPool qp = current_query_pool;
-            const u32 qi = static_cast<u32>(current_bank_slot);
-            device.GetLogical().ResetQueryPool(qp, qi, 1);
-            scheduler.Record([query_pool = qp, query_index = qi](vk::CommandBuffer cmdbuf) {
-                const bool use_precise = Settings::IsGPULevelHigh();
-                cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
-                                  use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
-            });
-        }
+
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([query_pool = current_query_pool,
+                  query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+            const bool use_precise = Settings::IsGPULevelHigh();
+            cmdbuf.ResetQueryPool(query_pool, static_cast<u32>(query_index), 1);
+            cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
+                      use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
+        });
 
         has_started = true;
     }
