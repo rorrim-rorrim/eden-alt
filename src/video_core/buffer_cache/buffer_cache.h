@@ -324,6 +324,7 @@ void BufferCache<P>::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr
     const std::optional<DAddr> device_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     const Binding binding{
         .device_addr = *device_addr,
+        .gpu_addr = gpu_addr,
         .size = size,
         .buffer_id = BufferId{},
     };
@@ -940,12 +941,23 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
             return alignment > 1 && (offset % alignment) != 0;
         }
     }();
-    const bool use_fast_buffer = needs_alignment_stream
-        || (has_host_buffer && size <= channel_state->uniform_buffer_skip_cache_size
-            && !memory_tracker.IsRegionGpuModified(device_addr, size));
+    const bool has_gpu_range = binding.gpu_addr != 0 && size != 0;
+    const bool gpu_fully_mapped =
+        has_gpu_range && gpu_memory->IsFullyMappedRange(binding.gpu_addr, size);
+    const bool gpu_continuous =
+        gpu_fully_mapped && gpu_memory->IsContinuousRange(binding.gpu_addr, size);
+    const bool needs_virtual_uniform_stream =
+        has_gpu_range && (!gpu_fully_mapped || !gpu_continuous);
+    const bool region_gpu_modified =
+        has_host_buffer && memory_tracker.IsRegionGpuModified(device_addr, size);
+    const bool use_fast_buffer = needs_alignment_stream ||
+                                 needs_virtual_uniform_stream ||
+                                 (has_host_buffer &&
+                                  size <= channel_state->uniform_buffer_skip_cache_size &&
+                                  !region_gpu_modified);
     if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
-            if (runtime.HasFastBufferSubData()) {
+            if (!needs_virtual_uniform_stream && runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia
                 const bool should_fast_bind =
                     !HasFastUniformBufferBound(stage, binding_index) ||
@@ -1254,8 +1266,13 @@ void BufferCache<P>::UpdateIndexBuffer() {
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
     const u32 draw_size =
         (index_buffer_ref.count + index_buffer_ref.first) * index_buffer_ref.FormatSizeInBytes();
-    const u32 size = (std::min)(address_size, draw_size);
+    u32 size = (std::min)(address_size, draw_size);
     if (size == 0 || !device_addr) {
+        channel_state->index_buffer = NULL_BINDING;
+        return;
+    }
+    size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
+    if (size == 0) {
         channel_state->index_buffer = NULL_BINDING;
         return;
     }
@@ -1296,9 +1313,7 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
         UpdateVertexBufferSlot(index, NULL_BINDING);
         return;
     }
-    if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end) || size >= 64_MiB) {
         size = static_cast<u32>(gpu_memory->MaxContinuousRange(gpu_addr_begin, size));
-    }
     const BufferId buffer_id = FindBuffer(*device_addr, size);
     const Binding binding{
         .device_addr = *device_addr,

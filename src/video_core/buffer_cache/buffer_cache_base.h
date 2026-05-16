@@ -81,6 +81,7 @@ static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = static_cast<u32>(4_KiB);
 
 struct Binding {
     DAddr device_addr{};
+    GPUVAddr gpu_addr{};
     u32 size{};
     BufferId buffer_id;
 };
@@ -91,6 +92,7 @@ struct TextureBufferBinding : Binding {
 
 static constexpr Binding NULL_BINDING{
     .device_addr = 0,
+    .gpu_addr = 0,
     .size = 0,
     .buffer_id = NULL_BUFFER_ID,
 };
