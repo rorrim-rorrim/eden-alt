@@ -22,9 +22,17 @@
 
 namespace Tegra::Engines {
 
-void Puller::ProcessBindMethod(DmaPusher& dma_pusher, const MethodCall& method_call) {
+Puller::Puller(GPU& gpu_, MemoryManager& memory_manager_, DmaPusher& dma_pusher_,
+               Control::ChannelState& channel_state_)
+    : gpu{gpu_}, memory_manager{memory_manager_}, dma_pusher{dma_pusher_}, channel_state{
+                                                                               channel_state_} {}
+
+Puller::~Puller() = default;
+
+void Puller::ProcessBindMethod(const MethodCall& method_call) {
     // Bind the current subchannel to the desired engine id.
-    LOG_DEBUG(HW_GPU, "Binding subchannel {} to engine {}", method_call.subchannel, method_call.argument);
+    LOG_DEBUG(HW_GPU, "Binding subchannel {} to engine {}", method_call.subchannel,
+              method_call.argument);
     const auto engine_id = static_cast<EngineID>(method_call.argument);
     bound_engines[method_call.subchannel] = engine_id;
     switch (engine_id) {
@@ -52,15 +60,15 @@ void Puller::ProcessBindMethod(DmaPusher& dma_pusher, const MethodCall& method_c
     }
 }
 
-void Puller::ProcessFenceActionMethod(DmaPusher& dma_pusher) {
+void Puller::ProcessFenceActionMethod() {
     switch (regs.fence_action.op) {
     case Puller::FenceOperation::Acquire:
         // UNIMPLEMENTED_MSG("Channel Scheduling pending.");
         // WaitFence(regs.fence_action.syncpoint_id, regs.fence_value);
-        dma_pusher.rasterizer->ReleaseFences();
+        rasterizer->ReleaseFences();
         break;
     case Puller::FenceOperation::Increment:
-        dma_pusher.rasterizer->SignalSyncPoint(regs.fence_action.syncpoint_id);
+        rasterizer->SignalSyncPoint(regs.fence_action.syncpoint_id);
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented operation {}", regs.fence_action.op.Value());
@@ -68,35 +76,37 @@ void Puller::ProcessFenceActionMethod(DmaPusher& dma_pusher) {
     }
 }
 
-void Puller::ProcessSemaphoreTriggerMethod(DmaPusher& dma_pusher) {
+void Puller::ProcessSemaphoreTriggerMethod() {
     const auto semaphoreOperationMask = 0xF;
-    const auto op = GpuSemaphoreOperation(regs.semaphore_trigger & semaphoreOperationMask);
+    const auto op =
+        static_cast<GpuSemaphoreOperation>(regs.semaphore_trigger & semaphoreOperationMask);
     if (op == GpuSemaphoreOperation::WriteLong) {
         const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
         const u32 payload = regs.semaphore_sequence;
-        dma_pusher.rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload, VideoCommon::QueryPropertiesFlags::HasTimeout, payload, 0);
+        rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload,
+                          VideoCommon::QueryPropertiesFlags::HasTimeout, payload, 0);
     } else {
         do {
-            const u32 word = dma_pusher.memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
+            const u32 word{memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress())};
             regs.acquire_source = true;
             regs.acquire_value = regs.semaphore_sequence;
             if (op == GpuSemaphoreOperation::AcquireEqual) {
                 regs.acquire_active = true;
                 regs.acquire_mode = false;
                 if (word != regs.acquire_value) {
-                    dma_pusher.rasterizer->ReleaseFences();
+                    rasterizer->ReleaseFences();
                     continue;
                 }
             } else if (op == GpuSemaphoreOperation::AcquireGequal) {
                 regs.acquire_active = true;
                 regs.acquire_mode = true;
                 if (word < regs.acquire_value) {
-                    dma_pusher.rasterizer->ReleaseFences();
+                    rasterizer->ReleaseFences();
                     continue;
                 }
             } else if (op == GpuSemaphoreOperation::AcquireMask) {
                 if (word && regs.semaphore_sequence == 0) {
-                    dma_pusher.rasterizer->ReleaseFences();
+                    rasterizer->ReleaseFences();
                     continue;
                 }
             } else {
@@ -106,20 +116,21 @@ void Puller::ProcessSemaphoreTriggerMethod(DmaPusher& dma_pusher) {
     }
 }
 
-void Puller::ProcessSemaphoreRelease(DmaPusher& dma_pusher) {
+void Puller::ProcessSemaphoreRelease() {
     const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
     const u32 payload = regs.semaphore_release;
-    dma_pusher.rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload, VideoCommon::QueryPropertiesFlags::IsAFence, payload, 0);
+    rasterizer->Query(sequence_address, VideoCommon::QueryType::Payload,
+                      VideoCommon::QueryPropertiesFlags::IsAFence, payload, 0);
 }
 
-void Puller::ProcessSemaphoreAcquire(DmaPusher& dma_pusher) {
-    u32 word = dma_pusher.memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
+void Puller::ProcessSemaphoreAcquire() {
+    u32 word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
     const auto value = regs.semaphore_acquire;
     while (word != value) {
         regs.acquire_active = true;
         regs.acquire_value = value;
-        dma_pusher.rasterizer->ReleaseFences();
-        word = dma_pusher.memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
+        rasterizer->ReleaseFences();
+        word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
         // TODO(kemathe73) figure out how to do the acquire_timeout
         regs.acquire_mode = false;
         regs.acquire_source = false;
@@ -127,13 +138,13 @@ void Puller::ProcessSemaphoreAcquire(DmaPusher& dma_pusher) {
 }
 
 /// Calls a GPU puller method.
-void Puller::CallPullerMethod(DmaPusher& dma_pusher, const MethodCall& method_call) {
+void Puller::CallPullerMethod(const MethodCall& method_call) {
     regs.reg_array[method_call.method] = method_call.argument;
     const auto method = static_cast<BufferMethods>(method_call.method);
 
     switch (method) {
     case BufferMethods::BindObject: {
-        ProcessBindMethod(dma_pusher, method_call);
+        ProcessBindMethod(method_call);
         break;
     }
     case BufferMethods::Nop:
@@ -144,16 +155,16 @@ void Puller::CallPullerMethod(DmaPusher& dma_pusher, const MethodCall& method_ca
     case BufferMethods::WrcacheFlush:
         break;
     case BufferMethods::RefCnt:
-        dma_pusher.rasterizer->SignalReference();
+        rasterizer->SignalReference();
         break;
     case BufferMethods::SyncpointOperation:
-        ProcessFenceActionMethod(dma_pusher);
+        ProcessFenceActionMethod();
         break;
     case BufferMethods::WaitForIdle:
-        dma_pusher.rasterizer->WaitForIdle();
+        rasterizer->WaitForIdle();
         break;
     case BufferMethods::SemaphoreOperation: {
-        ProcessSemaphoreTriggerMethod(dma_pusher);
+        ProcessSemaphoreTriggerMethod();
         break;
     }
     case BufferMethods::NonStallInterrupt: {
@@ -166,7 +177,7 @@ void Puller::CallPullerMethod(DmaPusher& dma_pusher, const MethodCall& method_ca
     }
     case BufferMethods::MemOpB: {
         // Implement this better.
-        dma_pusher.rasterizer->InvalidateGPUCache();
+        rasterizer->InvalidateGPUCache();
         break;
     }
     case BufferMethods::MemOpC:
@@ -175,11 +186,11 @@ void Puller::CallPullerMethod(DmaPusher& dma_pusher, const MethodCall& method_ca
         break;
     }
     case BufferMethods::SemaphoreAcquire: {
-        ProcessSemaphoreAcquire(dma_pusher);
+        ProcessSemaphoreAcquire();
         break;
     }
     case BufferMethods::SemaphoreRelease: {
-        ProcessSemaphoreRelease(dma_pusher);
+        ProcessSemaphoreRelease();
         break;
     }
     case BufferMethods::Yield: {
@@ -194,8 +205,9 @@ void Puller::CallPullerMethod(DmaPusher& dma_pusher, const MethodCall& method_ca
 }
 
 /// Calls a GPU engine method.
-void Puller::CallEngineMethod(DmaPusher& dma_pusher, const MethodCall& method_call) {
+void Puller::CallEngineMethod(const MethodCall& method_call) {
     const EngineID engine = bound_engines[method_call.subchannel];
+
     switch (engine) {
     case EngineID::FERMI_TWOD_A:
         dma_pusher.channel_state.payload->fermi_2d.CallMethod(dma_pusher.system, method_call.method, method_call.argument, method_call.IsLastCall());
@@ -222,8 +234,10 @@ void Puller::CallEngineMethod(DmaPusher& dma_pusher, const MethodCall& method_ca
 }
 
 /// Calls a GPU engine multivalue method.
-void Puller::CallEngineMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending) {
+void Puller::CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                                   u32 methods_pending) {
     const EngineID engine = bound_engines[subchannel];
+
     switch (engine) {
     case EngineID::FERMI_TWOD_A:
         dma_pusher.channel_state.payload->fermi_2d.CallMultiMethod(dma_pusher.system, method, base_start, amount, methods_pending);
@@ -250,26 +264,31 @@ void Puller::CallEngineMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subcha
 }
 
 /// Calls a GPU method.
-void Puller::CallMethod(DmaPusher& dma_pusher, const MethodCall& method_call) {
-    LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method_call.method, method_call.subchannel);
+void Puller::CallMethod(const MethodCall& method_call) {
+    LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method_call.method,
+              method_call.subchannel);
+
     ASSERT(method_call.subchannel < bound_engines.size());
 
-    if (ExecuteMethodOnEngine(dma_pusher, method_call.method)) {
-        CallEngineMethod(dma_pusher, method_call);
+    if (ExecuteMethodOnEngine(method_call.method)) {
+        CallEngineMethod(method_call);
     } else {
-        CallPullerMethod(dma_pusher, method_call);
+        CallPullerMethod(method_call);
     }
 }
 
 /// Calls a GPU multivalue method.
-void Puller::CallMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending) {
+void Puller::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                             u32 methods_pending) {
     LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method, subchannel);
+
     ASSERT(subchannel < bound_engines.size());
-    if (ExecuteMethodOnEngine(dma_pusher, method)) {
-        CallEngineMultiMethod(dma_pusher, method, subchannel, base_start, amount, methods_pending);
+
+    if (ExecuteMethodOnEngine(method)) {
+        CallEngineMultiMethod(method, subchannel, base_start, amount, methods_pending);
     } else {
         for (u32 i = 0; i < amount; i++) {
-            CallPullerMethod(dma_pusher, MethodCall{
+            CallPullerMethod(MethodCall{
                 method,
                 base_start[i],
                 subchannel,
@@ -279,9 +298,13 @@ void Puller::CallMultiMethod(DmaPusher& dma_pusher, u32 method, u32 subchannel, 
     }
 }
 
+void Puller::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
+}
+
 /// Determines where the method should be executed.
-[[nodiscard]] bool Puller::ExecuteMethodOnEngine(DmaPusher& dma_pusher, u32 method) {
-    const auto buffer_method = BufferMethods(method);
+[[nodiscard]] bool Puller::ExecuteMethodOnEngine(u32 method) {
+    const auto buffer_method = static_cast<BufferMethods>(method);
     return buffer_method >= BufferMethods::NonPullerMethods;
 }
 
