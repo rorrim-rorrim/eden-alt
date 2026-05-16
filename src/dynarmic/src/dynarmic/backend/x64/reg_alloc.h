@@ -14,7 +14,7 @@
 
 #include "boost/container/small_vector.hpp"
 #include "common/common_types.h"
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 #include <boost/container/static_vector.hpp>
 #include <boost/container/flat_set.hpp>
 #include <boost/pool/pool_alloc.hpp>

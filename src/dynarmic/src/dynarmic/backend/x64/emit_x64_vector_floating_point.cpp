@@ -15,7 +15,7 @@
 #include "common/assert.h"
 #include "dynarmic/mcl/function_info.hpp"
 #include "dynarmic/mcl/integer_of_size.hpp"
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/block_of_code.h"

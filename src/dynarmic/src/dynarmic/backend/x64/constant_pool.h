@@ -15,7 +15,7 @@
 
 #include "common/common_types.h"
 #include <ankerl/unordered_dense.h>
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 
 namespace Dynarmic::Backend::X64 {
 

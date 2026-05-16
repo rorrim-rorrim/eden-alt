@@ -20,7 +20,7 @@
 #include <boost/container/stable_vector.hpp>
 #include <boost/container/small_vector.hpp>
 
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 #include "dynarmic/mcl/bit.hpp"
 #include "dynarmic/backend/exception_handler.h"
 #include "dynarmic/backend/x64/reg_alloc.h"

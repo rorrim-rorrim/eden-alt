@@ -15,7 +15,7 @@
 
 #include "dynarmic/mcl/bit.hpp"
 #include "common/common_types.h"
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/callback.h"
 #include "dynarmic/backend/x64/constant_pool.h"

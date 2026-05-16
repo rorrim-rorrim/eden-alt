@@ -14,7 +14,7 @@
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 
 TEST_CASE("Host CPU supports", "[a64]") {
     using Cpu = Xbyak::util::Cpu;

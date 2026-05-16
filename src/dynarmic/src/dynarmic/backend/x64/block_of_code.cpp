@@ -26,7 +26,7 @@
 
 #include "common/assert.h"
 #include "dynarmic/mcl/bit.hpp"
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
 #include "dynarmic/backend/x64/abi.h"

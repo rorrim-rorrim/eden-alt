@@ -15,7 +15,7 @@
 #include "dynarmic/backend/x64/hostloc.h"
 #include "common/assert.h"
 #include <bit>
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 
 #include "dynarmic/backend/x64/abi.h"
 #include "dynarmic/backend/x64/reg_alloc.h"

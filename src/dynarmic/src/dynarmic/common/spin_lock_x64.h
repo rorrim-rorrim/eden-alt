@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "dynarmic/backend/x64/xbyak.h"
+#include "common/x64/xbyak.h"
 
 namespace Dynarmic {
 
