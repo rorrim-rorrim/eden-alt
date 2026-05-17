@@ -751,8 +751,6 @@ endif()
 if (YUZU_INSTALL_UDEV_RULES)
     include(GNUInstallDirs)
 
-    set(YUZU_UDEV_RULES_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/udev/rules.d"
-        CACHE STRING "Directory to install udev rules to" FORCE)
     install(FILES "dist/72-eden-input.rules"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/udev/rules.d")
 endif()
