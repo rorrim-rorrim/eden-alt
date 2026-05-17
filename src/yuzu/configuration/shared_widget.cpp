@@ -160,6 +160,10 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
 
     serializer = [this, enumeration]() {
         int current = combobox->currentIndex();
+        if (current > int(enumeration->size())) {
+            LOG_WARNING(Frontend, "Invalid enum {}", current);
+            current = 0;
+        }
         return std::to_string(enumeration->at(current).first);
     };
 
@@ -169,10 +173,8 @@ QWidget* Widget::CreateCombobox(std::function<std::string()>& serializer,
     };
 
     if (!Settings::IsConfiguringGlobal()) {
-        combobox->connect(combobox, QOverload<int>::of(&QComboBox::activated),
-                          [touch]() { touch(); });
+        combobox->connect(combobox, QOverload<int>::of(&QComboBox::activated), [touch]() { touch(); });
     }
-
     return combobox;
 }
 
