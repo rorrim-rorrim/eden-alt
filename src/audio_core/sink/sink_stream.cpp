@@ -177,10 +177,8 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             queued_buffers.store(0);
             release_cv.notify_one();
         }
-
-        static constexpr std::array<s16, 6> silence{};
         for (size_t i = 0; i < num_frames; i++)
-            std::memcpy(&output_buffer[i * frame_size], silence.data(), frame_size_bytes);
+            std::memset(&output_buffer[i * frame_size], 0, frame_size_bytes);
         return;
     }
 
