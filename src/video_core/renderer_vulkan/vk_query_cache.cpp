@@ -846,7 +846,7 @@ public:
         scheduler.RequestOutsideRenderPassOperationContext();
         scheduler.Record([](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
+                                   vk::PIPELINE_STAGE_HOST, 0, WRITE_BARRIER);
         });
 
         std::scoped_lock lk(flush_guard);
@@ -1587,13 +1587,13 @@ void QueryCacheRuntime::Barriers(bool is_prebarrier) {
     impl->scheduler.RequestOutsideRenderPassOperationContext();
     if (is_prebarrier) {
         impl->scheduler.Record([](vk::CommandBuffer cmdbuf) {
-            cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER,
                                    VK_PIPELINE_STAGE_TRANSFER_BIT, 0, READ_BARRIER);
         });
     } else {
         impl->scheduler.Record([](vk::CommandBuffer cmdbuf) {
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, WRITE_BARRIER);
+                                   vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER_HOST, 0, WRITE_BARRIER);
         });
     }
 }

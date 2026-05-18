@@ -146,6 +146,18 @@ inline VkResult Filter(VkResult result) {
     return result;
 }
 
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_GRAPHICS_COMPUTE =
+    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER =
+    PIPELINE_STAGE_GRAPHICS_COMPUTE | VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER_HOST =
+    PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER | VK_PIPELINE_STAGE_HOST_BIT;
+
+inline constexpr VkPipelineStageFlags PIPELINE_STAGE_HOST = VK_PIPELINE_STAGE_HOST_BIT;
+
+
 /// Table holding Vulkan instance function pointers.
 struct InstanceDispatch {
     PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr{};
