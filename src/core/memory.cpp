@@ -58,9 +58,9 @@ struct Memory::Impl {
 
 #ifdef __ANDROID__
         heap_tracker.emplace(system.DeviceMemory().buffer);
-        buffer = std::addressof(*heap_tracker);
+        host_buffer = std::addressof(*heap_tracker);
 #else
-        buffer = std::addressof(system.DeviceMemory().buffer);
+        host_buffer = std::addressof(system.DeviceMemory().buffer);
 #endif
     }
 
@@ -75,8 +75,7 @@ struct Memory::Impl {
                  Common::PageType::Memory);
 
         if (current_page_table->fastmem_arena) {
-            buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms,
-                        separate_heap);
+            host_buffer->Map(GetInteger(base), GetInteger(target) - DramMemoryMap::Base, size, perms, separate_heap);
         }
     }
 
@@ -88,7 +87,7 @@ struct Memory::Impl {
                  Common::PageType::Unmapped);
 
         if (current_page_table->fastmem_arena) {
-            buffer->Unmap(GetInteger(base), size, separate_heap);
+            host_buffer->Unmap(GetInteger(base), size, separate_heap);
         }
     }
 
@@ -107,7 +106,7 @@ struct Memory::Impl {
             switch (page_type) {
             case Common::PageType::RasterizerCachedMemory:
                 if (protect_bytes > 0) {
-                    buffer->Protect(protect_begin, protect_bytes, perms);
+                    host_buffer->Protect(protect_begin, protect_bytes, perms);
                     protect_bytes = 0;
                 }
                 break;
@@ -119,7 +118,7 @@ struct Memory::Impl {
         }
 
         if (protect_bytes > 0) {
-            buffer->Protect(protect_begin, protect_bytes, perms);
+            host_buffer->Protect(protect_begin, protect_bytes, perms);
         }
     }
 
@@ -398,7 +397,7 @@ struct Memory::Impl {
         if (current_page_table->fastmem_arena) {
             const auto perm{debug ? Common::MemoryPermission{}
                                   : Common::MemoryPermission::ReadWrite};
-            buffer->Protect(vaddr, size, perm);
+            host_buffer->Protect(vaddr, size, perm);
         }
 
         // Iterate over a contiguous CPU address space, marking/unmarking the region.
@@ -458,7 +457,7 @@ struct Memory::Impl {
             if (!cached) {
                 perm |= Common::MemoryPermission::Write;
             }
-            buffer->Protect(vaddr, size, perm);
+            host_buffer->Protect(vaddr, size, perm);
         }
 
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
@@ -770,9 +769,9 @@ struct Memory::Impl {
     std::mutex sys_core_guard;
 #ifdef __ANDROID__
     std::optional<Common::HeapTracker> heap_tracker;
-    Common::HeapTracker* buffer{};
+    Common::HeapTracker* host_buffer{};
 #else
-    Common::HostMemory* buffer{};
+    Common::HostMemory* host_buffer{};
 #endif
 };
 
@@ -977,7 +976,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
 
 #ifdef __ANDROID__
     if (!rasterizer && mapped) {
-        impl->buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
+        impl->host_buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
     }
 #endif
 
@@ -986,7 +985,7 @@ bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
 
 bool Memory::InvalidateSeparateHeap(void* fault_address) {
 #ifdef __ANDROID__
-    return impl->buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
+    return impl->host_buffer->DeferredMapSeparateHeap(static_cast<u8*>(fault_address));
 #else
     return false;
 #endif
