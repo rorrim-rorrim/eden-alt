@@ -591,6 +591,8 @@ struct Values {
     SwitchableSetting<bool> gpu_unswizzle_enabled{linkage, false, "gpu_unswizzle_enabled",
                                                   Category::RendererHacks};
 
+    SwitchableSetting<bool> legacy_descriptor_indices{linkage, true, "legacy_descriptor_indices", Category::RendererHacks};
+
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined(ANDROID)
                                            ExtendedDynamicState::Disabled,
