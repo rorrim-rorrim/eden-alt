@@ -462,7 +462,7 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         .secondary_offset = 0,
         .secondary_shift_left = 0,
         .dynamic_offset = dynamic_offset,
-        .count = Settings::values.legacy_descriptor_indices.GetValue() ? 8 : DynamicDescriptorCount(base_offset, size_shift),
+        .count = DynamicDescriptorCount(base_offset, size_shift),
         .has_secondary = false,
     };
 }
@@ -735,8 +735,6 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
         }
         u32 index;
         u32 size_shift = cbuf.count > 1 ? DynamicDescriptorSizeShift(cbuf.dynamic_offset) : DESCRIPTOR_SIZE_SHIFT;
-        if (Settings::values.legacy_descriptor_indices.GetValue())
-            size_shift = DESCRIPTOR_SIZE_SHIFT;
         u32 count = cbuf.count;
         switch (inst->GetOpcode()) {
         case IR::Opcode::ImageRead:
