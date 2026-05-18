@@ -1443,7 +1443,8 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
     const u32 resolve_size = compare_to_zero ? 8 : 24;
     {
         std::scoped_lock lk(impl->buffer_cache.mutex);
-        const auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
+        const auto sync_info = compare_to_zero ? VideoCommon::ObtainBufferSynchronize::FullSynchronize
+                                               : VideoCommon::ObtainBufferSynchronize::NoSynchronize;
         const auto post_op = VideoCommon::ObtainBufferOperation::DoNothing;
         const auto [buffer, offset] =
             impl->buffer_cache.ObtainCPUBuffer(address, resolve_size, sync_info, post_op);
