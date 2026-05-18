@@ -462,7 +462,7 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         .secondary_offset = 0,
         .secondary_shift_left = 0,
         .dynamic_offset = dynamic_offset,
-        .count = Settings::values.legacy_descriptor_indices.GetValue() ? 8 : DynamicDescriptorCount(base_offset, size_shift),
+        .count = DynamicDescriptorCount(base_offset, size_shift),
         .has_secondary = false,
     };
 }
