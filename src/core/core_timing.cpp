@@ -78,7 +78,7 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
                                     Common::Windows::SleepForOneTick();
                                 } else {
 #ifdef ARCHITECTURE_x86_64
-                                    Common::X64::MicroSleep();
+                                    Common::X64::MicroSleep(wait_time);
 #else
                                     std::this_thread::yield();
 #endif

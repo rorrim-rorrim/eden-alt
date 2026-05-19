@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include "common/common_types.h"
+
 namespace Common::X64 {
 
-void MicroSleep();
+void MicroSleep(u64 rem);
 
 } // namespace Common::X64
