@@ -38,8 +38,8 @@ void MicroSleep(u64 rem) {
         constexpr auto EnableWaitTimeFlag = 1U << 1;
         constexpr auto RequestC1State = 0U;
         // monitor_var should be aligned to a cache line.
-        alignas(64) u64 monitor_var{};
-        _mm_monitorx(&monitor_var, 0, 0);
+        alignas(64) static const u64 monitor_var{};
+        _mm_monitorx(const_cast<u64*>(std::addressof(monitor_var)), 0, 0);
         _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, cycles);
     } else {
         std::this_thread::yield();
