@@ -5831,22 +5831,22 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="106"/>
         <source>Delete all data in this directory. THIS IS 100% IRREVERSABLE!</source>
-        <translation type="unfinished"/>
+        <translation>Deletar todos os dados nesse diretório. ISSO É 100% IRREVERSÍVEL!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="142"/>
         <source>Export all data in this directory. This may take a while!</source>
-        <translation type="unfinished"/>
+        <translation>Exportar todos dados desse diretório. Isso pode levar um tempo!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_widget.ui" line="178"/>
         <source>Import data for this directory. This may take a while, and will delete ALL EXISTING DATA!</source>
-        <translation type="unfinished"/>
+        <translation>Importar todos os dados para esse diretório. Isso pode levar um tempo, e vai deletar TODOS OS DADOS JÁ EXISTENTES!</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/data_dialog.cpp" line="91"/>
         <source>Calculating...</source>
-        <translation type="unfinished"/>
+        <translation>Calculando...</translation>
     </message>
 </context>
 <context>
@@ -5869,12 +5869,12 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/deps_dialog.cpp" line="22"/>
         <source>Dependency</source>
-        <translation type="unfinished"/>
+        <translation>Dependência</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/deps_dialog.cpp" line="22"/>
         <source>Version</source>
-        <translation type="unfinished"/>
+        <translation>Versão</translation>
     </message>
 </context>
 <context>
@@ -5938,27 +5938,27 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="11"/>
         <source>Username is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="unfinished"/>
+        <translation>O Nome de Usuário não é válido. Deve conter entre 4 à 20 caracteres alfanuméricos.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="13"/>
         <source>Room name is not valid. Must be 4 to 20 alphanumeric characters.</source>
-        <translation type="unfinished"/>
+        <translation>Nome de Sala não é válido. Deve conter entre 4 à 20 caracteres alfanuméricos.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="15"/>
         <source>Username is already in use or not valid. Please choose another.</source>
-        <translation type="unfinished"/>
+        <translation>Nome de Usuário já está em uso ou não é válido. Por favor, escolha outro.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="17"/>
         <source>IP is not a valid IPv4 address.</source>
-        <translation type="unfinished"/>
+        <translation>IP não é um endereço válido IPv4.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="19"/>
         <source>Port must be a number between 0 to 65535.</source>
-        <translation type="unfinished"/>
+        <translation>O Número de Port deve ser entre 0 até 65535.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="20"/>
@@ -5968,7 +5968,7 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="24"/>
         <source>Unable to find an internet connection. Check your internet settings.</source>
-        <translation type="unfinished"/>
+        <translation>Não foi possível achar uma conexão de Internet. Cheque suas configurações de Internet.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="26"/>
@@ -5978,7 +5978,7 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="30"/>
         <source>Unable to connect to the room because it is already full.</source>
-        <translation type="unfinished"/>
+        <translation>Não foi possível conectar na sala porque já está cheia.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="32"/>
@@ -5988,7 +5988,7 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="34"/>
         <source>The host of the room has banned you. Speak with the host to unban you or try a different room.</source>
-        <translation type="unfinished"/>
+        <translation>O Anfitrião da sala te baniu. Fale com o Anfitrião para que ele retire seu banimento ou tente uma sala diferente.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="37"/>
@@ -5998,49 +5998,51 @@ Arrasta os pontos para mudar a posição, ou dá duplo-clique nas células da ta
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="39"/>
         <source>Incorrect password.</source>
-        <translation type="unfinished"/>
+        <translation>Senha Incorreta.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="40"/>
         <source>An unknown error occurred. If this error continues to occur, please open an issue</source>
-        <translation type="unfinished"/>
+        <translation>Um erro desconhecido ocorreu. Se isso continuar a prosseguir, por favor, abra uma &quot;Issue&quot; em nosso repositório e reporte</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="43"/>
         <source>Connection to room lost. Try to reconnect.</source>
-        <translation type="unfinished"/>
+        <translation>Conexão com a Sala foi perdida. Tentando Reconectar.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="45"/>
         <source>You have been kicked by the room host.</source>
-        <translation type="unfinished"/>
+        <translation>Você foi chutado da Sala do Anfitrião.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="47"/>
         <source>IP address is already in use. Please choose another.</source>
-        <translation type="unfinished"/>
+        <translation>Endereço IP já está em uso. Por favor, escolha outro.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="49"/>
         <source>You do not have enough permission to perform this action.</source>
-        <translation type="unfinished"/>
+        <translation>Você não tem permissão o suficiente para fazer essa ação.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="50"/>
         <source>The user you are trying to kick/ban could not be found.
 They may have left the room.</source>
-        <translation type="unfinished"/>
+        <translation>O Usuário que você está tentar Chutar/Banir não pode ser encontrado.
+Ele deve ter saído da Sala.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="52"/>
         <source>No valid network interface is selected.
 Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
-        <translation type="unfinished"/>
+        <translation>Nenhuma Interface de Rede foi selecionada.
+Por favor vá para Configuração -&gt; Sistema -&gt; Rede e selecione.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/multiplayer/message.cpp" line="63"/>
         <source>Error</source>
-        <translation type="unfinished"/>
+        <translation>Erro</translation>
     </message>
 </context>
 <context>
@@ -6059,7 +6061,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1029"/>
         <source>Eden has not been compiled with OpenGL support.</source>
-        <translation type="unfinished"/>
+        <translation>Eden não foi compilado com suporte a OpenGL.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1053"/>
@@ -6091,7 +6093,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/bootmanager.cpp" line="1083"/>
         <source>This build doesn&apos;t have OpenGL support.</source>
-        <translation type="unfinished"/>
+        <translation>Essa build não suporte a OpenGL.</translation>
     </message>
 </context>
 <context>
@@ -6184,12 +6186,12 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="741"/>
         <source>Manage Play Time</source>
-        <translation type="unfinished"/>
+        <translation>Gerenciar Tempo de Jogo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="742"/>
         <source>Edit Play Time Data</source>
-        <translation type="unfinished"/>
+        <translation>Editar Dados do Tempo de Jogo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="743"/>
@@ -6240,7 +6242,7 @@ Please go to Configure -&gt; System -&gt; Network and make a selection.</source>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="758"/>
         <source>Configure Game</source>
-        <translation type="unfinished"/>
+        <translation>Configurar Jogo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/game/game_list.cpp" line="857"/>
@@ -6652,12 +6654,12 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/qt_common/config/uisettings.cpp" line="61"/>
         <source>Toggle Turbo Speed</source>
-        <translation type="unfinished"/>
+        <translation>Alternar Modo Turbo</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/uisettings.cpp" line="62"/>
         <source>Toggle Slow Speed</source>
-        <translation type="unfinished"/>
+        <translation>Alternar Velocidade Lenta</translation>
     </message>
     <message>
         <location filename="../../src/qt_common/config/uisettings.cpp" line="63"/>
@@ -6945,7 +6947,7 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="205"/>
         <source>&amp;Create Home Menu Shortcut</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Criar atalho para o menu Home</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="212"/>
@@ -7016,7 +7018,7 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="321"/>
         <source>Enable Overlay Display Applet</source>
-        <translation type="unfinished"/>
+        <translation>Habilitar a Sobreposição de Display do Applet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="329"/>
@@ -7126,7 +7128,7 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="465"/>
         <source>&amp;Mii Editor</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Editor de Mii</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="470"/>
@@ -7163,12 +7165,12 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="518"/>
         <source>Install Decryption &amp;Keys</source>
-        <translation type="unfinished"/>
+        <translation>Instalar Chaves de &amp;Encriptação</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="523"/>
         <source>&amp;Home Menu</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Menu Home</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="528"/>
@@ -7178,12 +7180,12 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="533"/>
         <source>&amp;Application Menu</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Menu de Aplicativo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="538"/>
         <source>&amp;Root Data Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Pasta Raiz de Dados</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="543"/>
@@ -7193,52 +7195,52 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="548"/>
         <source>&amp;SDMC Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Pasta SDMC</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="553"/>
         <source>&amp;Mod Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Pasta de Mods</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="558"/>
         <source>&amp;Log Folder</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Pasta de Logs</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="563"/>
         <source>From Folder</source>
-        <translation type="unfinished"/>
+        <translation>Pela Pasta</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="568"/>
         <source>From ZIP</source>
-        <translation type="unfinished"/>
+        <translation>Pelo ZIP</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="573"/>
         <source>&amp;Eden Dependencies</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Dependências do Eden</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="578"/>
         <source>&amp;Data Manager</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Gestor de Dados</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="586"/>
         <source>&amp;Tree View</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Visualização em Árvore</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="594"/>
         <source>&amp;Grid View</source>
-        <translation type="unfinished"/>
+        <translation>&amp;Visualizar Grid</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="599"/>
         <source>Game Icon Size</source>
-        <translation type="unfinished"/>
+        <translation>Tamanho do Ícone do jogo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="604"/>
@@ -7250,7 +7252,7 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main.ui" line="612"/>
         <source>Show Game &amp;Name</source>
-        <translation type="unfinished"/>
+        <translation>Mostrar Nome de &amp;Jogo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main.ui" line="620"/>
@@ -7285,40 +7287,41 @@ Mensagem de Depuração: </translation>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="593"/>
         <source>Vulkan initialization failed during boot.</source>
-        <translation type="unfinished"/>
+        <translation>Inicialização do Vulkan falhou durante o boot.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="614"/>
         <source>Running a game</source>
         <extracomment>TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the computer from sleeping</extracomment>
-        <translation type="unfinished"/>
+        <translation>Rodando um jogo</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="940"/>
         <source>Loading Web Applet...</source>
-        <translation type="unfinished"/>
+        <translation>Carregando Applet Web...</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="990"/>
         <location filename="../../src/yuzu/main_window.cpp" line="993"/>
         <source>Disable Web Applet</source>
-        <translation type="unfinished"/>
+        <translation>Desativar Web Applet</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="994"/>
         <source>Disabling the web applet can lead to undefined behavior and should only be used with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?
 (This can be re-enabled in the Debug settings.)</source>
-        <translation type="unfinished"/>
+        <translation>Desativar o Applet Web pode problemas indefinidos e deverá apenas ser usando com o Super Mario 3D All-Stars. Você tem certeza que quer desativar o Applet Web?
+(Isso pode ser reativado nas Configurações de Depuração.)</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1111"/>
         <source>The amount of shaders currently being built</source>
-        <translation type="unfinished"/>
+        <translation>A Quantidade total de Shaders está sendo atualmente construída</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1113"/>
         <source>The current selected resolution scaling multiplier.</source>
-        <translation type="unfinished"/>
+        <translation>A atual multiplicação de escala de resolução selecionada.</translation>
     </message>
     <message>
         <location filename="../../src/yuzu/main_window.cpp" line="1116"/>
