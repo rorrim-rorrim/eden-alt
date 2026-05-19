@@ -268,7 +268,8 @@ Result KCapabilities::SetHandleTableCapability(const u32 cap) {
 Result KCapabilities::SetDebugFlagsCapability(const u32 cap) {
     // Validate.
     const DebugFlags pack{cap};
-    R_UNLESS(pack.reserved == 0, ResultReservedUsed);
+    // TODO: Enabling this breaks compatibility with HBloader and such
+    //R_UNLESS(pack.reserved == 0, ResultReservedUsed);
 
     DebugFlags debug_capabilities{m_debug_capabilities};
     debug_capabilities.allow_debug.Assign(pack.allow_debug);
