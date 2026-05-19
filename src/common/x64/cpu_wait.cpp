@@ -29,8 +29,8 @@ void MicroSleep(u64 rem) {
     // At 4 GHz, 100K cycles is 25us
     auto& caps = GetCPUCaps();
     u32 cycles = caps.invariant_tsc
-        ? 1'000'000U
-        : rem * (caps.tsc_frequency / 1000000ULL);
+        ? rem * (caps.tsc_frequency / 1000000ULL)
+        : 1'000'000ULL;
     if (caps.waitpkg) {
         constexpr auto RequestC02State = 0U;
         _tpause(RequestC02State, FencedRDTSC() + cycles);
