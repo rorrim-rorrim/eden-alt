@@ -16,8 +16,7 @@
 namespace Common::X64 {
 
 #ifdef __clang__
-__attribute__((target("waitpkg")))
-__attribute__((target("mwaitx")))
+__attribute__((target("waitpkg,mwaitx")))
 #elif defined(__GNUC__)
 #pragma GCC target("waitpkg")
 #pragma GCC target("mwaitx")
