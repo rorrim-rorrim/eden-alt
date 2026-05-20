@@ -1,0 +1,40 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a236839..8d98365 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -188,18 +188,23 @@ set(HTTPLIB_IS_USING_NON_BLOCKING_GETADDRINFO ${HTTPLIB_USE_NON_BLOCKING_GETADDR
+ # Threads needed for <thread> on some systems, and for <pthread.h> on Linux
+ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+ find_package(Threads REQUIRED)
+-# Since Cmake v3.11, Crypto & SSL became optional when not specified as COMPONENTS.
+-if(HTTPLIB_REQUIRE_OPENSSL)
+-	find_package(OpenSSL ${_HTTPLIB_OPENSSL_MIN_VER} COMPONENTS Crypto SSL REQUIRED)
+-	set(HTTPLIB_IS_USING_OPENSSL TRUE)
+-elseif(HTTPLIB_USE_OPENSSL_IF_AVAILABLE)
+-	find_package(OpenSSL ${_HTTPLIB_OPENSSL_MIN_VER} COMPONENTS Crypto SSL QUIET)
+-	# Avoid a rare circumstance of not finding all components but the end-user did their
+-	# own call for OpenSSL, which might trick us into thinking we'd otherwise have what we wanted
+-	if (TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
+-		set(HTTPLIB_IS_USING_OPENSSL ${OPENSSL_FOUND})
+-	else()
+-		set(HTTPLIB_IS_USING_OPENSSL FALSE)
++
++# Eden top level defines it's own custom target alias for OpenSSL...
++if (NOT TARGET OpenSSL::SSL OR NOT TARGET OpenSSL::Crypto)
++	add_subdirectory(${CMAKE_SOURCE_DIR}/externals/openssl)
++	# Since Cmake v3.11, Crypto & SSL became optional when not specified as COMPONENTS.
++	if(HTTPLIB_REQUIRE_OPENSSL)
++		#find_package(OpenSSL ${_HTTPLIB_OPENSSL_MIN_VER} COMPONENTS Crypto SSL REQUIRED)
++		set(HTTPLIB_IS_USING_OPENSSL TRUE)
++	elseif(HTTPLIB_USE_OPENSSL_IF_AVAILABLE)
++		#find_package(OpenSSL ${_HTTPLIB_OPENSSL_MIN_VER} COMPONENTS Crypto SSL QUIET)
++		# Avoid a rare circumstance of not finding all components but the end-user did their
++		# own call for OpenSSL, which might trick us into thinking we'd otherwise have what we wanted
++		if (TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
++			set(HTTPLIB_IS_USING_OPENSSL ${OPENSSL_FOUND})
++		else()
++			set(HTTPLIB_IS_USING_OPENSSL FALSE)
++		endif()
+ 	endif()
+ endif()
+ 

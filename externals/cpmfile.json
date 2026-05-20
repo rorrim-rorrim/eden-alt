@@ -33,7 +33,8 @@
         "find_args": "MODULE GLOBAL",
         "patches": [
             "0001-mingw.patch",
-            "0002-fix-zstd.patch"
+            "0002-fix-zstd.patch",
+            "0003-openssl.patch"
         ],
         "options": [
             "HTTPLIB_REQUIRE_OPENSSL ON",
