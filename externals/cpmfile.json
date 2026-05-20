@@ -101,15 +101,6 @@
         "git_version": "1.3.18",
         "find_args": "MODULE"
     },
-    "spirv-headers": {
-        "package": "SPIRV-Headers",
-        "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "04f10f650d",
-        "hash": "cae8cd179c9013068876908fecc1d158168310ad6ac250398a41f0f5206ceff6469e2aaeab9c820bce9d1b08950c725c89c46e94b89a692be9805432cf749396",
-        "options": [
-            "SPIRV_WERROR OFF"
-        ]
-    },
     "cubeb": {
         "repo": "mozilla/cubeb",
         "sha": "fa02160712",
