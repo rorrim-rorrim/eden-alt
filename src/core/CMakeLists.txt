@@ -1167,6 +1167,8 @@ add_library(core STATIC
     tools/renderdoc.cpp
     tools/renderdoc.h)
 
+# httplib must be linked before anything because openssl-external
+target_link_libraries(core PRIVATE httplib::httplib)
 if (ENABLE_WIFI_SCAN)
     target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
     if (PLATFORM_LINUX)
@@ -1220,7 +1222,7 @@ target_link_libraries(core PRIVATE
     RenderDoc::API
     ZLIB::ZLIB)
 
-target_link_libraries(core PUBLIC httplib::httplib zstd::zstd)
+target_link_libraries(core PUBLIC zstd::zstd)
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PUBLIC ENABLE_WEB_SERVICE)
