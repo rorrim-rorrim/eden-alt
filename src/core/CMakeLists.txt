@@ -1167,8 +1167,6 @@ add_library(core STATIC
     tools/renderdoc.cpp
     tools/renderdoc.h)
 
-# httplib must be linked before anything because openssl-external
-target_link_libraries(core PRIVATE httplib::httplib)
 if (ENABLE_WIFI_SCAN)
     target_sources(core PRIVATE internal_network/wifi_scanner.cpp)
     if (PLATFORM_LINUX)
@@ -1208,7 +1206,9 @@ else()
 endif()
 
 target_include_directories(core PRIVATE ${OPUS_INCLUDE_DIRS})
-target_link_libraries(core PUBLIC common PRIVATE audio_core hid_core network video_core nx_tzdb tz)
+target_link_libraries(core
+    PUBLIC common
+    PRIVATE audio_core hid_core network video_core nx_tzdb tz)
 
 if (BOOST_NO_HEADERS)
     target_link_libraries(core PUBLIC Boost::container Boost::heap Boost::asio Boost::process Boost::crc)

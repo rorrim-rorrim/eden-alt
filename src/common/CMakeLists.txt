@@ -151,7 +151,7 @@ add_library(
     net/net.h net/net.cpp)
 
 # httplib must be put first otherwise external-openssl builds won't work
-target_link_libraries(common PRIVATE httplib::httplib)
+target_link_libraries(common PUBLIC httplib::httplib)
 if(WIN32)
     target_sources(common PRIVATE windows/timer_resolution.cpp
         windows/timer_resolution.h)
