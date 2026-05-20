@@ -150,13 +150,13 @@ add_library(
     httplib.h
     net/net.h net/net.cpp)
 
+# httplib must be put first otherwise external-openssl builds won't work
+target_link_libraries(common PRIVATE httplib::httplib)
 if(WIN32)
     target_sources(common PRIVATE windows/timer_resolution.cpp
         windows/timer_resolution.h)
     target_link_libraries(common PRIVATE ntdll)
-endif()
-
-if(NOT WIN32)
+else()
     target_sources(common PRIVATE signal_chain.cpp signal_chain.h)
 endif()
 
@@ -239,7 +239,7 @@ else()
     target_link_libraries(common PUBLIC Boost::headers)
 endif()
 
-target_link_libraries(common PUBLIC Boost::filesystem Boost::context httplib::httplib nlohmann_json::nlohmann_json)
+target_link_libraries(common PUBLIC Boost::filesystem Boost::context nlohmann_json::nlohmann_json)
 
 if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)

@@ -1,5 +1,13 @@
 {
     "openssl": {
+        "package": "OpenSSL",
+        "name": "openssl",
+        "repo": "openssl/openssl",
+        "tag": "openssl-%VERSION%",
+        "version": "4.0.0",
+        "git_version": "4.0.0"
+    },
+    "openssl-ci": {
         "ci": true,
         "package": "OpenSSL",
         "name": "openssl",

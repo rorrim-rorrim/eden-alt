@@ -66,6 +66,10 @@ if (YUZU_STATIC_ROOM)
     set(fmt_FORCE_BUNDLED ON)
 endif()
 
+if (YUZU_USE_EXTERNAL_OPENSSL)
+    set(httplib_FORCE_BUNDLED ON)
+endif()
+
 # qt stuff
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
@@ -206,6 +210,10 @@ endif()
 # ffmpeg
 option(YUZU_USE_BUNDLED_FFMPEG "Download bundled FFmpeg" ${EXT_DEFAULT})
 cmake_dependent_option(YUZU_USE_EXTERNAL_FFMPEG "Build FFmpeg from external source" "${PLATFORM_SUN}" "NOT WIN32 AND NOT ANDROID" OFF)
+
+# openssl
+option(YUZU_USE_BUNDLED_OPENSSL "Download bundled OpenSSL" ON)
+option(YUZU_USE_EXTERNAL_OPENSSL "Build OpenSSL from external source" OFF)
 
 # sirit
 set(BUNDLED_SIRIT_DEFAULT OFF)
@@ -378,17 +386,6 @@ find_package(Threads REQUIRED)
 
 find_package(RenderDoc MODULE)
 
-# openssl funniness
-if (YUZU_USE_BUNDLED_OPENSSL)
-    set(BUILD_SHARED_LIBS OFF)
-    AddJsonPackage(openssl)
-    if (OpenSSL_ADDED)
-        add_compile_definitions(YUZU_BUNDLED_OPENSSL)
-    endif()
-endif()
-
-find_package(OpenSSL 3 REQUIRED)
-
 message(STATUS "Fetching needed dependencies with CPM")
 
 set(BUILD_SHARED_LIBS OFF)
@@ -423,6 +420,9 @@ if (Boost_ADDED)
         )
     endif()
 endif()
+
+# OpenSSL
+add_subdirectory(externals/openssl)
 
 # fmt
 AddJsonPackage(fmt)
