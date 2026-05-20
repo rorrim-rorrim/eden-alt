@@ -32,6 +32,8 @@
 #include <mach/mach.h>
 #elif defined(__FreeBSD__)
 #include <sys/shm.h>
+#elif defined(__OPENORBIS__)
+#include <orbis/libkernel.h>
 #endif
 
 // FreeBSD
@@ -391,6 +393,9 @@ private:
     ankerl::unordered_dense::map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
+#elif defined(__OPENORBIS__) || defined(__managarm__)
+// None of the luxuries of POSIX, all of the suffering
+// For managarm: see https://github.com/managarm/managarm/issues/1370
 #else // ^^^ Windows ^^^ vvv POSIX vvv
 
 #ifdef ARCHITECTURE_arm64
@@ -507,7 +512,7 @@ public:
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
 #elif defined(__FreeBSD__)
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__managarm__)
         // macOS doesn't have memfd_create, use anonymous temporary file
         char template_path[] = "/tmp/eden_mem_XXXXXX";
         fd = mkstemp(template_path);
@@ -669,17 +674,47 @@ private:
 
 #endif // ^^^ POSIX ^^^
 
-HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_) : backing_size(backing_size_), virtual_size(virtual_size_) {
-    // Try to allocate a fastmem arena.
-    // The implementation will fail with std::bad_alloc on errors.
-    impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment), AlignUp(virtual_size, PageAlignment) + HugePageSize);
-    backing_base = impl->backing_base;
-    virtual_base = impl->virtual_base;
-    if (virtual_base) {
-        // Ensure the virtual base is aligned to the L2 block size.
-        virtual_base = reinterpret_cast<u8*>(Common::AlignUp(uintptr_t(virtual_base), HugePageSize));
-        virtual_base_offset = virtual_base - impl->virtual_base;
+HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
+    : backing_size(backing_size_)
+    , virtual_size(virtual_size_)
+{
+#if defined(__OPENORBIS__) || defined(__managarm__)
+    LOG_WARNING(HW_Memory, "Platform doesn't support fastmem");
+    fallback_buffer.emplace(backing_size);
+    backing_base = fallback_buffer->data();
+    virtual_base = nullptr;
+#else
+    bool has_memfd = true; // all platforms support it
+#ifdef _WIN32
+    // EXCEPT WINDOWS who may not (Windows 8.1, 7, Vista, etc)
+    DynamicLibrary kernelbase_dll("KernelBase");
+    has_memfd = kernelbase_dll.IsOpen();
+    if (has_memfd) {
+        PFN_CreateFileMapping2 p{};
+        GetFuncAddress(kernelbase_dll, "CreateFileMapping2", p);
+        has_memfd = p != nullptr;
     }
+#endif
+    if (has_memfd) {
+        // Try to allocate a fastmem arena.
+        // The implementation will fail with std::bad_alloc on errors.
+        impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment), AlignUp(virtual_size, PageAlignment) + HugePageSize);
+        backing_base = impl->backing_base;
+        virtual_base = impl->virtual_base;
+        if (virtual_base) {
+            // Ensure the virtual base is aligned to the L2 block size.
+            virtual_base = reinterpret_cast<u8*>(Common::AlignUp(uintptr_t(virtual_base), HugePageSize));
+            virtual_base_offset = virtual_base - impl->virtual_base;
+        }
+    } else {
+        LOG_WARNING(HW_Memory, "Platform doesn't support fastmem");
+#ifdef _WIN32
+        fallback_buffer.emplace(backing_size);
+        backing_base = fallback_buffer->data();
+        virtual_base = nullptr;
+#endif
+    }
+#endif
 }
 
 HostMemory::~HostMemory() = default;
@@ -688,8 +723,8 @@ HostMemory::HostMemory(HostMemory&&) noexcept = default;
 
 HostMemory& HostMemory::operator=(HostMemory&&) noexcept = default;
 
-void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
-                     MemoryPermission perms, bool separate_heap) {
+void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length, MemoryPermission perms, bool separate_heap) {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
@@ -699,9 +734,11 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length,
         return;
     }
     impl->Map(virtual_offset + virtual_base_offset, host_offset, length, perms);
+#endif
 }
 
 void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap) {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
@@ -709,9 +746,11 @@ void HostMemory::Unmap(size_t virtual_offset, size_t length, bool separate_heap)
         return;
     }
     impl->Unmap(virtual_offset + virtual_base_offset, length);
+#endif
 }
 
 void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission perm) {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
     ASSERT(virtual_offset + length <= virtual_size);
@@ -722,6 +761,7 @@ void HostMemory::Protect(size_t virtual_offset, size_t length, MemoryPermission 
     const bool write = True(perm & MemoryPermission::Write);
     const bool execute = True(perm & MemoryPermission::Execute);
     impl->Protect(virtual_offset + virtual_base_offset, length, read, write, execute);
+#endif
 }
 
 void HostMemory::ClearBackingRegion(size_t physical_offset, size_t length, u32 fill_value) {
@@ -729,10 +769,12 @@ void HostMemory::ClearBackingRegion(size_t physical_offset, size_t length, u32 f
 }
 
 void HostMemory::EnableDirectMappedAddress() {
+#if !(defined(__OPENORBIS__) || defined(__managarm__))
     if (impl) {
         impl->EnableDirectMappedAddress();
         virtual_size += reinterpret_cast<uintptr_t>(virtual_base);
     }
+#endif
 }
 
 } // namespace Common
