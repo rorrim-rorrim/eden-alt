@@ -136,48 +136,48 @@ enum SurfaceIndex : u32 {
 
 // Note: these will inevitably collide with Win32 defines if you use their UPPER_SNAKE_CASE naming
 enum class DxvhadAlphaFillMode : u32 {
-    OPAQUE = 0,
-    BACKGROUND = 1,
-    DESTINATION = 2,
-    SOURCE_STREAM = 3,
-    COMPOSITED = 4,
-    SOURCE_ALPHA = 5,
+    Opaque = 0,
+    Background = 1,
+    Destination = 2,
+    SourceStream = 3,
+    Composited = 4,
+    SourceAlpha = 5,
 };
 
 enum class DxvhadFrameFormat : u64 {
-    PROGRESSIVE = 0,
-    INTERLACED_TOP_FIELD_FIRST = 1,
-    INTERLACED_BOTTOM_FIELD_FIRST = 2,
-    TOP_FIELD = 3,
-    BOTTOM_FIELD = 4,
-    SUBPIC_PROGRESSIVE = 5,
-    SUBPIC_INTERLACED_TOP_FIELD_FIRST = 6,
-    SUBPIC_INTERLACED_BOTTOM_FIELD_FIRST = 7,
-    SUBPIC_TOP_FIELD = 8,
-    SUBPIC_BOTTOM_FIELD = 9,
-    TOP_FIELD_CHROMA_BOTTOM = 10,
-    BOTTOM_FIELD_CHROMA_TOP = 11,
-    SUBPIC_TOP_FIELD_CHROMA_BOTTOM = 12,
-    SUBPIC_BOTTOM_FIELD_CHROMA_TOP = 13,
+    Progressive = 0,
+    InterlacedTopFieldFirst = 1,
+    InterlacedBottomFieldFirst = 2,
+    TopField = 3,
+    BottomField = 4,
+    SubpicProgressive = 5,
+    SubpicInterlacedTopFieldFirst = 6,
+    SubpicInterlacedBottomFieldFirst = 7,
+    SubpicTopField = 8,
+    SubpicBottomField = 9,
+    TopFieldChromaBottom = 10,
+    BottomFieldChromaTop = 11,
+    SubpicTopFieldChromaBottom = 12,
+    SubpicBottomFieldChromaTop = 13,
 };
 
 enum class DxvhadDeinterlaceModePrivate : u64 {
-    WEAVE = 0,
-    BOB_FIELD = 1,
-    BOB = 2,
-    NEWBOB = 3,
-    DISI1 = 4,
-    WEAVE_LUMA_BOB_FIELD_CHROMA = 5,
-    MAX = 0xF,
+    Weave = 0,
+    BobField = 1,
+    Bob = 2,
+    Newbob = 3,
+    Disi1 = 4,
+    WeaveLumaBobFieldChroma = 5,
+    Max = 0xF,
 };
 
 enum class BlkKind {
-    PITCH = 0,
-    GENERIC_16Bx2 = 1,
+    Pitch = 0,
+    Generic_16Bx2 = 1,
     // These are unsupported in the vic
-    BL_NAIVE = 2,
-    BL_KEPLER_XBAR_RAW = 3,
-    VP2_TILED = 15,
+    BlNaive = 2,
+    BlKeplerXbarRaw = 3,
+    Vp2Tiled = 15,
 };
 
 enum class BlendSrcFactC : u32 {
