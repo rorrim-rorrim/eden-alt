@@ -598,19 +598,17 @@ int TranslateTypeToNative(Type type) {
     NETWORK_PROTOCOL_TRANSLATE_ELEM(UDP) \
     NETWORK_PROTOCOL_TRANSLATE_ELEM(SCTP)
 #endif
-
-Protocol TranslateProtocolFromNative(int protocol) {
+[[nodiscard]] Protocol TranslateProtocolFromNative(u32 protocol) {
     switch (protocol) {
 #define NETWORK_PROTOCOL_TRANSLATE_ELEM(x) case IPPROTO_##x: return Protocol::x;
     NETWORK_PROTOCOL_TRANSLATE_LIST
 #undef NETWORK_PROTOCOL_TRANSLATE_ELEM
     default:
         UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
-        return Protocol::Unspecified;
+        return Protocol::IP;
     }
 }
-
-int TranslateProtocolToNative(Protocol protocol) {
+[[nodiscard]] u32 TranslateProtocolToNative(Protocol protocol) {
     switch (protocol) {
 #define NETWORK_PROTOCOL_TRANSLATE_ELEM(x) case Protocol::x: return IPPROTO_##x;
     NETWORK_PROTOCOL_TRANSLATE_LIST
@@ -620,6 +618,7 @@ int TranslateProtocolToNative(Protocol protocol) {
         return 0;
     }
 }
+#undef NETWORK_PROTOCOL_TRANSLATE_LIST
 
 SockAddrIn TranslateToSockAddrIn(sockaddr_in input, size_t input_len) {
     SockAddrIn result{};
@@ -839,8 +838,7 @@ Errno Socket::SetSockOpt(SOCKET fd_so, int option, T value) {
 }
 
 Errno Socket::Initialize(Domain domain, Type type, Protocol protocol) {
-    fd = socket(TranslateDomainToNative(domain), TranslateTypeToNative(type),
-                TranslateProtocolToNative(protocol));
+    fd = socket(TranslateDomainToNative(domain), TranslateTypeToNative(type), TranslateProtocolToNative(protocol));
     if (fd != INVALID_SOCKET) {
         return Errno::SUCCESS;
     }
