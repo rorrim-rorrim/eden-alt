@@ -122,6 +122,15 @@ void BufferCache<P>::WriteMemory(DAddr device_addr, u64 size) {
 }
 
 template <class P>
+void BufferCache<P>::UnmapMemory(DAddr device_addr, u64 size) {
+    if (memory_tracker.IsRegionGpuModified(device_addr, size)) {
+        ClearDownload(device_addr, size);
+        gpu_modified_ranges.Subtract(device_addr, size);
+    }
+    memory_tracker.UnmarkRegionAsCpuModified(device_addr, size);
+}
+
+template <class P>
 void BufferCache<P>::CachedWriteMemory(DAddr device_addr, u64 size) {
     const bool is_dirty = IsRegionRegistered(device_addr, size);
     if (!is_dirty) {

@@ -219,6 +219,8 @@ public:
 
     void WriteMemory(DAddr device_addr, u64 size);
 
+    void UnmapMemory(DAddr device_addr, u64 size);
+
     void CachedWriteMemory(DAddr device_addr, u64 size);
 
     bool OnCPUWrite(DAddr device_addr, u64 size);
