@@ -54,6 +54,7 @@
 #include "input_common/drivers/mouse.h"
 #include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/touch_screen.h"
+#include "input_common/drivers/camera.h"
 #include "input_common/main.h"
 #include "qt_common/qt_common.h"
 #include "video_core/gpu.h"
