@@ -25,6 +25,8 @@ private:
     void GetBatteryChargePercentage(HLERequestContext& ctx);
     void GetChargerType(HLERequestContext& ctx);
     void OpenSession(HLERequestContext& ctx);
+    void GetBatteryVoltageState(HLERequestContext& ctx);
+    void GetBatteryAgePercentage(HLERequestContext& ctx);
     void GetBatteryChargeInfoFields(HLERequestContext& ctx);
 };
 
