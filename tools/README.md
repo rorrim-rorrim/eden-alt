@@ -1,6 +1,6 @@
 # Tools
 
-Tools for Eden and other subprojects.
+Tools for Eden and other subprojects. When adding new scripts please use `#!/usr/bin/env bash` or `#!/usr/bin/env <interpreter>` (for `.py`, `.rb`, or `.perl`).
 
 ## Third-Party
 

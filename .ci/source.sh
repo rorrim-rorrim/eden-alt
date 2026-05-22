@@ -1,4 +1,7 @@
-#!/bin/bash -ex
+#!/usr/bin/env bash -ex
+
+# SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # git-archive-all
 export PATH="$PATH:/home/$USER/.local/bin"

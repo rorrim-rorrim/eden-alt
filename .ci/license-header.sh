@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
 
 # SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 # SPDX-License-Identifier: GPL-3.0-or-later
@@ -7,7 +7,7 @@
 EXCLUDE_FILES="CPM.cmake CPMUtil.cmake GetSCMRev.cmake renderdoc_app.h tools/cpm tools/shellcheck.sh tools/update-cpm.sh tools/windows/vcvarsall.sh externals/stb externals/glad externals/getopt externals/gamemode externals/FidelityFX-FSR externals/demangle externals/bc_decoder externals/cmake-modules"
 
 # license header constants, please change when needed :))))
-YEAR=2026
+YEAR=$(date "+%Y")
 HOLDER="Eden Emulator Project"
 LICENSE="GPL-3.0-or-later"
 
@@ -112,10 +112,10 @@ for file in $FILES; do
 	[ "$excluded" = "true" ] && continue
 
 	case "$file" in
-		*.cmake|*.sh|*CMakeLists.txt)
+		*.cmake|*.sh|*CMakeLists.txt|gradlew|pre-commit)
 			begin="#"
 			;;
-		*.kt*|*.cpp|*.h|*.qml)
+		*.kt|*.kts|*.cpp|*.h|*.qml|*.h.in|*.inc)
 			begin="//"
 			;;
 		*)
