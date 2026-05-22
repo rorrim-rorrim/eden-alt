@@ -124,54 +124,55 @@ static void GetFuncAddress(Common::DynamicLibrary& dll, const char* name, T& pfn
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
-        : backing_size{backing_size_}, virtual_size{virtual_size_}, process{GetCurrentProcess()},
-          kernelbase_dll("Kernelbase") {
+        : backing_size{backing_size_}
+        , virtual_size{virtual_size_}
+        , process{GetCurrentProcess()}
+        , kernelbase_dll("Kernelbase")
+    {}
+
+    bool Init() {
         if (!kernelbase_dll.IsOpen()) {
             LOG_CRITICAL(HW_Memory, "Failed to load Kernelbase.dll");
-            throw std::bad_alloc{};
+            return false;
         }
         GetFuncAddress(kernelbase_dll, "CreateFileMapping2", pfn_CreateFileMapping2);
         GetFuncAddress(kernelbase_dll, "VirtualAlloc2", pfn_VirtualAlloc2);
         GetFuncAddress(kernelbase_dll, "MapViewOfFile3", pfn_MapViewOfFile3);
         GetFuncAddress(kernelbase_dll, "UnmapViewOfFile2", pfn_UnmapViewOfFile2);
 
+        if (!pfn_CreateFileMapping2 || !pfn_VirtualAlloc2 || !pfn_MapViewOfFile3 || !pfn_UnmapViewOfFile2) {
+            LOG_CRITICAL(HW_Memory, "Failed to find functions for virtual allocs");
+            return false;
+        }
+
         // Allocate backing file map
-        backing_handle =
-            pfn_CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ,
-                                   PAGE_READWRITE, SEC_COMMIT, backing_size, nullptr, nullptr, 0);
+        backing_handle = pfn_CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ, PAGE_READWRITE, SEC_COMMIT, backing_size, nullptr, nullptr, 0);
         if (!backing_handle) {
-            LOG_CRITICAL(HW_Memory, "Failed to allocate {} MiB of backing memory",
-                         backing_size >> 20);
-            throw std::bad_alloc{};
+            LOG_CRITICAL(HW_Memory, "Failed to allocate {} MiB of backing memory", backing_size >> 20);
+            return false;
         }
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, backing_size,
-                                                          MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                          PAGE_NOACCESS, nullptr, 0));
+        backing_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, backing_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, nullptr, 0));
         if (!backing_base) {
             Release();
-            LOG_CRITICAL(HW_Memory, "Failed to reserve {} MiB of virtual memory",
-                         backing_size >> 20);
-            throw std::bad_alloc{};
+            LOG_CRITICAL(HW_Memory, "Failed to reserve {} MiB of virtual memory", backing_size >> 20);
+            return false;
         }
         // Map backing placeholder
-        void* const ret = pfn_MapViewOfFile3(backing_handle, process, backing_base, 0, backing_size,
-                                             MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
+        void* const ret = pfn_MapViewOfFile3(backing_handle, process, backing_base, 0, backing_size, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
         if (ret != backing_base) {
             Release();
             LOG_CRITICAL(HW_Memory, "Failed to map {} MiB of virtual memory", backing_size >> 20);
-            throw std::bad_alloc{};
+            return false;
         }
         // Allocate virtual address placeholder
-        virtual_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, virtual_size,
-                                                          MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                          PAGE_NOACCESS, nullptr, 0));
+        virtual_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, virtual_size, MEM_RESERVE | MEM_RESERVE_PLACEHOLDER, PAGE_NOACCESS, nullptr, 0));
         if (!virtual_base) {
             Release();
-            LOG_CRITICAL(HW_Memory, "Failed to reserve {} GiB of virtual memory",
-                         virtual_size >> 30);
-            throw std::bad_alloc{};
+            LOG_CRITICAL(HW_Memory, "Failed to reserve {} GiB of virtual memory", virtual_size >> 30);
+            return false;
         }
+        return true;
     }
 
     ~Impl() {
@@ -501,10 +502,13 @@ static int shm_open_anon(int flags, mode_t mode) {
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
-        : backing_size{backing_size_}, virtual_size{virtual_size_} {
+        : backing_size{backing_size_}
+        , virtual_size{virtual_size_}
+    {}
+
+    bool Init() {
         long page_size = sysconf(_SC_PAGESIZE);
-        ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging",
-                   page_size);
+        ASSERT_MSG(page_size == 0x1000, "page size {:#x} is incompatible with 4K paging", page_size);
         // Backing memory initialization
 #if defined(__sun__) || defined(__HAIKU__) || defined(__NetBSD__) || defined(__DragonFly__)
         fd = shm_open_anon(O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0600);
@@ -545,15 +549,22 @@ public:
         } else {
             backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
         }
-        ASSERT_MSG(backing_base != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        if (backing_base == MAP_FAILED) {
+            LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
+            return false;
+        }
 
         // Virtual memory initialization
         virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
-        ASSERT_MSG(virtual_base != MAP_FAILED, "mmap failed: {}", strerror(errno));
+        if (virtual_base == MAP_FAILED) {
+            LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
+            return false;
+        }
 #if defined(__linux__)
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
 #endif
         free_manager.SetAddressSpace(virtual_base, virtual_size);
+        return true;
     }
 
     ~Impl() {
@@ -684,21 +695,10 @@ HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
     backing_base = fallback_buffer->data();
     virtual_base = nullptr;
 #else
-    bool has_memfd = true; // all platforms support it
-#ifdef _WIN32
-    // EXCEPT WINDOWS who may not (Windows 8.1, 7, Vista, etc)
-    DynamicLibrary kernelbase_dll("KernelBase");
-    has_memfd = kernelbase_dll.IsOpen();
-    if (has_memfd) {
-        PFN_CreateFileMapping2 p{};
-        GetFuncAddress(kernelbase_dll, "CreateFileMapping2", p);
-        has_memfd = p != nullptr;
-    }
-#endif
-    if (has_memfd) {
-        // Try to allocate a fastmem arena.
-        // The implementation will fail with std::bad_alloc on errors.
-        impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment), AlignUp(virtual_size, PageAlignment) + HugePageSize);
+    // Try to allocate a fastmem arena.
+    // The implementation will fail with std::bad_alloc on errors.
+    impl = std::make_unique<HostMemory::Impl>(AlignUp(backing_size, PageAlignment), AlignUp(virtual_size, PageAlignment) + HugePageSize);
+    if (impl->Init()) {
         backing_base = impl->backing_base;
         virtual_base = impl->virtual_base;
         if (virtual_base) {
@@ -707,12 +707,11 @@ HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
             virtual_base_offset = virtual_base - impl->virtual_base;
         }
     } else {
-        LOG_WARNING(HW_Memory, "Platform doesn't support fastmem");
-#ifdef _WIN32
+        impl.reset();
+        LOG_WARNING(HW_Memory, "Platform can support fastmem, but can't create it");
         fallback_buffer.emplace(backing_size);
         backing_base = fallback_buffer->data();
         virtual_base = nullptr;
-#endif
     }
 #endif
 }
