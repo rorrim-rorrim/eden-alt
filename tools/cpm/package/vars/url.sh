@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh -e
 
 # SPDX-FileCopyrightText: Copyright 2025 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh -e
 #
 # SPDX-FileCopyrightText: Copyright 2023 Nathan Poirier <nathan@poirier.io>
 # SPDX-License-Identifier: MIT License
