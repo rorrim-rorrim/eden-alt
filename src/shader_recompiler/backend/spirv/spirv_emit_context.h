@@ -9,6 +9,7 @@
 #include <array>
 
 #include <sirit/sirit.h>
+#include <ankerl/unordered_dense.h>
 
 #include "shader_recompiler/backend/bindings.h"
 #include "shader_recompiler/frontend/ir/program.h"
@@ -365,6 +366,8 @@ public:
     Id load_const_func_f32{};
     Id load_const_func_u32x2{};
     Id load_const_func_u32x4{};
+
+    ankerl::unordered_dense::set<Id> non_uniform_ids;
 
 private:
     void DefineCommonTypes(const Info& info);
