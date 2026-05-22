@@ -112,10 +112,7 @@ for file in $FILES; do
 	[ "$excluded" = "true" ] && continue
 
 	case "$file" in
-		proguard-rules.pro|.git*|*.cmake|*.ps1|*CMakeLists.txt)
-			begin="#"
-			;;
-		*.sh|*.py|*.rb|*.perl|*.pl|*.nix|gradlew|pre-commit)
+		*.cmake|*.sh|*.ps1|*.py|*.rb|*.perl|*.pl|*.nix|*CMakeLists.txt)
 			begin="#"
 			;;
 		*.kt|*.kts|*.cpp|*.h|*.qml|*.c|*.hpp|*.hxx|*.cxx|*.h.in|*.inc)
@@ -188,11 +185,12 @@ if [ "$UPDATE" = "true" ]; then
 
 	for file in $SRC_FILES $OTHER_FILES; do
 		case $(basename -- "$file") in
-			proguard-rules.pro|.git*|*.cmake|*.ps1|*CMakeLists.txt)
+			# Windows Powershell wont use shebangs
+			*.cmake|*.ps1|*CMakeLists.txt)
 				begin="#"
 				shell="false"
 				;;
-			*.sh|*.py|*.rb|*.perl|*.pl|*.nix|gradlew|pre-commit)
+			*.sh|*.py|*.rb|*.perl|*.pl|*.nix)
 				begin="#"
 				shell=true
 				;;
