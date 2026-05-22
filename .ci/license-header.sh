@@ -112,10 +112,13 @@ for file in $FILES; do
 	[ "$excluded" = "true" ] && continue
 
 	case "$file" in
-		*.cmake|*.sh|*CMakeLists.txt|gradlew|pre-commit)
+		proguard-rules.pro|.git*|*.cmake|*.ps1|*CMakeLists.txt)
 			begin="#"
 			;;
-		*.kt|*.kts|*.cpp|*.h|*.qml|*.h.in|*.inc)
+		*.sh|*.py|*.rb|*.perl|*.pl|*.nix|gradlew|pre-commit)
+			begin="#"
+			;;
+		*.kt|*.kts|*.cpp|*.h|*.qml|*.c|*.hpp|*.hxx|*.cxx|*.h.in|*.inc)
 			begin="//"
 			;;
 		*)
@@ -185,11 +188,11 @@ if [ "$UPDATE" = "true" ]; then
 
 	for file in $SRC_FILES $OTHER_FILES; do
 		case $(basename -- "$file") in
-			*.cmake|*CMakeLists.txt)
+			proguard-rules.pro|.git*|*.cmake|*.ps1|*CMakeLists.txt)
 				begin="#"
 				shell="false"
 				;;
-			*.sh)
+			*.sh|*.py|*.rb|*.perl|*.pl|*.nix|gradlew|pre-commit)
 				begin="#"
 				shell=true
 				;;
