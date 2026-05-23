@@ -217,8 +217,8 @@ bool Event::WaitFor(const std::chrono::nanoseconds& time) {
 #ifdef _WIN32
     while (!IsSet() && _rdtsc() < target_tsc)
         Common::Windows::SleepForOneTick();
-    if (event.IsSet())
-        event.Reset();
+    if (IsSet())
+        Reset();
     return true;
 #else
     std::unique_lock lk{mutex};
