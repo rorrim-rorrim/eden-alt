@@ -4,9 +4,10 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "common/x64/cpu_detect.h"
 
 namespace Common::X64 {
 
-void MicroSleep(u64 rem);
+void MicroSleep(const CPUCaps& caps, u64 cycles);
 
 } // namespace Common::X64

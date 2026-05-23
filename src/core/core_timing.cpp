@@ -8,6 +8,7 @@
 #include <mutex>
 #include <string>
 #include <tuple>
+#include "common/x64/cpu_detect.h"
 
 #ifdef _WIN32
 #include "common/windows/timer_resolution.h"
@@ -64,12 +65,16 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
             Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
             on_thread_init();
             has_started = true;
+
+            // base frequency in MHz: 1ns (10^-9) = 1GHz (10^9)
+            auto const& caps = Common::GetCPUCaps();
+            [[maybe_unused]] u64 ns_scale = caps.base_frequency / 1'000;
             while (!stop_token.stop_requested()) {
                 while (!paused && !stop_token.stop_requested()) {
                     paused_set = false;
                     if (auto const next_time = Advance(); next_time) {
                         // There are more events left in the queue, wait until the next event.
-                        auto wait_time = *next_time - GetGlobalTimeNs().count();
+                        auto const wait_time = *next_time - GetGlobalTimeNs().count();
                         if (wait_time > 0) {
 #ifdef _WIN32
                             while (!paused && !event.IsSet() && wait_time > 0) {
@@ -78,7 +83,7 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
                                     Common::Windows::SleepForOneTick();
                                 } else {
 #ifdef ARCHITECTURE_x86_64
-                                    Common::X64::MicroSleep(wait_time);
+                                    Common::X64::MicroSleep(caps, wait_time * ns_scale);
 #else
                                     std::this_thread::yield();
 #endif

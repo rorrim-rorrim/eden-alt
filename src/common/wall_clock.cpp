@@ -20,55 +20,53 @@ namespace Common {
 
 #if defined(ARCHITECTURE_x86_64)
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept
-    : invariant{invariant_}
-    , rdtsc_frequency{rdtsc_frequency_}
-    , ns_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency_)}
-    , us_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency_)}
-    , ms_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency_)}
-    , cntpct_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency_)}
-    , gputick_rdtsc_factor{invariant_ ? 0 : GetFixedPoint64Factor(GPUTickFreq, rdtsc_frequency_)}
+    : rdtsc_frequency{rdtsc_frequency_}
+    , ns_rdtsc_factor{invariant_ ? GetFixedPoint64Factor(NsRatio::den, rdtsc_frequency_) : 0}
+    , us_rdtsc_factor{invariant_ ? GetFixedPoint64Factor(UsRatio::den, rdtsc_frequency_) : 0}
+    , ms_rdtsc_factor{invariant_ ? GetFixedPoint64Factor(MsRatio::den, rdtsc_frequency_) : 0}
+    , cntpct_rdtsc_factor{invariant_ ? GetFixedPoint64Factor(CNTFRQ, rdtsc_frequency_) : 0}
+    , gputick_rdtsc_factor{invariant_ ? GetFixedPoint64Factor(GPUTickFreq, rdtsc_frequency_) : 0}
+    , invariant{invariant_}
 {}
 
 std::chrono::nanoseconds WallClock::GetTimeNS() const {
-    if (invariant)
+    if (!invariant)
         return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch());
     return std::chrono::nanoseconds{MultiplyHigh(GetUptime(), ns_rdtsc_factor)};
 }
 
 std::chrono::microseconds WallClock::GetTimeUS() const {
-    if (invariant)
+    if (!invariant)
         return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
     return std::chrono::microseconds{MultiplyHigh(GetUptime(), us_rdtsc_factor)};
 }
 
 std::chrono::milliseconds WallClock::GetTimeMS() const {
-    if (invariant)
+    if (!invariant)
         return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     return std::chrono::milliseconds{MultiplyHigh(GetUptime(), ms_rdtsc_factor)};
 }
 
 s64 WallClock::GetCNTPCT() const {
-    if (invariant)
+    if (!invariant)
         return GetUptime() * NsToCNTPCTRatio::num / NsToCNTPCTRatio::den;
     return MultiplyHigh(GetUptime(), cntpct_rdtsc_factor);
 }
 
 s64 WallClock::GetGPUTick() const {
-    if (invariant)
+    if (!invariant)
         return GetUptime() * NsToGPUTickRatio::num / NsToGPUTickRatio::den;
     return MultiplyHigh(GetUptime(), gputick_rdtsc_factor);
 }
 
 s64 WallClock::GetUptime() const {
-    if (invariant)
+    if (!invariant)
         return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     return s64(Common::X64::FencedRDTSC());
 }
 
 bool WallClock::IsNative() const {
-    if (invariant)
-        return false;
-    return true;
+    return invariant;
 }
 #elif defined(HAS_NCE)
 namespace {
@@ -186,7 +184,7 @@ bool WallClock::IsNative() const {
 WallClock CreateOptimalClock() noexcept {
 #if defined(ARCHITECTURE_x86_64)
     auto const& caps = GetCPUCaps();
-    return WallClock(!(caps.invariant_tsc && caps.tsc_frequency >= std::nano::den), caps.tsc_frequency);
+    return WallClock(caps.invariant_tsc && caps.tsc_frequency >= std::nano::den, caps.tsc_frequency);
 #elif defined(HAS_NCE)
     return WallClock(false, 1);
 #else

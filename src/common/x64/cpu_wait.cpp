@@ -21,29 +21,24 @@ __attribute__((target("waitpkg,mwaitx")))
 #pragma GCC target("waitpkg")
 #pragma GCC target("mwaitx")
 #endif
-void MicroSleep(u64 rem) {
-    // 100,000 cycles is a reasonable amount of time to wait to save on CPU resources.
-    // For reference:
-    // At 1 GHz, 100K cycles is 100us
-    // At 2 GHz, 100K cycles is 50us
-    // At 4 GHz, 100K cycles is 25us
-    auto& caps = GetCPUCaps();
-    u32 cycles = caps.invariant_tsc
-        ? rem * (caps.tsc_frequency / 1000000ULL)
-        : 1'000'000ULL;
-    if (caps.waitpkg) {
-        constexpr auto RequestC02State = 0U;
-        _tpause(RequestC02State, FencedRDTSC() + cycles);
-    } else if (caps.monitorx) {
-        constexpr auto EnableWaitTimeFlag = 1U << 1;
-        constexpr auto RequestC1State = 0U;
-        // monitor_var should be aligned to a cache line.
-        alignas(64) static const u64 monitor_var{};
-        _mm_monitorx(const_cast<u64*>(std::addressof(monitor_var)), 0, 0);
-        _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, cycles);
-    } else {
-        std::this_thread::yield();
-    }
+void MicroSleep(const CPUCaps& caps, u64 cycles) {
+    do {
+        u64 start = FencedRDTSC();
+        if (caps.waitpkg) {
+            constexpr auto RequestC02State = 0U;
+            _tpause(RequestC02State, start + cycles);
+        } else if (caps.monitorx) {
+            constexpr auto EnableWaitTimeFlag = 1U << 1;
+            constexpr auto RequestC1State = 0U;
+            // monitor_var should be aligned to a cache line.
+            alignas(64) static const u64 monitor_var{};
+            _mm_monitorx(const_cast<u64*>(std::addressof(monitor_var)), 0, 0);
+            _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, cycles);
+        } else {
+            std::this_thread::yield();
+        }
+        cycles -= FencedRDTSC() - start;
+    } while (cycles > 0);
 }
 
 } // namespace Common::X64

@@ -87,13 +87,13 @@ protected:
     using CPUTickToGPUTickRatio = std::ratio<GPUTickFreq, CPUTickFreq>;
 
 #if defined(ARCHITECTURE_x86_64)
-    bool invariant;
     u64 rdtsc_frequency;
     u64 ns_rdtsc_factor;
     u64 us_rdtsc_factor;
     u64 ms_rdtsc_factor;
     u64 cntpct_rdtsc_factor;
     u64 gputick_rdtsc_factor;
+    bool invariant;
 #elif defined(HAS_NCE)
 public:
     using FactorType = unsigned __int128;
