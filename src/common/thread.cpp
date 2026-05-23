@@ -190,7 +190,7 @@ bool Event::WaitFor(const std::chrono::nanoseconds& time) {
         // #UD If CPUID.7.0:ECX.WAITPKG[bit 5]=0.
         while (true) {
             _umonitor(std::addressof(is_set));
-            if (!IsSet() && !_umwait(0, target_tsc))
+            if (!IsSet() && !_umwait(1, target_tsc))
                 return false;
             bool expected = true;
             if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
