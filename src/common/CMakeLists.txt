@@ -182,8 +182,6 @@ if(ARCHITECTURE_x86_64)
         common
         PRIVATE x64/cpu_detect.cpp
         x64/cpu_detect.h
-        x64/cpu_wait.cpp
-        x64/cpu_wait.h
         x64/rdtsc.cpp
         x64/rdtsc.h
         x64/xbyak.h)

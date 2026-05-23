@@ -19,29 +19,31 @@
 #elif defined(_WIN32)
 #include <windows.h>
 #include "common/string_util.h"
+#include "common/windows/timer_resolution.h"
 #else
 #if defined(__FreeBSD__)
 #include <sys/cpuset.h>
 #include <sys/_cpuset.h>
 #include <pthread_np.h>
+// Compatibility with CPUset
+#define cpu_set_t cpuset_t
 #elif defined(__DragonFly__) || defined(__OpenBSD__) || defined(__Bitrig__)
 #include <pthread_np.h>
 #endif
 #include <pthread.h>
 #include <sched.h>
 #endif
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
+#ifdef ARCHITECTURE_x86_64
 #ifdef _MSC_VER
 #include <intrin.h>
 #else
 #include <x86intrin.h>
 #endif
-
-#ifdef __FreeBSD__
-#   define cpu_set_t cpuset_t
 #endif
 
 namespace Common {
@@ -151,6 +153,7 @@ void PinCurrentThreadToPerformanceCore(size_t core_id) {
     }
 }
 
+#ifdef ARCHITECTURE_x86_64
 // On Linux and UNIX systems, a futex would nominally be used to cover the costs
 // the idea is that it's intuitivelly cheaper to use a direct instruction as opposed to a full futex call
 // the underlying libc++ implementation uses pthread_cond_timedwait which MAY invoke a futex
@@ -167,7 +170,7 @@ __attribute__((target("waitpkg,mwaitx")))
 #endif
 bool Event::WaitFor(const std::chrono::nanoseconds& time) {
     auto const& caps = Common::GetCPUCaps();
-    auto const ns_ratio = std::max<u64>(1, caps.max_frequency / 1'000);
+    auto const ns_ratio = std::max<u64>(1, caps.base_frequency / 1'000);
     auto const target_tsc = Common::X64::FencedRDTSC() + time.count() * ns_ratio;
     if (caps.monitorx) {
         while (true) {
@@ -209,5 +212,22 @@ bool Event::WaitFor(const std::chrono::nanoseconds& time) {
 #endif
     }
 }
+#else
+bool Event::WaitFor(const std::chrono::nanoseconds& time) {
+#ifdef _WIN32
+    while (!IsSet() && _rdtsc() < target_tsc)
+        Common::Windows::SleepForOneTick();
+    if (event.IsSet())
+        event.Reset();
+    return true;
+#else
+    std::unique_lock lk{mutex};
+    if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
+        return false;
+    is_set = false;
+    return true;
+#endif
+}
+#endif
 
 } // namespace Common
