@@ -191,6 +191,8 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
                     _mm_mwaitx(1 << 1, 0u, cycles);
                     if (!is_set.load())
                         return false;
+                } else {
+                    return false;
                 }
             }
             bool expected = true;
