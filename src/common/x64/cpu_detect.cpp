@@ -76,13 +76,12 @@ CPUCaps::Manufacturer CPUCaps::ParseManufacturer(std::string_view brand_string) 
     return Manufacturer::Unknown;
 }
 
-// Detects the various CPU features
-static CPUCaps Detect() {
+/// @brief Detects the various CPU features
+const CPUCaps g_cpu_caps = [] {
     CPUCaps caps = {};
 
     // Assumes the CPU supports the CPUID instruction. Those that don't would likely not support
     // yuzu at all anyway
-
     int cpu_id[4];
 
     // Detect CPU's CPUID capabilities and grab manufacturer string
@@ -197,14 +196,8 @@ static CPUCaps Detect() {
         caps.max_frequency = cpu_id[1];
         caps.bus_frequency = cpu_id[2];
     }
-
     return caps;
-}
-
-const CPUCaps& GetCPUCaps() {
-    static CPUCaps caps = Detect();
-    return caps;
-}
+}();
 
 std::optional<int> GetProcessorCount() {
 #if defined(_WIN32)

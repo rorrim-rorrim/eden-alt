@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <chrono>
 #include <string>
 #include <thread>
 
@@ -168,17 +169,19 @@ __attribute__((target("waitpkg,mwaitx")))
 #pragma GCC target("waitpkg")
 #pragma GCC target("mwaitx")
 #endif
-bool Event::WaitFor(const std::chrono::nanoseconds& time) {
-    auto const& caps = Common::GetCPUCaps();
+bool Event::WaitFor(const std::chrono::nanoseconds time) {
+    auto const start = Common::X64::FencedRDTSC();
+
+    auto const& caps = Common::g_cpu_caps;
     auto const ns_ratio = std::max<u64>(1, caps.base_frequency / 1'000);
-    auto const target_tsc = Common::X64::FencedRDTSC() + time.count() * ns_ratio;
+    auto const end = start + time.count() * ns_ratio;
     if (caps.monitorx) {
         while (true) {
             _mm_monitorx(reinterpret_cast<u64*>(std::addressof(is_set)), 0, 0);
-            if (!IsSet()) {
+            if (!is_set.load()) {
                 constexpr auto EnableWaitTimeFlag = 1U << 1;
                 constexpr auto RequestC1State = 0U;
-                _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, target_tsc);
+                _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, end);
                 if (!is_set.load())
                     return false;
             }
@@ -190,7 +193,7 @@ bool Event::WaitFor(const std::chrono::nanoseconds& time) {
         // #UD If CPUID.7.0:ECX.WAITPKG[bit 5]=0.
         while (true) {
             _umonitor(std::addressof(is_set));
-            if (!IsSet() && !_umwait(1, target_tsc))
+            if (!is_set.load() && !_umwait(1, end))
                 return false;
             bool expected = true;
             if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
@@ -198,9 +201,9 @@ bool Event::WaitFor(const std::chrono::nanoseconds& time) {
         }
     } else {
 #ifdef _WIN32
-        while (!IsSet() && _rdtsc() < target_tsc)
+        while (!is_set.load() && _rdtsc() < end)
             Common::Windows::SleepForOneTick();
-        if (IsSet())
+        if (is_set.load())
             Reset();
         return true;
 #else
@@ -213,11 +216,14 @@ bool Event::WaitFor(const std::chrono::nanoseconds& time) {
     }
 }
 #else
-bool Event::WaitFor(const std::chrono::nanoseconds& time) {
+bool Event::WaitFor(const std::chrono::nanoseconds time) {
 #ifdef _WIN32
-    while (!IsSet() && _rdtsc() < target_tsc)
+    s64 rem = s64(time.count()); //98 years
+    while (!is_set.load() && rem > 0) {
         Common::Windows::SleepForOneTick();
-    if (IsSet())
+        rem = s64(GetGlobalTimeNs().count()) - s64(time.count());
+    }
+    if (is_set.load())
         Reset();
     return true;
 #else

@@ -70,11 +70,8 @@ struct CPUCaps {
     bool waitpkg : 1;
 };
 
-/**
- * Gets the supported capabilities of the host CPU
- * @return Reference to a CPUCaps struct with the detected host CPU capabilities
- */
-const CPUCaps& GetCPUCaps();
+/// @brief Global cpu caps
+extern const CPUCaps g_cpu_caps;
 
 /// Detects CPU core count
 std::optional<int> GetProcessorCount();

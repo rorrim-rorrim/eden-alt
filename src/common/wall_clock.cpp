@@ -183,7 +183,7 @@ bool WallClock::IsNative() const {
 
 WallClock CreateOptimalClock() noexcept {
 #if defined(ARCHITECTURE_x86_64)
-    auto const& caps = GetCPUCaps();
+    auto const& caps = Common::g_cpu_caps;
     return WallClock(caps.invariant_tsc && caps.tsc_frequency >= std::nano::den, caps.tsc_frequency);
 #elif defined(HAS_NCE)
     return WallClock(false, 1);

@@ -214,7 +214,7 @@ void Init(QWidget* root) {
     LOG_INFO(Frontend, "Eden Version: {}", yuzu_build_version);
     LogRuntimes();
 #ifdef ARCHITECTURE_x86_64
-    const auto& caps = Common::GetCPUCaps();
+    const auto& caps = Common::g_cpu_caps;
     std::string cpu_string = caps.cpu_string;
     if (caps.avx || caps.avx2 || caps.avx512f) {
         cpu_string += " | AVX";

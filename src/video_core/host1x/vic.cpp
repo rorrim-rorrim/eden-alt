@@ -55,9 +55,8 @@ namespace Tegra::Host1x {
 namespace {
 
 static bool HasSSE41() {
-#if defined(ARCHITECTURE_x86_64)
-    static bool has_sse41 = Common::GetCPUCaps().sse4_1;
-    return has_sse41;
+#ifdef ARCHITECTURE_x86_64
+    return Common::g_cpu_caps.sse4_1;
 #else
     return false;
 #endif
