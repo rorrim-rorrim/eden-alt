@@ -76,24 +76,7 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
                         // There are more events left in the queue, wait until the next event.
                         auto const wait_time = *next_time - GetGlobalTimeNs().count();
                         if (wait_time > 0) {
-#ifdef _WIN32
-                            while (!paused && !event.IsSet() && wait_time > 0) {
-                                wait_time = *next_time - GetGlobalTimeNs().count();
-                                if (wait_time >= timer_resolution_ns) {
-                                    Common::Windows::SleepForOneTick();
-                                } else {
-#ifdef ARCHITECTURE_x86_64
-                                    Common::X64::MicroSleep(caps, wait_time * ns_scale);
-#else
-                                    std::this_thread::yield();
-#endif
-                                }
-                            }
-                            if (event.IsSet())
-                                event.Reset();
-#else
                             event.WaitFor(std::chrono::nanoseconds(wait_time));
-#endif
                         }
                     } else {
                         // Queue is empty, wait until another event is scheduled and signals us to

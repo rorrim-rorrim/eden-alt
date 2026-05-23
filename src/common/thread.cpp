@@ -11,6 +11,7 @@
 #include "common/logging.h"
 #include "common/assert.h"
 #include "common/thread.h"
+#include "common/x64/cpu_detect.h"
 #ifdef __APPLE__
 #include <mach/mach.h>
 #elif defined(__HAIKU__)
@@ -31,6 +32,12 @@
 #endif
 #ifndef _WIN32
 #include <unistd.h>
+#endif
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
+#include <x86intrin.h>
 #endif
 
 #ifdef __FreeBSD__
@@ -140,6 +147,65 @@ void PinCurrentThreadToPerformanceCore(size_t core_id) {
         SetThreadAffinityMask(GetCurrentThread(), set);
 #else
         // No pin functionality implemented
+#endif
+    }
+}
+
+// On Linux and UNIX systems, a futex would nominally be used to cover the costs
+// the idea is that it's intuitivelly cheaper to use a direct instruction as opposed to a full futex call
+// the underlying libc++ implementation uses pthread_cond_timedwait which MAY invoke a futex
+// Let's pretend the OS is too expensive to jump into, and avoid ANY context switches
+// this should *IN THEORY* lower CPU usage while just waiting for stuff effectively
+// For windows the minimal quanta resolution is about 500us, and normal CRT cond var is 1.5ms(?)
+// so may as well avoid that too
+// Let's just give ALL platforms the same mechanisms (almost) for when they have umonitor OR waitpkg
+#ifdef __clang__
+__attribute__((target("waitpkg,mwaitx")))
+#elif defined(__GNUC__)
+#pragma GCC target("waitpkg")
+#pragma GCC target("mwaitx")
+#endif
+bool Event::WaitFor(const std::chrono::nanoseconds& time) {
+    auto const& caps = Common::GetCPUCaps();
+    auto const ns_ratio = std::max<u64>(1, caps.max_frequency / 1'000);
+    auto const target_tsc = Common::X64::FencedRDTSC() + time.count() * ns_ratio;
+    if (caps.monitorx) {
+        while (true) {
+            _mm_monitorx(reinterpret_cast<u64*>(std::addressof(is_set)), 0, 0);
+            if (!IsSet()) {
+                constexpr auto EnableWaitTimeFlag = 1U << 1;
+                constexpr auto RequestC1State = 0U;
+                _mm_mwaitx(EnableWaitTimeFlag, RequestC1State, target_tsc);
+                if (!is_set.load())
+                    return false;
+            }
+            bool expected = true;
+            if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
+                return true;
+        }
+    } else if (caps.waitpkg) {
+        // #UD If CPUID.7.0:ECX.WAITPKG[bit 5]=0.
+        while (true) {
+            _umonitor(std::addressof(is_set));
+            if (!IsSet() && !_umwait(0, target_tsc))
+                return false;
+            bool expected = true;
+            if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
+                return true;
+        }
+    } else {
+#ifdef _WIN32
+        while (!IsSet() && _rdtsc() < target_tsc)
+            Common::Windows::SleepForOneTick();
+        if (event.IsSet())
+            event.Reset();
+        return true;
+#else
+        std::unique_lock lk{mutex};
+        if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
+            return false;
+        is_set = false;
+        return true;
 #endif
     }
 }
