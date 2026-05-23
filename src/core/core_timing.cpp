@@ -63,8 +63,6 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
             has_started = true;
 
             // base frequency in MHz: 1ns (10^-9) = 1GHz (10^9)
-            auto const& caps = Common::GetCPUCaps();
-            [[maybe_unused]] u64 ns_scale = caps.base_frequency / 1'000;
             while (!stop_token.stop_requested()) {
                 while (!paused && !stop_token.stop_requested()) {
                     paused_set = false;
