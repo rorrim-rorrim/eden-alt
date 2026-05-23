@@ -12,7 +12,6 @@
 #include "common/logging.h"
 #include "common/assert.h"
 #include "common/thread.h"
-#include "common/x64/cpu_detect.h"
 #ifdef __APPLE__
 #include <mach/mach.h>
 #elif defined(__HAIKU__)
@@ -45,6 +44,8 @@
 #else
 #include <x86intrin.h>
 #endif
+#include "common/x64/cpu_detect.h"
+#include "common/x64/rdtsc.h"
 #endif
 
 namespace Common {
