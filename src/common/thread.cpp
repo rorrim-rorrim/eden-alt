@@ -216,6 +216,11 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
         if (is_set.load())
             Reset();
         return true;
+#elif defined(__FreeBSD__)
+        while (!is_set.load() && end > _rdtsc())
+            _mm_pause();
+        bool expected = true;
+        return is_set.compare_exchange_weak(expected, false, std::memory_order_release);
 #else
         std::unique_lock lk{mutex};
         if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))

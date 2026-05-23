@@ -15,7 +15,6 @@
 #include <thread>
 #include "common/common_types.h"
 #include "common/polyfill_thread.h"
-#include "common/x64/rdtsc.h"
 
 namespace Common {
 

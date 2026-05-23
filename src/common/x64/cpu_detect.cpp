@@ -16,8 +16,10 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/logging.h"
+#ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
 #include "common/x64/rdtsc.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
