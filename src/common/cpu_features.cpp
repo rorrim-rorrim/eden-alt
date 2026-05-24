@@ -25,7 +25,7 @@
 #include "common/uint128.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
-#include "common/cpu_detect.h"
+#include "common/cpu_features.h"
 
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/rdtsc.h"
