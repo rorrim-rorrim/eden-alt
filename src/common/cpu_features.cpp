@@ -252,19 +252,19 @@ WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept
 
 std::chrono::nanoseconds WallClock::GetTimeNS() const {
     if (!invariant)
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch());
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch());
     return std::chrono::nanoseconds{MultiplyHigh(GetUptime(), ns_rdtsc_factor)};
 }
 
 std::chrono::microseconds WallClock::GetTimeUS() const {
     if (!invariant)
-        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
+        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch());
     return std::chrono::microseconds{MultiplyHigh(GetUptime(), us_rdtsc_factor)};
 }
 
 std::chrono::milliseconds WallClock::GetTimeMS() const {
     if (!invariant)
-        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
     return std::chrono::milliseconds{MultiplyHigh(GetUptime(), ms_rdtsc_factor)};
 }
 
@@ -379,15 +379,15 @@ u64 WallClock::NsToTicks(std::chrono::nanoseconds ns) const {
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept {}
 
 std::chrono::nanoseconds WallClock::GetTimeNS() const {
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch());
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch());
 }
 
 std::chrono::microseconds WallClock::GetTimeUS() const {
-    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
+    return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch());
 }
 
 std::chrono::milliseconds WallClock::GetTimeMS() const {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
 }
 
 s64 WallClock::GetCNTPCT() const {
