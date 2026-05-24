@@ -183,19 +183,15 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
             _mm_monitorx(reinterpret_cast<u64*>(std::addressof(is_set)), 0, 0);
             if (!is_set.load()) {
                 // RDTSC may be fenced here due to atomic load
-                s32 const cycles = std::min<s64>(std::numeric_limits<s32>::max(), s64(_rdtsc()) - s64(start));
-                if (cycles > 0) {
-                    // See here: https://github.com/torvalds/linux/blob/948a64995aca6820abefd17f1a4258f5835c5ad9/arch/x86/lib/delay.c#L93
-                    // MWAITX accepts a 32-bit input timer which determines the total number of cycles to wait for
-                    // NOT THE TOTAL ABSOLUTE TSC VALUE, it's just a delta
-                    // BIT[1] = use a timer
-                    // Hint = 0: Use C1 state when sleepy (means faster wakeup but less power saving)
-                    _mm_mwaitx(1 << 1, 0u, cycles);
-                    if (!is_set.load())
-                        return false;
-                } else {
+                u32 const cycles = std::min<u32>(std::numeric_limits<u32>::max(), s64(end) - s64(start));
+                // See here: https://github.com/torvalds/linux/blob/948a64995aca6820abefd17f1a4258f5835c5ad9/arch/x86/lib/delay.c#L93
+                // MWAITX accepts a 32-bit input timer which determines the total number of cycles to wait for
+                // NOT THE TOTAL ABSOLUTE TSC VALUE, it's just a delta
+                // BIT[1] = use a timer
+                // Hint = 0: Use C1 state when sleepy (means faster wakeup but less power saving)
+                _mm_mwaitx(1 << 1, 0u, cycles);
+                if (!is_set.load())
                     return false;
-                }
             }
             bool expected = true;
             if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
