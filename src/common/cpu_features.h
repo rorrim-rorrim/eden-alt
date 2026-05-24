@@ -46,6 +46,9 @@ public:
     /// @returns Whether the clock directly uses the host's hardware clock.
     bool IsNative() const;
 
+    // @returns Nanoseconds to native ticks
+    u64 NsToTicks(std::chrono::nanoseconds ns) const;
+
     static inline u64 NSToCNTPCT(u64 ns) {
         return ns * NsToCNTPCTRatio::num / NsToCNTPCTRatio::den;
     }
@@ -72,7 +75,6 @@ public:
         return cpu_tick * CPUTickToGPUTickRatio::num / CPUTickToGPUTickRatio::den;
     }
 
-protected:
     using NsRatio = std::nano;
     using UsRatio = std::micro;
     using MsRatio = std::milli;
@@ -94,17 +96,15 @@ protected:
     u64 ns_rdtsc_factor;
     u64 us_rdtsc_factor;
     u64 ms_rdtsc_factor;
+    u64 rdtsc_ns_factor;
     u64 cntpct_rdtsc_factor;
     u64 gputick_rdtsc_factor;
     bool invariant;
 #elif defined(HAS_NCE)
-public:
     using FactorType = unsigned __int128;
-
-    FactorType GetGuestCNTFRQFactor() const {
+    [[nodiscard]] inline FactorType GetGuestCNTFRQFactor() const {
         return guest_cntfrq_factor;
     }
-protected:
     FactorType ns_cntfrq_factor;
     FactorType us_cntfrq_factor;
     FactorType ms_cntfrq_factor;
@@ -138,7 +138,6 @@ struct CPUCaps {
     u32 tsc_crystal_ratio_numerator;
     u32 crystal_frequency;
     u64 tsc_frequency; // Derived from the above three values
-    u64 tsc_to_ns_ratio; // Derived
 
     bool sse3 : 1;
     bool ssse3 : 1;

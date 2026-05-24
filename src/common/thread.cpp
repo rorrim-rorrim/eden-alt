@@ -174,7 +174,7 @@ __attribute__((target("waitpkg,mwaitx")))
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
     auto const start = Common::X64::FencedRDTSC();
     auto const& caps = Common::g_cpu_caps;
-    [[maybe_unused]] auto const end = start + time.count() * caps.tsc_to_ns_ratio;
+    [[maybe_unused]] auto const end = start + Common::g_wall_clock.NsToTicks(time);
     if (caps.monitorx) {
         while (true) {
             // Armed monitor, as per manual, MWAITX must be conditional if the condition isn't satisfied
