@@ -185,7 +185,7 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
                 // RDTSC may be fenced here due to atomic load
                 auto const now = _rdtsc();
                 if (end > now) {
-                    u32 const cycles = std::min<u32>(std::numeric_limits<u32>::max(), s64(end) - s64(now));
+                    u32 const cycles = std::min<u32>((std::numeric_limits<u32>::max)(), s64(end) - s64(now));
                     // See here: https://github.com/torvalds/linux/blob/948a64995aca6820abefd17f1a4258f5835c5ad9/arch/x86/lib/delay.c#L93
                     // MWAITX accepts a 32-bit input timer which determines the total number of cycles to wait for
                     // NOT THE TOTAL ABSOLUTE TSC VALUE, it's just a delta
