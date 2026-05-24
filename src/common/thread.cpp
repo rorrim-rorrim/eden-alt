@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <chrono>
+#include <limits>
 #include <string>
 #include <thread>
 
@@ -182,7 +183,7 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
             _mm_monitorx(reinterpret_cast<u64*>(std::addressof(is_set)), 0, 0);
             if (!is_set.load()) {
                 // RDTSC may be fenced here due to atomic load
-                s32 const cycles = s64(_rdtsc()) - s64(start);
+                s32 const cycles = std::min<s64>(std::numeric_limits<s32>::max(), s64(_rdtsc()) - s64(start));
                 if (cycles > 0) {
                     // See here: https://github.com/torvalds/linux/blob/948a64995aca6820abefd17f1a4258f5835c5ad9/arch/x86/lib/delay.c#L93
                     // MWAITX accepts a 32-bit input timer which determines the total number of cycles to wait for
@@ -204,11 +205,8 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
         // #UD If CPUID.7.0:ECX.WAITPKG[bit 5]=0.
         while (true) {
             _umonitor(std::addressof(is_set));
-            if (!is_set.load()) {
-                s32 const cycles = s64(_rdtsc()) - s64(start);
-                if (!_umwait(1, cycles))
-                    return false;
-            }
+            if (!is_set.load() && !_umwait(1, end)) //umwait is absolute time!!!
+                return false;
             bool expected = true;
             if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
                 return true;
