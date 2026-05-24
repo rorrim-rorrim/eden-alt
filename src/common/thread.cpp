@@ -233,11 +233,8 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
 #ifdef _WIN32
     auto const end = Common::g_wall_clock.GetTimeNS() + time;
-    while (!is_set.load() && rem > 0) {
+    while (!is_set.load() && end > Common::g_wall_clock.GetTimeNS())
         Common::Windows::SleepForOneTick();
-        if (Common::g_wall_clock.GetTimeNS() > end)
-            break;
-    }
     if (is_set.load())
         Reset();
     return true;
