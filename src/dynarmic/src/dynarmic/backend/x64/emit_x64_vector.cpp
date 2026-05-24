@@ -227,7 +227,11 @@ void EmitX64::EmitVectorGetElement32(EmitContext& ctx, IR::Inst* inst) {
     } else {
         auto const source = ctx.reg_alloc.UseScratchXmm(code, args[0]);
         code.pshufd(source, source, index);
-        code.movd(dest, source);
+        if (code.HasHostFeature(HostFeature::AVX)) {
+            code.vmovd(dest, source);
+        } else {
+            code.movd(dest, source);
+        }
     }
 
     ctx.reg_alloc.DefineValue(code, inst, dest);

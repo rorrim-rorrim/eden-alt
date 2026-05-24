@@ -226,13 +226,22 @@ void EmitPostProcessNaNs(BlockOfCode& code, Xbyak::Xmm result, Xbyak::Xmm op1, X
     // op1 == Inf  && op2 == QNaN
     // op1 == QNaN && op2 == SNaN <<< The problematic case
     // op1 == QNaN && op2 == Inf
-
-    if constexpr (fsize == 32) {
-        code.movd(tmp.cvt32(), op2);
-        code.shl(tmp.cvt32(), 32 - mantissa_msb_bit);
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        if constexpr (fsize == 32) {
+            code.movd(tmp.cvt32(), op2);
+            code.shl(tmp.cvt32(), 32 - mantissa_msb_bit);
+        } else {
+            code.movq(tmp, op2);
+            code.shl(tmp, 64 - mantissa_msb_bit);
+        }
     } else {
-        code.movq(tmp, op2);
-        code.shl(tmp, 64 - mantissa_msb_bit);
+        if constexpr (fsize == 32) {
+            code.vmovd(tmp.cvt32(), op2);
+            code.shl(tmp.cvt32(), 32 - mantissa_msb_bit);
+        } else {
+            code.vmovq(tmp, op2);
+            code.shl(tmp, 64 - mantissa_msb_bit);
+        }
     }
     // If op2 is a SNaN, CF = 0 and ZF = 0.
     code.jna(end, code.T_NEAR);
@@ -477,10 +486,18 @@ static inline void EmitFPMinMaxNumeric(BlockOfCode& code, EmitContext& ctx, IR::
         tmp.setBit(fsize);
 
         const auto move_to_tmp = [=, &code](const Xbyak::Xmm& xmm) {
-            if constexpr (fsize == 32) {
-                code.movd(tmp.cvt32(), xmm);
+            if (code.HasHostFeature(HostFeature::AVX)) {
+                if constexpr (fsize == 32) {
+                    code.vmovd(tmp.cvt32(), xmm);
+                } else {
+                    code.vmovq(tmp.cvt64(), xmm);
+                }
             } else {
-                code.movq(tmp.cvt64(), xmm);
+                if constexpr (fsize == 32) {
+                    code.movd(tmp.cvt32(), xmm);
+                } else {
+                    code.movq(tmp.cvt64(), xmm);
+                }
             }
         };
 
@@ -1156,7 +1173,11 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
 
             code.L(*bad_values);
             if constexpr (fsize == 32) {
-                code.movd(tmp, operand);
+                if (code.HasHostFeature(HostFeature::AVX)) {
+                    code.vmovd(tmp, operand);
+                } else {
+                    code.movd(tmp, operand);
+                }
 
                 if (!ctx.FPCR().FZ()) {
                     if (ctx.FPCR().DN()) {
@@ -1186,7 +1207,12 @@ static void EmitFPRSqrtEstimate(BlockOfCode& code, EmitContext& ctx, IR::Inst* i
                 }
 
                 code.L(default_nan);
-                code.movd(result, code.Const(xword, 0x7FC00000));
+
+                if (code.HasHostFeature(HostFeature::AVX)) {
+                    code.vmovd(result, code.Const(xword, 0x7FC00000));
+                } else {
+                    code.movd(result, code.Const(xword, 0x7FC00000));
+                }
                 code.jmp(*end, code.T_NEAR);
             } else {
                 Xbyak::Label nan, zero;

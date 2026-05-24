@@ -348,7 +348,11 @@ void A32EmitX64::EmitA32SetRegister(A32EmitContext& ctx, IR::Inst* inst) {
         code.mov(MJitStateReg(reg), args[1].GetImmediateU32());
     } else if (args[1].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[1]);
-        code.movd(MJitStateReg(reg), to_store);
+        if (code.HasHostFeature(HostFeature::AVX)) {
+            code.vmovd(MJitStateReg(reg), to_store);
+        } else {
+            code.movd(MJitStateReg(reg), to_store);
+        }
     } else {
         const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(code, args[1]).cvt32();
         code.mov(MJitStateReg(reg), to_store);
@@ -641,7 +645,11 @@ void A32EmitX64::EmitA32OrQFlag(A32EmitContext& ctx, IR::Inst* inst) {
 
 void A32EmitX64::EmitA32GetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-    code.movd(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)]);
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vmovd(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)]);
+    } else {
+        code.movd(result, dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)]);
+    }
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
@@ -651,7 +659,11 @@ void A32EmitX64::EmitA32SetGEFlags(A32EmitContext& ctx, IR::Inst* inst) {
 
     if (args[0].IsInXmm(ctx.reg_alloc)) {
         const Xbyak::Xmm to_store = ctx.reg_alloc.UseXmm(code, args[0]);
-        code.movd(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
+        if (code.HasHostFeature(HostFeature::AVX)) {
+            code.vmovd(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
+        } else {
+            code.movd(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);
+        }
     } else {
         const Xbyak::Reg32 to_store = ctx.reg_alloc.UseGpr(code, args[0]).cvt32();
         code.mov(dword[code.ABI_JIT_PTR + offsetof(A32JitState, cpsr_ge)], to_store);

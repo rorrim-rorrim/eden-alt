@@ -339,7 +339,11 @@ void A64EmitX64::EmitA64GetS(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-    code.movd(result, addr);
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vmovd(result, addr);
+    } else {
+        code.movd(result, addr);
+    }
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
@@ -348,7 +352,11 @@ void A64EmitX64::EmitA64GetD(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = qword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-    code.movq(result, addr);
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vmovq(result, addr);
+    } else {
+        code.movq(result, addr);
+    }
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
@@ -357,7 +365,11 @@ void A64EmitX64::EmitA64GetQ(A64EmitContext& ctx, IR::Inst* inst) {
     const auto addr = xword[code.ABI_JIT_PTR + offsetof(A64JitState, vec) + sizeof(u64) * 2 * static_cast<size_t>(vec)];
 
     const Xbyak::Xmm result = ctx.reg_alloc.ScratchXmm(code);
-    code.movaps(result, addr);
+    if (code.HasHostFeature(HostFeature::AVX)) {
+        code.vmovaps(result, addr);
+    } else {
+        code.movaps(result, addr);
+    }
     ctx.reg_alloc.DefineValue(code, inst, result);
 }
 
