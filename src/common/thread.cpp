@@ -174,7 +174,7 @@ __attribute__((target("waitpkg,mwaitx")))
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
     auto const start = Common::X64::FencedRDTSC();
     auto const& caps = Common::g_cpu_caps;
-    auto const ns_ratio = std::max<u64>(1, caps.base_frequency / 1'000);
+    auto const ns_ratio = std::max<u64>(1, caps.tsc_frequency / 1'000);
     auto const end = start + time.count() * ns_ratio;
     if (caps.monitorx) {
         while (true) {
@@ -205,24 +205,22 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
         // #UD If CPUID.7.0:ECX.WAITPKG[bit 5]=0.
         while (true) {
             _umonitor(std::addressof(is_set));
-            if (!is_set.load() && !_umwait(1, end))
-                return false;
+            if (!is_set.load()) {
+                s32 const cycles = s64(_rdtsc()) - s64(start);
+                if (!_umwait(1, cycles))
+                    return false;
+            }
             bool expected = true;
             if (is_set.compare_exchange_weak(expected, false, std::memory_order_release))
                 return true;
         }
     } else {
 #ifdef _WIN32
-        while (!is_set.load() && _rdtsc() < end)
+        while (!is_set.load() && end > _rdtsc())
             Common::Windows::SleepForOneTick();
         if (is_set.load())
             Reset();
         return true;
-#elif defined(__FreeBSD__)
-        while (!is_set.load() && end > _rdtsc())
-            _mm_pause();
-        bool expected = true;
-        return is_set.compare_exchange_weak(expected, false, std::memory_order_release);
 #else
         std::unique_lock lk{mutex};
         if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
@@ -234,22 +232,11 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
 }
 #else
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
-#ifdef _WIN32
-    s64 rem = s64(time.count()); //98 years
-    while (!is_set.load() && rem > 0) {
-        Common::Windows::SleepForOneTick();
-        rem = s64(GetGlobalTimeNs().count()) - s64(time.count());
-    }
-    if (is_set.load())
-        Reset();
-    return true;
-#else
     std::unique_lock lk{mutex};
     if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
         return false;
     is_set = false;
     return true;
-#endif
 }
 #endif
 
