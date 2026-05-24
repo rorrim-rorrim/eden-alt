@@ -1,11 +1,14 @@
 // SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-FileCopyrightText: Copyright 2013 Dolphin Emulator Project / 2015 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
+#include <optional>
+#include <string_view>
 #include <chrono>
 #include <memory>
 #include <ratio>
@@ -107,11 +110,78 @@ protected:
     FactorType ms_cntfrq_factor;
     FactorType guest_cntfrq_factor;
     FactorType gputick_cntfrq_factor;
-#else
-
 #endif
 };
 
-[[nodiscard]] WallClock CreateOptimalClock() noexcept;
+#ifdef ARCHITECTURE_x86_64
+/// x86/x64 CPU capabilities that may be detected by this module
+struct CPUCaps {
+    enum class Manufacturer : u8 {
+        Unknown = 0,
+        Intel = 1,
+        AMD = 2,
+        Hygon = 3,
+    };
+
+    static Manufacturer ParseManufacturer(std::string_view brand_string);
+
+    Manufacturer manufacturer;
+    char brand_string[13];
+
+    char cpu_string[48];
+
+    u32 base_frequency;
+    u32 max_frequency;
+    u32 bus_frequency;
+
+    u32 tsc_crystal_ratio_denominator;
+    u32 tsc_crystal_ratio_numerator;
+    u32 crystal_frequency;
+    u64 tsc_frequency; // Derived from the above three values
+    u64 tsc_to_ns_ratio; // Derived
+
+    bool sse3 : 1;
+    bool ssse3 : 1;
+    bool sse4_1 : 1;
+    bool sse4_2 : 1;
+
+    bool avx : 1;
+    bool avx2 : 1;
+    bool avx512f : 1;
+    bool avx512dq : 1;
+    bool avx512cd : 1;
+    bool avx512bw : 1;
+    bool avx512vl : 1;
+    bool avx512vbmi : 1;
+    bool avx512bitalg : 1;
+
+    bool aes : 1;
+    bool bmi1 : 1;
+    bool bmi2 : 1;
+    bool f16c : 1;
+    bool fma : 1;
+    bool gfni : 1;
+    bool invariant_tsc : 1;
+    bool lzcnt : 1;
+    bool monitorx : 1;
+    bool movbe : 1;
+    bool pclmulqdq : 1;
+    bool popcnt : 1;
+    bool sha : 1;
+    bool waitpkg : 1;
+};
+#else
+struct CPUCaps {
+    bool padding;
+};
+#endif
+
+/// Detects CPU core count
+std::optional<int> GetProcessorCount();
+
+/// @brief Global cpu caps
+extern const CPUCaps g_cpu_caps;
+/// @brief Global wall clock
+extern const WallClock g_wall_clock;
 
 } // namespace Common

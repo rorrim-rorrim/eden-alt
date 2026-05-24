@@ -39,7 +39,7 @@ extern "C" {
 #include "video_core/textures/decoders.h"
 
 #if defined(ARCHITECTURE_x86_64)
-#include "common/x64/cpu_detect.h"
+#include "common/cpu_features.h"
 #endif
 
 #if defined(ARCHITECTURE_x86_64) \

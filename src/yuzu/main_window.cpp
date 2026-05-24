@@ -124,7 +124,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/string_util.h"
 
 #ifdef ARCHITECTURE_x86_64
-#include "common/x64/cpu_detect.h"
+#include "common/cpu_features.h"
 #endif
 
 // Core //

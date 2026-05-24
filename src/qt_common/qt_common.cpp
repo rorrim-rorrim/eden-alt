@@ -13,11 +13,8 @@
 #include "common/fs/path_util.h"
 #include "common/logging.h"
 #include "common/scm_rev.h"
+#include "common/cpu_features.h"
 #include "core/memory.h"
-
-#ifdef ARCHITECTURE_x86_64
-#include "common/x64/cpu_detect.h"
-#endif
 
 #include <QGuiApplication>
 #include <QStringLiteral>

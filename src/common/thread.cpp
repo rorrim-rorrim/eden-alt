@@ -38,13 +38,13 @@
 #include <unistd.h>
 #endif
 
+#include "common/cpu_features.h"
 #ifdef ARCHITECTURE_x86_64
 #ifdef _MSC_VER
 #include <intrin.h>
 #else
 #include <x86intrin.h>
 #endif
-#include "common/x64/cpu_detect.h"
 #include "common/x64/rdtsc.h"
 #endif
 #include "core/core_timing.h"
@@ -174,8 +174,7 @@ __attribute__((target("waitpkg,mwaitx")))
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
     auto const start = Common::X64::FencedRDTSC();
     auto const& caps = Common::g_cpu_caps;
-    auto const ns_ratio = std::max<u64>(1, caps.tsc_frequency / 1'000);
-    [[maybe_unused]] auto const end = start + time.count() * ns_ratio;
+    [[maybe_unused]] auto const end = start + time.count() * caps.tsc_to_ns_ratio;
     if (caps.monitorx) {
         while (true) {
             // Armed monitor, as per manual, MWAITX must be conditional if the condition isn't satisfied
@@ -232,11 +231,22 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
 }
 #else
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
+#ifdef _WIN32
+    s64 rem = s64(time.count()); //98 years
+    while (!is_set.load() && rem > 0) {
+        Common::Windows::SleepForOneTick();
+        rem = s64(Common::g_wall_clock.GetGlobalTimeNs().count()) - s64(time.count());
+    }
+    if (is_set.load())
+        Reset();
+    return true;
+#else
     std::unique_lock lk{mutex};
     if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
         return false;
     is_set = false;
     return true;
+#endif
 }
 #endif
 
