@@ -231,22 +231,11 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
 }
 #else
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
-#ifdef _WIN32
-    s64 rem = s64(time.count()); //98 years
-    while (!is_set.load() && rem > 0) {
-        Common::Windows::SleepForOneTick();
-        rem = s64(Common::g_wall_clock.GetGlobalTimeNs().count()) - s64(time.count());
-    }
-    if (is_set.load())
-        Reset();
-    return true;
-#else
     std::unique_lock lk{mutex};
     if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
         return false;
     is_set = false;
     return true;
-#endif
 }
 #endif
 

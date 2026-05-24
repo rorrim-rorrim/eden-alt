@@ -108,6 +108,7 @@ public:
     FactorType ns_cntfrq_factor;
     FactorType us_cntfrq_factor;
     FactorType ms_cntfrq_factor;
+    FactorType cntfrq_ns_factor;
     FactorType guest_cntfrq_factor;
     FactorType gputick_cntfrq_factor;
 #endif

@@ -351,6 +351,7 @@ WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept {
     ns_cntfrq_factor = GetFixedPointFactor(NsRatio::den, host_cntfrq);
     us_cntfrq_factor = GetFixedPointFactor(UsRatio::den, host_cntfrq);
     ms_cntfrq_factor = GetFixedPointFactor(MsRatio::den, host_cntfrq);
+    cntfrq_ns_factor = GetFixedPointFactor(host_cntfrq, NsRatio::den);
     guest_cntfrq_factor = GetFixedPointFactor(CNTFRQ, host_cntfrq);
     gputick_cntfrq_factor = GetFixedPointFactor(GPUTickFreq, host_cntfrq);
 }
@@ -391,7 +392,7 @@ bool WallClock::IsNative() const {
 }
 
 u64 WallClock::NsToTicks(std::chrono::nanoseconds ns) const {
-    return ns;
+    return MultiplyHigh(ns.count(), cntfrq_ns_factor);
 }
 #else
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept {}
