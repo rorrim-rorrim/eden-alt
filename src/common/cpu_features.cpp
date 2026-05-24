@@ -407,7 +407,7 @@ bool WallClock::IsNative() const {
 }
 
 u64 WallClock::NsToTicks(std::chrono::nanoseconds ns) const {
-    return ns;
+    return ns.count();
 }
 #endif
 
