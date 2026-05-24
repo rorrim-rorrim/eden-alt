@@ -175,7 +175,7 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
     auto const start = Common::X64::FencedRDTSC();
     auto const& caps = Common::g_cpu_caps;
     auto const ns_ratio = std::max<u64>(1, caps.tsc_frequency / 1'000);
-    auto const end = start + time.count() * ns_ratio;
+    [[maybe_unused]] auto const end = start + time.count() * ns_ratio;
     if (caps.monitorx) {
         while (true) {
             // Armed monitor, as per manual, MWAITX must be conditional if the condition isn't satisfied
