@@ -15,10 +15,11 @@
 #include <vector>
 #ifdef _WIN32
 #include <windows.h>
-#endif
-#if defined(__DragonFly__) || defined(__FreeBSD__)
+#elif defined(__DragonFly__) || defined(__FreeBSD__)
 #include <sys/types.h>
 #include <machine/cpufunc.h>
+#elif defined(__ANDROID__)
+#include <sys/system_properties.h>
 #endif
 
 #include "common/steady_clock.h"
@@ -31,24 +32,8 @@
 #include "common/x64/rdtsc.h"
 #ifdef _MSC_VER
 #include <intrin.h>
-static inline u64 xgetbv(u32 index) {
-    return _xgetbv(index);
-}
+static inline u64 xgetbv(u32 index) { return _xgetbv(index); }
 #else
-#endif
-
-#ifdef __ANDROID__
-#include <sys/system_properties.h>
-#endif
-#ifdef ARCHITECTURE_x86_64
-#include "common/x64/rdtsc.h"
-#endif
-
-namespace Common {
-
-#ifdef ARCHITECTURE_x86_64
-
-namespace {
 static inline void __cpuidex(int info[4], u32 function_id, u32 subfunction_id) {
 #if defined(__DragonFly__) || defined(__FreeBSD__)
     // Despite the name, this is just do_cpuid() with ECX as second input.
@@ -61,11 +46,7 @@ static inline void __cpuidex(int info[4], u32 function_id, u32 subfunction_id) {
             : "a"(function_id), "c"(subfunction_id));
 #endif
 }
-
-static inline void __cpuid(int info[4], u32 function_id) {
-    return __cpuidex(info, function_id, 0);
-}
-
+static inline void __cpuid(int info[4], u32 function_id) { return __cpuidex(info, function_id, 0); }
 #define _XCR_XFEATURE_ENABLED_MASK 0
 static inline u64 xgetbv(u32 index) {
     u32 eax, edx;
@@ -73,8 +54,10 @@ static inline u64 xgetbv(u32 index) {
     return ((u64)edx << 32) | eax;
 }
 #endif // _MSC_VER
-}
+#endif
 
+namespace Common {
+#ifdef ARCHITECTURE_x86_64
 CPUCaps::Manufacturer CPUCaps::ParseManufacturer(std::string_view brand_string) {
     if (brand_string == "GenuineIntel") {
         return Manufacturer::Intel;
@@ -310,15 +293,12 @@ u64 WallClock::NsToTicks(std::chrono::nanoseconds ns) const {
 }
 #elif defined(HAS_NCE)
 namespace {
-
 [[nodiscard]] Common::WallClock::FactorType GetFixedPointFactor(u64 num, u64 den) noexcept {
     return (Common::WallClock::FactorType(num) << 64) / den;
 }
-
 [[nodiscard]] u64 MultiplyHigh(u64 m, Common::WallClock::FactorType factor) noexcept {
     return static_cast<u64>((m * factor) >> 64);
 }
-
 [[nodiscard]] s64 GetHostCNTFRQ() noexcept {
     u64 cntfrq_el0 = 0;
 #ifdef ANDROID
@@ -343,7 +323,6 @@ namespace {
     return cntfrq_el0;
 #endif
 }
-
 } // namespace
 
 WallClock::WallClock(bool invariant_, u64 rdtsc_frequency_) noexcept {
@@ -442,5 +421,4 @@ const WallClock g_wall_clock = [] {
     return WallClock(true, 1);
 #endif
 }();
-
 } // namespace Common
