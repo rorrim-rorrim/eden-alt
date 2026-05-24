@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iterator>
 #include <optional>
+#include <algorithm>
 #include <string_view>
 #include <thread>
 #include <vector>
