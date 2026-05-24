@@ -311,11 +311,11 @@ u64 WallClock::NsToTicks(std::chrono::nanoseconds ns) const {
 #elif defined(HAS_NCE)
 namespace {
 
-[[nodiscard]] WallClock::FactorType GetFixedPointFactor(u64 num, u64 den) noexcept {
-    return (WallClock::FactorType(num) << 64) / den;
+[[nodiscard]] Common::WallClock::FactorType GetFixedPointFactor(u64 num, u64 den) noexcept {
+    return (Common::WallClock::FactorType(num) << 64) / den;
 }
 
-[[nodiscard]] u64 MultiplyHigh(u64 m, WallClock::FactorType factor) noexcept {
+[[nodiscard]] u64 MultiplyHigh(u64 m, Common::WallClock::FactorType factor) noexcept {
     return static_cast<u64>((m * factor) >> 64);
 }
 
