@@ -47,6 +47,7 @@
 #include "common/x64/cpu_detect.h"
 #include "common/x64/rdtsc.h"
 #endif
+#include "core/core_timing.h"
 
 namespace Common {
 
