@@ -27,6 +27,7 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/cpu_features.h"
+#include "common/logging.h"
 
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/rdtsc.h"
