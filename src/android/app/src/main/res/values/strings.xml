@@ -572,8 +572,6 @@
 
     <!-- GPU Logging strings -->
     <string name="gpu_logging_header">GPU Logging</string>
-    <string name="gpu_logging_enabled">Enable GPU Logging</string>
-    <string name="gpu_logging_enabled_description">Log GPU operations to eden_gpu.log for debugging Adreno drivers</string>
     <string name="gpu_log_level">Log Level</string>
     <string name="gpu_log_level_description">Detail level for GPU logs (higher = more detail, more overhead)</string>
     <string name="gpu_log_vulkan_calls">Log Vulkan API Calls</string>

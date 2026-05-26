@@ -925,13 +925,6 @@ abstract class SettingsItem(
 
             // GPU Logging settings
             put(
-                SwitchSetting(
-                    BooleanSetting.GPU_LOGGING_ENABLED,
-                    titleId = R.string.gpu_logging_enabled,
-                    descriptionId = R.string.gpu_logging_enabled_description
-                )
-            )
-            put(
                 SingleChoiceSetting(
                     ByteSetting.GPU_LOG_LEVEL,
                     titleId = R.string.gpu_log_level,

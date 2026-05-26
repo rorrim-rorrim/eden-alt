@@ -1289,7 +1289,6 @@ class SettingsFragmentPresenter(
 
             if (!NativeConfig.isPerGameConfigLoaded()) {
                 add(HeaderSetting(R.string.gpu_logging_header))
-                add(BooleanSetting.GPU_LOGGING_ENABLED.key)
                 add(ByteSetting.GPU_LOG_LEVEL.key)
                 add(BooleanSetting.GPU_LOG_VULKAN_CALLS.key)
                 add(BooleanSetting.GPU_LOG_SHADER_DUMPS.key)

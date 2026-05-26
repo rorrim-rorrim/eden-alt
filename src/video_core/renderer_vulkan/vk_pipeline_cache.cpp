@@ -784,14 +784,21 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         device.SaveShader(code);
         modules[stage_index] = BuildShader(device, code);
 
-        // Log shader compilation to GPU logger (with SPIR-V binary dump if enabled)
-        if (Settings::values.gpu_logging_enabled.GetValue()) {
+        // Text log + .spv dump. Text log is gated by gpu_log_level != Off; .spv dump
+        // is independent and gated only by gpu_log_shader_dumps.
+        const bool should_log = GPU::Logging::IsActive();
+        const bool should_dump = Settings::values.gpu_log_shader_dumps.GetValue();
+        if (should_log || should_dump) {
             static constexpr std::array stage_names{"vertex", "tess_control", "tess_eval", "geometry", "fragment"};
             const std::string shader_name = fmt::format("shader_{:016x}_{}", key.unique_hashes[index], stage_names[stage_index]);
-            const std::string shader_info = fmt::format("SPIR-V size: {} bytes, hash: {:016x}",
-                code.size() * sizeof(u32), key.unique_hashes[index]);
-            GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info,
-                std::span<const u32>(code.data(), code.size()));
+            if (should_log) {
+                const std::string shader_info = fmt::format("SPIR-V size: {} bytes, hash: {:016x}",
+                    code.size() * sizeof(u32), key.unique_hashes[index]);
+                GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info);
+            }
+            if (should_dump) {
+                GPU::Logging::DumpSpirvShader(shader_name, std::span<const u32>(code.data(), code.size()));
+            }
         }
 
         if (device.HasDebuggingToolAttached()) {
@@ -902,13 +909,19 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
     device.SaveShader(code);
     vk::ShaderModule spv_module{BuildShader(device, code)};
 
-    // Log compute shader compilation to GPU logger (with SPIR-V binary dump if enabled)
-    if (Settings::values.gpu_logging_enabled.GetValue()) {
+    // Text log + .spv dump. Same split as the graphics path.
+    const bool should_log = GPU::Logging::IsActive();
+    const bool should_dump = Settings::values.gpu_log_shader_dumps.GetValue();
+    if (should_log || should_dump) {
         const std::string shader_name = fmt::format("shader_{:016x}_compute", key.unique_hash);
-        const std::string shader_info = fmt::format("SPIR-V size: {} bytes, hash: {:016x}",
-            code.size() * sizeof(u32), key.unique_hash);
-        GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info,
-            std::span<const u32>(code.data(), code.size()));
+        if (should_log) {
+            const std::string shader_info = fmt::format("SPIR-V size: {} bytes, hash: {:016x}",
+                code.size() * sizeof(u32), key.unique_hash);
+            GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info);
+        }
+        if (should_dump) {
+            GPU::Logging::DumpSpirvShader(shader_name, std::span<const u32>(code.data(), code.size()));
+        }
     }
 
     if (device.HasDebuggingToolAttached()) {

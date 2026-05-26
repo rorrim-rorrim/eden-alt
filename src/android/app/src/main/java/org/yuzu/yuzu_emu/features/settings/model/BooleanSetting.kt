@@ -83,7 +83,6 @@ enum class BooleanSetting(override val key: String) : AbstractBooleanSetting {
     ENABLE_OVERLAY("enable_overlay"),
 
     // GPU Logging
-    GPU_LOGGING_ENABLED("gpu_logging_enabled"),
     GPU_LOG_VULKAN_CALLS("gpu_log_vulkan_calls"),
     GPU_LOG_SHADER_DUMPS("gpu_log_shader_dumps"),
     GPU_LOG_MEMORY_TRACKING("gpu_log_memory_tracking"),
