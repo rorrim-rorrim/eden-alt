@@ -367,7 +367,8 @@ public:
     Id load_const_func_u32x2{};
     Id load_const_func_u32x4{};
 
-    ankerl::unordered_dense::set<Id> non_uniform_ids;
+    // Sirit::Id doesn't play nice with *::set<>
+    ankerl::unordered_dense::set<u32> non_uniform_ids;
 
 private:
     void DefineCommonTypes(const Info& info);

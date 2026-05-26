@@ -195,9 +195,9 @@ Id Texture(EmitContext& ctx, IR::TextureInstInfo info, [[maybe_unused]] const IR
     const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
     if (def.count > 1) {
         auto const idx = index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index);
-        if (!ctx.non_uniform_ids.contains(idx) && IsNonUniformDescriptor(ctx, index)) {
+        if (!ctx.non_uniform_ids.contains(idx.value) && IsNonUniformDescriptor(ctx, index)) {
             ctx.Decorate(idx, spv::Decoration::NonUniform);
-            ctx.non_uniform_ids.insert(idx);
+            ctx.non_uniform_ids.insert(idx.value);
         }
         const Id pointer{ctx.OpAccessChain(def.pointer_type, def.id, idx)};
         const Id object{ctx.OpLoad(def.sampled_type, pointer)};
@@ -220,9 +220,9 @@ Id TextureImage(EmitContext& ctx, IR::TextureInstInfo info, const IR::Value& ind
         const TextureDefinition& def{ctx.textures.at(info.descriptor_index)};
         if (def.count > 1) {
             auto const idx = index.IsImmediate() ? ctx.Const(index.U32()) : ctx.Def(index);
-            if (!ctx.non_uniform_ids.contains(idx) && IsNonUniformDescriptor(ctx, index)) {
+            if (!ctx.non_uniform_ids.contains(idx.value) && IsNonUniformDescriptor(ctx, index)) {
                 ctx.Decorate(idx, spv::Decoration::NonUniform);
-                ctx.non_uniform_ids.insert(idx);
+                ctx.non_uniform_ids.insert(idx.value);
             }
             const Id ptr = ctx.OpAccessChain(def.pointer_type, def.id, idx);
             const Id object = ctx.OpLoad(def.sampled_type, ptr);
