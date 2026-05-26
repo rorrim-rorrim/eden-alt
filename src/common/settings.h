@@ -808,8 +808,8 @@ struct Values {
 
     // GPU Logging
     Setting<bool> gpu_logging_enabled{linkage, false, "gpu_logging_enabled", Category::Debugging};
-    SwitchableSetting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Standard, "gpu_log_level",
-                                                   Category::Debugging};
+    Setting<GpuLogLevel> gpu_log_level{linkage, GpuLogLevel::Standard, "gpu_log_level",
+                                       Category::Debugging};
     Setting<bool> gpu_log_vulkan_calls{linkage, true, "gpu_log_vulkan_calls", Category::Debugging};
     Setting<bool> gpu_log_shader_dumps{linkage, false, "gpu_log_shader_dumps", Category::Debugging};
     Setting<bool> gpu_log_memory_tracking{linkage, true, "gpu_log_memory_tracking",
