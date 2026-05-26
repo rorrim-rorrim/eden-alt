@@ -173,6 +173,7 @@ __attribute__((target("waitpkg,mwaitx")))
 #pragma GCC target("mwaitx")
 #endif
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
+#ifdef _WIN32
     auto const start = Common::X64::FencedRDTSC();
     auto const& caps = Common::g_cpu_caps;
     [[maybe_unused]] auto const end = start + Common::g_wall_clock.NsToTicks(time);
@@ -212,20 +213,19 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
                 return true;
         }
     } else {
-#ifdef _WIN32
         while (!is_set.load() && end > _rdtsc())
             Common::Windows::SleepForOneTick();
         if (is_set.load())
             Reset();
         return true;
-#else
-        std::unique_lock lk{mutex};
-        if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
-            return false;
-        is_set = false;
-        return true;
-#endif
     }
+#else
+    std::unique_lock lk{mutex};
+    if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
+        return false;
+    is_set = false;
+    return true;
+#endif
 }
 #else
 bool Event::WaitFor(const std::chrono::nanoseconds time) {
