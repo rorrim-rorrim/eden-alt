@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "core/core.h"
-#include "core/hle/service/i2c/i2c.h"
+#include "core/hle/service/gpio/gpio.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/service.h"
 
