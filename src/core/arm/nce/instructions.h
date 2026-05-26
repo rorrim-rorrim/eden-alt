@@ -4,6 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2020 Skyline Team and Contributors
 // SPDX-License-Identifier: MPL-2.0
 
+#pragma once
+
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
