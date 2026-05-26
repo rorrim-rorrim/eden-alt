@@ -458,8 +458,6 @@
     <string name="renderer_resolution">Разрешение (портативное/в док-станции)</string>
     <string name="renderer_vsync">Режим верт. синхронизации</string>
     <string name="renderer_scaling_filter">Фильтр адаптации окна</string>
-    <string name="fsr_sharpness">Резкость FSR</string>
-    <string name="fsr_sharpness_description">Определяет, насколько чётким будет изображение при использовании динамического контраста FSR.</string>
     <string name="renderer_anti_aliasing">Метод сглаживания</string>
 
 
