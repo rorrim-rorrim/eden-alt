@@ -190,8 +190,8 @@ bool Event::WaitFor(const std::chrono::nanoseconds time) {
                     // MWAITX accepts a 32-bit input timer which determines the total number of cycles to wait for
                     // NOT THE TOTAL ABSOLUTE TSC VALUE, it's just a delta
                     // BIT[1] = use a timer
-                    // Hint = 0: Use C2 state when sleepy (means slower wakeup but better savings)
-                    _mm_mwaitx(1 << 1, 1u, cycles);
+                    // Hint = 0: Use C1 state when sleepy (means slower wakeup but better savings)
+                    _mm_mwaitx(1 << 1, 0u, cycles);
                     if (!is_set.load())
                         return false;
                 } else
