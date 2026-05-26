@@ -79,8 +79,8 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_shader_feedback->setChecked(Settings::values.renderer_shader_feedback.GetValue());
     ui->enable_nsight_aftermath->setEnabled(runtime_lock);
     ui->enable_nsight_aftermath->setChecked(Settings::values.enable_nsight_aftermath.GetValue());
-    ui->dump_shaders->setEnabled(runtime_lock);
-    ui->dump_shaders->setChecked(Settings::values.dump_shaders.GetValue());
+    ui->dump_guest_shaders->setEnabled(runtime_lock);
+    ui->dump_guest_shaders->setChecked(Settings::values.dump_guest_shaders.GetValue());
     ui->dump_macros->setEnabled(runtime_lock);
     ui->dump_macros->setChecked(Settings::values.dump_macros.GetValue());
     ui->disable_macro_jit->setEnabled(runtime_lock);
@@ -121,7 +121,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.disable_buffer_reorder = ui->disable_buffer_reorder->isChecked();
     Settings::values.renderer_shader_feedback = ui->enable_shader_feedback->isChecked();
     Settings::values.enable_nsight_aftermath = ui->enable_nsight_aftermath->isChecked();
-    Settings::values.dump_shaders = ui->dump_shaders->isChecked();
+    Settings::values.dump_guest_shaders = ui->dump_guest_shaders->isChecked();
     Settings::values.dump_macros = ui->dump_macros->isChecked();
     Settings::values.disable_shader_loop_safety_checks =
         ui->disable_loop_safety_checks->isChecked();

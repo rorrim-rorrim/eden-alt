@@ -294,15 +294,15 @@
           </widget>
          </item>
          <item row="6" column="0">
-          <widget class="QCheckBox" name="dump_shaders">
+          <widget class="QCheckBox" name="dump_guest_shaders">
            <property name="enabled">
             <bool>true</bool>
            </property>
            <property name="toolTip">
-            <string>When checked, it will dump all the original assembler shaders from the disk shader cache or game as found</string>
+            <string>When checked, it will dump original Maxwell guest shader bytecode (the input to the recompiler) as .ash files under DumpDir/shaders/. Useful for inspection with nvdisasm.</string>
            </property>
            <property name="text">
-            <string>Dump Game Shaders</string>
+            <string>Dump Guest (Maxwell) Shaders</string>
            </property>
           </widget>
          </item>

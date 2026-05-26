@@ -782,8 +782,8 @@ struct Values {
     Setting<std::string> program_args{linkage, std::string(), "program_args", Category::Debugging};
     Setting<bool> dump_exefs{linkage, false, "dump_exefs", Category::Debugging};
     Setting<bool> dump_nso{linkage, false, "dump_nso", Category::Debugging};
-    Setting<bool> dump_shaders{
-                               linkage, false, "dump_shaders", Category::DebuggingGraphics, Specialization::Default,
+    Setting<bool> dump_guest_shaders{
+                               linkage, false, "dump_guest_shaders", Category::DebuggingGraphics, Specialization::Default,
                                false};
     Setting<bool> dump_macros{
                               linkage, false, "dump_macros", Category::DebuggingGraphics, Specialization::Default, false};
