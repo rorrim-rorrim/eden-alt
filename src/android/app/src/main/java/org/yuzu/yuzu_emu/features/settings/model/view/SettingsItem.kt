@@ -942,9 +942,23 @@ abstract class SettingsItem(
             )
             put(
                 SwitchSetting(
+                    BooleanSetting.DUMP_GUEST_SHADERS,
+                    titleId = R.string.dump_guest_shaders,
+                    descriptionId = R.string.dump_guest_shaders_description
+                )
+            )
+            put(
+                SwitchSetting(
                     BooleanSetting.GPU_LOG_SHADER_DUMPS,
                     titleId = R.string.gpu_log_shader_dumps,
                     descriptionId = R.string.gpu_log_shader_dumps_description
+                )
+            )
+            put(
+                SwitchSetting(
+                    BooleanSetting.DUMP_MACROS,
+                    titleId = R.string.dump_macros,
+                    descriptionId = R.string.dump_macros_description
                 )
             )
             put(
