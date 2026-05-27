@@ -37,8 +37,6 @@
 
 namespace Vulkan {
 namespace {
-using boost::container::small_vector;
-using boost::container::static_vector;
 using Shader::ImageBufferDescriptor;
 using Shader::Backend::SPIRV::RENDERAREA_LAYOUT_OFFSET;
 using Shader::Backend::SPIRV::RESCALING_LAYOUT_DOWN_FACTOR_OFFSET;
@@ -585,9 +583,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     } else {
         dynamic.raw1 = key.state.dynamic_state.raw1;
     }
-    static_vector<VkVertexInputBindingDescription, 32> vertex_bindings;
-    static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
-    static_vector<VkVertexInputAttributeDescription, 32> vertex_attributes;
+    boost::container::static_vector<VkVertexInputBindingDescription, 32> vertex_bindings;
+    boost::container::static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
+    boost::container::static_vector<VkVertexInputAttributeDescription, 32> vertex_attributes;
     if (!key.state.dynamic_vertex_input) {
         const size_t num_vertex_arrays = (std::min)(
             Maxwell::NumVertexArrays, static_cast<size_t>(device.GetMaxVertexInputBindings()));
@@ -812,7 +810,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (dynamic.depth_bounds_enable && !device.IsDepthBoundsSupported()) {
         LOG_WARNING(Render_Vulkan, "Depth bounds is enabled but not supported");
     }
-    static_vector<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
+    boost::container::static_vector<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
     const size_t num_attachments{NumAttachments(key.state)};
     for (size_t index = 0; index < num_attachments; ++index) {
         static constexpr std::array mask_table{
@@ -848,7 +846,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {}
     };
-    static_vector<VkDynamicState, 34> dynamic_states{
+    boost::container::static_vector<VkDynamicState, 34> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
@@ -943,12 +941,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .requiredSubgroupSize = GuestWarpSize,
     };
-    static_vector<VkPipelineShaderStageCreateInfo, 5> shader_stages;
+    boost::container::static_vector<VkPipelineShaderStageCreateInfo, 5> shader_stages;
     for (size_t stage = 0; stage < Maxwell::MaxShaderStage; ++stage) {
-        if (!spv_modules[stage]) {
-            continue;
-        }
-        [[maybe_unused]] auto& stage_ci =
+        if (spv_modules[stage]) {
             shader_stages.emplace_back(VkPipelineShaderStageCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext = nullptr,
@@ -958,6 +953,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 .pName = "main",
                 .pSpecializationInfo = nullptr,
             });
+        }
     }
     VkPipelineCreateFlags flags{};
     if (device.IsKhrPipelineExecutablePropertiesEnabled() && Settings::values.renderer_debug.GetValue()) {
