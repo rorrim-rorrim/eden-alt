@@ -184,7 +184,7 @@ private:
 
 [[nodiscard]] bool IsActive() noexcept;
 
-void DumpSpirvShader(const std::string& shader_name, std::span<const u32> spirv_code);
+void DumpSpirvShader(u64 shader_hash, std::span<const u32> spirv_code);
 
 // Helper to get stage name from index
 inline const char* GetShaderStageName(size_t stage_index) {

@@ -869,6 +869,9 @@ bool IsFastmemEnabled();
 void SetNceEnabled(bool is_64bit);
 bool IsNceEnabled();
 
+void SetCurrentProgramID(u64 program_id);
+u64 GetCurrentProgramID();
+
 bool IsOpenGL();
 
 bool IsDockedMode();

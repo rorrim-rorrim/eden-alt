@@ -797,7 +797,8 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
                 GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info);
             }
             if (should_dump) {
-                GPU::Logging::DumpSpirvShader(shader_name, std::span<const u32>(code.data(), code.size()));
+                GPU::Logging::DumpSpirvShader(key.unique_hashes[index],
+                                              std::span<const u32>(code.data(), code.size()));
             }
         }
 
@@ -920,7 +921,8 @@ std::unique_ptr<ComputePipeline> PipelineCache::CreateComputePipeline(
             GPU::Logging::GPULogger::GetInstance().LogShaderCompilation(shader_name, shader_info);
         }
         if (should_dump) {
-            GPU::Logging::DumpSpirvShader(shader_name, std::span<const u32>(code.data(), code.size()));
+            GPU::Logging::DumpSpirvShader(key.unique_hash,
+                                          std::span<const u32>(code.data(), code.size()));
         }
     }
 

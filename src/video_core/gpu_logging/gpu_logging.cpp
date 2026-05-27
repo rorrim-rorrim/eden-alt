@@ -302,24 +302,22 @@ bool IsActive() noexcept {
     return Settings::values.gpu_log_level.GetValue() != Settings::GpuLogLevel::Off;
 }
 
-void DumpSpirvShader(const std::string& shader_name, std::span<const u32> spirv_code) {
+void DumpSpirvShader(u64 shader_hash, std::span<const u32> spirv_code) {
     if (spirv_code.empty()) {
         return;
     }
 
     using namespace Common::FS;
-    const auto& log_dir = GetEdenPath(EdenPath::LogDir);
-    const auto shaders_dir = log_dir / "shaders";
+    const auto& dump_dir = GetEdenPath(EdenPath::DumpDir);
 
-    // Ensure parent + shaders/ exist once. CreateDir is idempotent — guarded just to
-    // skip the syscall on subsequent dumps.
-    static std::once_flag dirs_flag;
-    std::call_once(dirs_flag, [&log_dir, &shaders_dir]() {
-        [[maybe_unused]] const bool log_dir_created = CreateDir(log_dir);
-        [[maybe_unused]] const bool shaders_dir_created = CreateDir(shaders_dir);
+    // Ensure DumpDir exists once. CreateDir is idempotent, so guarded to skip the syscall.
+    static std::once_flag dump_dir_flag;
+    std::call_once(dump_dir_flag, [&dump_dir]() {
+        [[maybe_unused]] const bool created = CreateDir(dump_dir);
     });
 
-    const auto shader_path = shaders_dir / fmt::format("{}.spv", shader_name);
+    const auto shader_path = dump_dir / fmt::format("{:016x}_{:016x}.spv",
+                                                    Settings::GetCurrentProgramID(), shader_hash);
     Common::FS::IOFile shader_file(shader_path, FileAccessMode::Write, FileType::BinaryFile);
     if (!shader_file.IsOpen()) {
         LOG_WARNING(Render_Vulkan, "[Shader Dump] Failed to open {}", shader_path.string());
