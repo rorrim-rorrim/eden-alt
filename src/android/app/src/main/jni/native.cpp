@@ -39,6 +39,7 @@
 extern "C" {
 // Required for FFmpeg mediacodec
 #include <libavcodec/jni.h>
+#include <libavcodec/log.h>
 }
 
 #include "common/android/multiplayer/multiplayer.h"
