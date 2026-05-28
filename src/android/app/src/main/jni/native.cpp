@@ -687,12 +687,11 @@ const char* fallback_cpu_detection() {
 
 // referenced by common
 extern "C" {
-
 jint InitFFmpegOnLoad(JavaVM *vm) {
     av_jni_set_java_vm(vm, NULL);
+    av_log_set_level(AV_LOG_DEBUG);
     return 0;
 }
-
 }
 
 extern "C" {
