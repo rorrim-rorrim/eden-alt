@@ -11,8 +11,6 @@
 #include "video_core/rasterizer_interface.h"
 #include "common/android/multiplayer/multiplayer.h"
 #include <network/network.h>
-// Required for FFmpeg mediacodec
-#include <libavcodec/jni.h>
 
 static JavaVM *s_java_vm;
 static jclass s_native_library_class;
@@ -428,9 +426,12 @@ namespace Common::Android {
     extern "C" {
 #endif
 
+    // see on src/android/app/src/main/jni/native.cpp
+    jint InitFFmpegOnLoad(JavaVM *vm);
+
     jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         s_java_vm = vm;
-        av_jni_set_java_vm(vm, NULL);
+        InitFFmpegOnLoad(vm);
 
         JNIEnv *env;
         if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION) != JNI_OK)
