@@ -590,7 +590,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
             },
         };
         cmdbuf.PipelineBarrier(is_initialized ? vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER
-                              : VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                              : VkPipelineStageFlags(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT),
                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, image_barrier);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, vk_pipeline);
     });
