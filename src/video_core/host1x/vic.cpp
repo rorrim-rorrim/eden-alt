@@ -122,8 +122,13 @@ void Vic::Execute() noexcept {
         for (size_t i = 0; i < config.slot_structs.size(); i++) {
             if (auto& slot_config = config.slot_structs[i]; slot_config.config.slot_enable) {
                 auto const luma_offset = regs.surfaces[i][SurfaceIndex::Current].luma.Address();
-                if (nvdec_id == -1)
+                if (nvdec_id == -1) {
                     nvdec_id = host1x.frame_queue.VicFindNvdecFdFromOffset(luma_offset);
+                    if (nvdec_id != -1) {
+                        LOG_INFO(HW_GPU, "Vic {} resolved nvdec_id={} for slot {} luma {:#X}",
+                                 id, nvdec_id, i, luma_offset);
+                    }
+                }
                 if (auto frame = host1x.frame_queue.GetFrame(nvdec_id, luma_offset); frame.get()) {
                     switch (frame->GetPixelFormat()) {
                     case AV_PIX_FMT_YUV420P:
@@ -137,7 +142,7 @@ void Vic::Execute() noexcept {
                         break;
                     }
                     Blend(config, slot_config, config.output_surface_config.out_pixel_format);
-                } else {
+                } else if (nvdec_id != -1) {
                     LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id, luma_offset);
                 }
             }
