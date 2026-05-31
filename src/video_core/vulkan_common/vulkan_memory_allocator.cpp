@@ -262,14 +262,14 @@ namespace Vulkan {
             && device.GetDriverID() == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA)
             ? VK_MEMORY_PROPERTY_HOST_CACHED_BIT : 0;
         const VmaAllocationCreateInfo alloc_ci = {
-                .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
-                .usage = MemoryUsageVma(usage),
-                .requiredFlags = 0,
+            .flags = VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT | MemoryUsageVmaFlags(usage),
+            .usage = MemoryUsageVma(usage),
+            .requiredFlags = 0,
             .preferredFlags = MemoryUsagePreferredVmaFlags(usage) | anv_flags,
-                .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
-                .pool = VK_NULL_HANDLE,
-                .pUserData = nullptr,
-                .priority = 0.f,
+            .memoryTypeBits = usage == MemoryUsage::Stream ? 0u : valid_memory_types,
+            .pool = VK_NULL_HANDLE,
+            .pUserData = nullptr,
+            .priority = 0.f,
         };
 
         VkBuffer handle{};
