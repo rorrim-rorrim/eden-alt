@@ -388,7 +388,6 @@ else()
     AddJsonPackage(openssl)
     set(OPENSSL_BUILD_VERBOSE ON)
     set(OPENSSL_CONFIGURE_VERBOSE ON)
-    set(OPENSSL_USE_CCACHE ${USE_CCACHE})
 
     if (OpenSSL_ADDED)
         AddJsonPackage(openssl-cmake)
