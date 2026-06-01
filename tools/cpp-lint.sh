@@ -19,7 +19,12 @@ Dumb script that serves as a ad-hoc cpp-linter
 
 Commands:
     once    Check for #pragma once prescence in header files
-
+	osdef	Fixes OS defines that are not recommended to use:
+			ANDROID
+			_WIN64
+			linux
+			__unix__
+			__unix
 EOF
 }
 
@@ -31,6 +36,9 @@ while :; do
 		;;
 	osdef)
         find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "ANDROID" {} +
+        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "_WIN64" {} +
+        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "__linux" {} +
+        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "__unix" {} +
 		break
 		;;
 	*) usage ;;
