@@ -10,12 +10,10 @@
 
 #pragma once
 
-#if defined(_MSC_VER)
 #include <cstdlib>
-#endif
-#include <bit>
 #include <cstring>
 #include <type_traits>
+#include <bit>
 #include "common/common_types.h"
 
 namespace Common {

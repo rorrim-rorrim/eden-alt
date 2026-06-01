@@ -5,6 +5,8 @@
 
 # tools/../
 ROOTDIR=$(CDPATH='' cd -- "$(dirname -- "$0")/../" && pwd)
+BUILD_DIR="$ROOTDIR"/build
+SRC_DIR="$ROOTDIR"/src
 
 die() {
     echo "-- $*" >&2
@@ -31,14 +33,14 @@ EOF
 while :; do
 	case "$1" in
 	once)
-        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -L "#pragma once" {} +
+        find "$SRC_DIR" -type f -name "*.h" -exec grep -L "#pragma once" {} +
 		break
 		;;
 	osdef)
-        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "ANDROID" {} +
-        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "_WIN64" {} +
-        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "__linux" {} +
-        find "$ROOTDIR/src" -type f -name "*.h" -exec grep -nw "__unix" {} +
+        find "$SRC_DIR" -type f -name "*.h" \
+			-exec grep -nw "ANDROID\|_WIN64\|__linux\|__unix\|APPLE\|__APPLE" {} + || echo
+        find "$SRC_DIR" -type f -name "*.h" -exec grep -nw "ifdef linux\|(linux)" {} + || echo
+        find "$SRC_DIR" -type f -name "*.h" -exec grep -nw "ifdef unix\|(unix)" {} + || echo
 		break
 		;;
 	*) usage ;;
