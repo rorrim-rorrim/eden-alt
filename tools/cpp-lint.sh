@@ -35,28 +35,16 @@ while :; do
 	osdef)
 		# not recommended macros
 		PATTERN="ANDROID\|_WIN64\|__linux\|__unix\|APPLE\|__APPLE"
-		PATTERN="$PATTERN\|ifdef ANDROID\|(ANDROID)"
-		PATTERN="$PATTERN\|ifdef _WIN64\|(_WIN64)"
-		PATTERN="$PATTERN\|ifdef __linux\|(__linux)"
-		PATTERN="$PATTERN\|ifdef __unix\|(__unix)"
-		PATTERN="$PATTERN\|ifdef APPLE\|(APPLE)"
-		PATTERN="$PATTERN\|ifdef __APPLE\|(__APPLE)"
-		PATTERN="$PATTERN\|ifdef linux\|(linux)"
-		PATTERN="$PATTERN\|ifdef unix\|(unix)"
+		strings=("ANDROID" "_WIN64" "__linux" "__unix" "APPLE" "__APPLE" "linux" "unix")
+		for item in "${strings[@]}"; do
+			PATTERN="$PATTERN\|ifdef $item\|($item)"
+		done
 		# if statements for macros that shouldn't be if
-		PATTERN="$PATTERN\|if _WIN32"
-		PATTERN="$PATTERN\|if _AIX"
-		PATTERN="$PATTERN\|if __managarm__"
-		PATTERN="$PATTERN\|if __unix__"
-		PATTERN="$PATTERN\|if __linux__"
-		PATTERN="$PATTERN\|if __FreeBSD__"
-		PATTERN="$PATTERN\|if __NetBSD__"
-		PATTERN="$PATTERN\|if __OpenBSD__"
-		PATTERN="$PATTERN\|if __DragonFly__"
-		PATTERN="$PATTERN\|if __redox__"
-		PATTERN="$PATTERN\|if __HAIKU__"
-		PATTERN="$PATTERN\|if __OHOS__"
-		PATTERN="$PATTERN\|if __FIREOS__"
+		strings=("_WIN32" "_AIX" "__managarm__" "__unix__" "__linux__" "__FreeBSD__" "__NetBSD__" \
+			"__OpenBSD__" "__DragonFly__" "__redox__" "__HAIKU__" "__OHOS__" "__FIREOS__")
+		for item in "${strings[@]}"; do
+			PATTERN="$PATTERN\|if $item"
+		done
         find "$SRC_DIR" -type f -name "*.h" -exec grep -nw "$PATTERN" {} + || echo
 		break
 		;;
