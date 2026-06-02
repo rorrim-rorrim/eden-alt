@@ -24,9 +24,11 @@ jobs:
           git remote set-url origin ci:eden-emu/eden.git
 
           DATE=$(date +"%b %d")
+          TIMESTAMP=$(date +"%s")
           echo "DATE=$DATE" >> "$GITHUB_ENV"
+          echo "TIMESTAMP=$TIMESTAMP" >> "$GITHUB_ENV"
 
-          git switch -c update-deps-$DATE
+          git switch -c update-deps-$TIMESTAMP
           tools/cpmutil.sh package update -ac
           git push
 
