@@ -16,6 +16,7 @@ jobs:
 
       - name: Update deps
         run: |
+          set -x
           git config --local user.name "Eden CI"
           git config --local user.email "ci@eden-emu.dev"
           git config --local user.signingkey "D57652791BB25D2A"
