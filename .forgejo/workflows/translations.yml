@@ -37,6 +37,7 @@ jobs:
 
       - name: Create PR
         run: |
+          set -x
           DATE=$(date +"%b %d")
           TITLE="[dist, android] Update translations from Transifex for $DATE"
           BODY="Automatic translation update for $DATE"
