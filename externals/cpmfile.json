@@ -9,7 +9,7 @@
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
-        "git_version": "1.0.4",
+        "git_version": "1.0.5",
         "tag": "v%VERSION%",
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "hash_suffix": "sha512sum",
@@ -28,8 +28,8 @@
     "httplib": {
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "hash": "5efa8140aadffe105dcf39935b732476e95755f6c7473ada3d0b64df2bc02c557633ae3948a25b45e1cf67e89a3ff6329fb30362e4ac033b9a1d1e453aa2eded",
-        "git_version": "0.37.0",
+        "hash": "5133e3378b8b26c12e0634bb4782d3a5f6e98530149a3b2e54e18955ffd17e3997fd6196e6a4351d7ea1d4fa1826760418a92f9849b0b4a2d52308f6e0670b5d",
+        "git_version": "0.46.1",
         "find_args": "MODULE GLOBAL",
         "patches": [
             "0001-mingw.patch",
@@ -57,8 +57,8 @@
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
-        "git_version": "7.35.2"
+        "hash": "03d870f63741ff8c00501329bf9947bdf58e7cc4c3884e3de9b827f31942438887555f601a5f80d405946854eb54ab907b4e2a3ad955ca4ad890a243917dd4ae",
+        "git_version": "7.37.3"
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
@@ -140,9 +140,9 @@
         "package": "Catch2",
         "repo": "catchorg/Catch2",
         "tag": "v%VERSION%",
-        "hash": "7eea385d79d88a5690cde131fe7ccda97d5c54ea09d6f515000d7bf07c828809d61c1ac99912c1ee507cf933f61c1c47ecdcc45df7850ffa82714034b0fccf35",
+        "hash": "09df8b291d0c756c492871ce0a4fb5c703162d1364a9864470b227d4d19d9865a0ba5293a5f38d0117cbc7c230f42be35db9f6e0ca5d889dff02f1745807f380",
         "version": "3.0.1",
-        "git_version": "3.13.0",
+        "git_version": "3.15.0",
         "patches": [
             "0001-solaris-isnan-fix.patch"
         ]
@@ -166,8 +166,8 @@
         "package": "SDL3",
         "repo": "libsdl-org/SDL",
         "tag": "release-%VERSION%",
-        "hash": "df5a323af7ac366661a3c0e887969c72584d232f3cc211419d59b0487b620b6b2859d4549c9e8df002ee489290062e466fcfddf7edc0872a37b1f2845e81c0f3",
-        "git_version": "3.4.8",
+        "hash": "10a9c1fa4d6891c7387fa694b786a168f86b6e5447c6c522f85b739e33720e106ee879dfa9e6e537d5521b983cfbd4908927c555c4d3412735129a4231e16fe6",
+        "git_version": "3.4.10",
         "version": "3.2.10"
     },
     "moltenvk": {
@@ -195,9 +195,9 @@
     "libusb": {
         "repo": "libusb/libusb",
         "tag": "v%VERSION%",
-        "hash": "98c5f7940ff06b25c9aa65aa98e23de4c79a4c1067595f4c73cc145af23a1c286639e1ba11185cd91bab702081f307b973f08a4c9746576dc8d01b3620a3aeb5",
+        "hash": "3251c9f41e900efa13caf981483f46886c8434bf4c30f3fd3073921b06be9977cebcf4a18f7bc46db86e33d7f19752296377be9050abfb8d887ffeb377864647",
         "find_args": "MODULE",
-        "git_version": "1.0.29",
+        "git_version": "1.0.30",
         "patches": [
             "0001-netbsd-gettime.patch"
         ]
@@ -230,15 +230,15 @@
         "repo": "KhronosGroup/Vulkan-Headers",
         "package": "VulkanHeaders",
         "version": "1.4.317",
-        "hash": "d2846ea228415772645eea4b52a9efd33e6a563043dd3de059e798be6391a8f0ca089f455ae420ff22574939ed0f48ed7c6ff3d5a9987d5231dbf3b3f89b484b",
-        "git_version": "1.4.345",
+        "hash": "dbb7a6def360aebc2a14df5cdeab0fe6455f37d7885d451a0aa307e82ea46193c262f77a79bea6a45530286d225b03687880a11e857279f339437069b866fa82",
+        "git_version": "1.4.352",
         "tag": "v%VERSION%"
     },
     "vulkan-utility-libraries": {
         "repo": "KhronosGroup/Vulkan-Utility-Libraries",
         "package": "VulkanUtilityLibraries",
-        "hash": "114f6b237a6dcba923ccc576befb5dea3f1c9b3a30de7dc741f234a831d1c2d52d8a224afb37dd57dffca67ac0df461eaaab6a5ab5e503b393f91c166680c3e1",
-        "git_version": "1.4.345",
+        "hash": "4aaaba1e6ffd235bdc2d7ae5dfdebb3024ff011c47157d838d839ea8c6824af5b5a26f4771c7fdc83a883b69ce766f993bba3ecad7dde2dec102c238e68f6210",
+        "git_version": "1.4.352",
         "tag": "v%VERSION%"
     },
     "frozen": {

@@ -9,8 +9,8 @@
     },
     "openssl-cmake": {
         "repo": "jimmy-park/openssl-cmake",
-        "hash": "2cc185c924fd70e7d886257ca0caa42b3b8f7f712f2052b4f94dde74759e27022de76178460e18c9bdfc57c366583999e198fbb6052d4e7d91c099d15a0ca63e",
-        "git_version": "3.6.2",
+        "hash": "c8bc3001497ada490065a18bca4c2ed7326701da3372c1d2c167e9853d43ad107341f97939b67eaa9cb4f2d9637cacbfb9f4ac5a52d9402a1605a6de05756345",
+        "git_version": "4.0.0",
         "tag": "%VERSION%",
         "bundled": true,
         "options": [
@@ -27,8 +27,8 @@
         "package": "OpenSSL",
         "min_version": "3",
         "version": "3",
-        "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
-        "git_version": "3.6.2",
+        "hash": "e50bcb288436dc9fe35feff7fe3ce293a67cd168aa5c3a66cb24acd94f55c3dc3bc0be5be402432daf58605d2fb42805105d0e601519ca6e696f2b74b9f06911",
+        "git_version": "4.0.0",
         "tag": "openssl-%VERSION%",
         "patches": [
             "0001-add-bundled-cert.patch"
@@ -39,8 +39,8 @@
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
         "artifact": "%TAG%-cmake.tar.xz",
-        "hash": "6ae6e94664fe7f2fb01976b59b276ac5df8085c7503fa829d810fbfe495960cfec44fa2c36e2cb23480bc19c956ed199d4952b02639a00a6c07625d4e7130c2d",
-        "git_version": "1.90.0",
+        "hash": "935b3d516e996f6d25948ba8a54c1b7f70f7f0e3f517e36481fdf0196c2c5cfc2841f86e891f3df9517746b7fb605db47cdded1b8ff78d9482ddaa621db43a34",
+        "git_version": "1.91.0",
         "version": "1.57",
         "find_args": "CONFIG OPTIONAL_COMPONENTS headers context system fiber filesystem",
         "patches": [
@@ -125,9 +125,9 @@
         "package": "VVL",
         "repo": "KhronosGroup/Vulkan-ValidationLayers",
         "tag": "vulkan-sdk-%VERSION%",
-        "git_version": "1.4.341.0",
+        "git_version": "1.4.350.0",
         "artifact": "android-binaries-%VERSION%.zip",
-        "hash": "8812ae84cbe49e6a3418ade9c458d3be6d74a3dffd319d4502007b564d580998056e8190414368ec11b27bc83993c7a0dad713c31bcc3d9553b51243efee3753"
+        "hash": "5cbed0369d4c325c8ea9ab5a1d78d98ec721bdfae4d772dac23803f31aa909be6e132fca3b64d507e6b9835f9be9d0848407adbf74365fd3f37ae99add502d21"
     },
     "quazip": {
         "package": "QuaZip-Qt6",
