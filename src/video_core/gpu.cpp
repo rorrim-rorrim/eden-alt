@@ -239,7 +239,7 @@ struct GPU::Impl {
             }
         }
         const auto wait_fence = RequestSyncOperation([this, current_request_counter, &layers, &fences, num_fences] {
-            auto& syncpoint_manager = system.Host1x().host1x.GetSyncpointManager();
+            auto& syncpoint_manager = system.Host1x().GetSyncpointManager();
             if (num_fences == 0) {
                 renderer->Composite(layers);
             }
