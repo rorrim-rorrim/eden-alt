@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -173,9 +173,9 @@ Result KConditionVariable::WaitForAddress(KernelCore& kernel, Handle handle, KPr
 
         // Get the lock owner thread.
         owner_thread = GetCurrentProcess(kernel)
-                           .GetHandleTable()
-                           .GetObjectWithoutPseudoHandle<KThread>(handle)
-                           .ReleasePointerUnsafe();
+            .GetHandleTable()
+            .GetObjectWithoutPseudoHandle<KThread>(kernel, handle)
+            .ReleasePointerUnsafe();
         R_UNLESS(owner_thread != nullptr, ResultInvalidHandle);
 
         // Update the lock.
@@ -223,10 +223,9 @@ void KConditionVariable::SignalImpl(KThread* thread) {
         } else {
             // Get the previous owner.
             KThread* owner_thread = GetCurrentProcess(m_kernel)
-                                        .GetHandleTable()
-                                        .GetObjectWithoutPseudoHandle<KThread>(
-                                            static_cast<Handle>(prev_tag & ~Svc::HandleWaitMask))
-                                        .ReleasePointerUnsafe();
+                .GetHandleTable()
+                .GetObjectWithoutPseudoHandle<KThread>(m_kernel, Handle(prev_tag & ~Svc::HandleWaitMask))
+                .ReleasePointerUnsafe();
 
             if (owner_thread) {
                 // Add the thread as a waiter on the owner.
