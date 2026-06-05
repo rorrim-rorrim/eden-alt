@@ -23,7 +23,7 @@ constexpr auto INCREMENT_TIME{5ms};
 
 DeviceSession::DeviceSession(Core::System& system_)
     : system{system_}
-    , thread_event{system_.CreateEvent("AudioOutSampleTick", [this](s64 time, std::chrono::nanoseconds) {
+    , thread_event{system_.CreateTimingEvent("AudioOutSampleTick", [this](s64 time, std::chrono::nanoseconds) {
         return ThreadFunc();
     })}
 {}

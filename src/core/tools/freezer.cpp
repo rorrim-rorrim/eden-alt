@@ -54,7 +54,7 @@ void MemoryWriteWidth(Core::Memory::Memory& memory, u32 width, VAddr addr, u64 v
 
 Freezer::Freezer(Core::System& system_, Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_)
     : core_timing{core_timing_}, memory{memory_} {
-    event = system_.CreateEvent("MemoryFreezer::FrameCallback", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+    event = system_.CreateTimingEvent("MemoryFreezer::FrameCallback", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
         FrameCallback(ns_late);
         return std::nullopt;
     });

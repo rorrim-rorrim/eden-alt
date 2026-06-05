@@ -60,11 +60,11 @@ TEST_CASE("CoreTiming[BasicOrder]", "[core]") {
     ScopeInit guard;
     auto& core_timing = guard.core_timing;
     std::vector<std::shared_ptr<Core::Timing::EventType>> events{
-        system.CreateEvent("callbackA", HostCallbackTemplate<0>),
-        system.CreateEvent("callbackB", HostCallbackTemplate<1>),
-        system.CreateEvent("callbackC", HostCallbackTemplate<2>),
-        system.CreateEvent("callbackD", HostCallbackTemplate<3>),
-        system.CreateEvent("callbackE", HostCallbackTemplate<4>),
+        system.CreateTimingEvent("callbackA", HostCallbackTemplate<0>),
+        system.CreateTimingEvent("callbackB", HostCallbackTemplate<1>),
+        system.CreateTimingEvent("callbackC", HostCallbackTemplate<2>),
+        system.CreateTimingEvent("callbackD", HostCallbackTemplate<3>),
+        system.CreateTimingEvent("callbackE", HostCallbackTemplate<4>),
     };
 
     expected_callback = 0;
@@ -101,11 +101,11 @@ TEST_CASE("CoreTiming[BasicOrderNoPausing]", "[core]") {
     ScopeInit guard;
     auto& core_timing = guard.core_timing;
     std::vector<std::shared_ptr<Core::Timing::EventType>> events{
-        system.CreateEvent("callbackA", HostCallbackTemplate<0>),
-        system.CreateEvent("callbackB", HostCallbackTemplate<1>),
-        system.CreateEvent("callbackC", HostCallbackTemplate<2>),
-        system.CreateEvent("callbackD", HostCallbackTemplate<3>),
-        system.CreateEvent("callbackE", HostCallbackTemplate<4>),
+        system.CreateTimingEvent("callbackA", HostCallbackTemplate<0>),
+        system.CreateTimingEvent("callbackB", HostCallbackTemplate<1>),
+        system.CreateTimingEvent("callbackC", HostCallbackTemplate<2>),
+        system.CreateTimingEvent("callbackD", HostCallbackTemplate<3>),
+        system.CreateTimingEvent("callbackE", HostCallbackTemplate<4>),
     };
 
     core_timing.SyncPause(true);

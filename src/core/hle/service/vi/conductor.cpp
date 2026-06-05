@@ -23,14 +23,14 @@ Conductor::Conductor(Core::System& system, Container& container, DisplayList& di
     });
 
     if (system.IsMulticore()) {
-        m_event = system.CreateEvent("ScreenComposition", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+        m_event = system.CreateTimingEvent("ScreenComposition", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             m_signal.Set();
             return std::chrono::nanoseconds(this->GetNextTicks());
         });
         system.CoreTiming().ScheduleLoopingEvent(FrameNs, FrameNs, m_event);
         m_thread = std::jthread([this](std::stop_token token) { this->VsyncThread(token); });
     } else {
-        m_event = system.CreateEvent("ScreenComposition", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+        m_event = system.CreateTimingEvent("ScreenComposition", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
             this->ProcessVsync();
             return std::chrono::nanoseconds(this->GetNextTicks());
         });
