@@ -266,12 +266,7 @@ void Init(QWidget* root) {
              Common::GetMemInfo().TotalPhysicalMemory / f64{1_GiB});
     LOG_INFO(Frontend, "Host Swap: {:.2f} GiB", Common::GetMemInfo().TotalSwapMemory / f64{1_GiB});
 #ifdef _WIN32
-    LOG_INFO(Frontend, "Host Timer Resolution: {:.4f} ms",
-             std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(
-                 Common::Windows::SetCurrentTimerResolutionToMaximum())
-                 .count());
-    QtCommon::system->CoreTiming().SetTimerResolutionNs(
-        Common::Windows::GetCurrentTimerResolution());
+    LOG_INFO(Frontend, "Host Timer Resolution: {:.4f} ms", std::chrono::duration_cast<std::chrono::duration<f64, std::milli>>(Common::Windows::SetCurrentTimerResolutionToMaximum()).count());
 #endif
 
     // Remove cached contents generated during the previous session

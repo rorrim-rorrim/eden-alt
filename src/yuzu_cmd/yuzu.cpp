@@ -371,7 +371,6 @@ int main(int argc, char** argv) {
 
 #ifdef _WIN32
     Common::Windows::SetCurrentTimerResolutionToMaximum();
-    system.CoreTiming().SetTimerResolutionNs(Common::Windows::GetCurrentTimerResolution());
 #endif
 
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());

@@ -11,14 +11,16 @@
 #include <vector>
 #include "common/common_types.h"
 
-namespace Core::Timing {
+namespace Core {
+class System;
+namespace Timing {
 class CoreTiming;
 struct EventType;
 } // namespace Core::Timing
-
-namespace Core::Memory {
+namespace Memory {
 class Memory;
-}
+} //namespace Core::Memory
+} //namespace Core
 
 namespace Tools {
 
@@ -38,7 +40,7 @@ public:
         u64 value;
     };
 
-    explicit Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_);
+    explicit Freezer(Core::System& system_, Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_);
     ~Freezer();
 
     // Enables or disables the entire memory freezer.

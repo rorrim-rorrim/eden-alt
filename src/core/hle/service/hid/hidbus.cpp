@@ -51,17 +51,12 @@ Hidbus::Hidbus(Core::System& system_)
     RegisterHandlers(functions);
 
     // Register update callbacks
-    hidbus_update_event = Core::Timing::CreateEvent(
-        "Hidbus::UpdateCallback",
-        [this](s64 time,
-               std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            const auto guard = LockService();
-            UpdateHidbus(ns_late);
-            return std::nullopt;
-        });
-
-    system_.CoreTiming().ScheduleLoopingEvent(hidbus_update_ns, hidbus_update_ns,
-                                              hidbus_update_event);
+    hidbus_update_event = system_.CreateEvent("Hidbus::UpdateCallback", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+        const auto guard = LockService();
+        UpdateHidbus(ns_late);
+        return std::nullopt;
+    });
+    system_.CoreTiming().ScheduleLoopingEvent(hidbus_update_ns, hidbus_update_ns, hidbus_update_event);
 }
 
 Hidbus::~Hidbus() {

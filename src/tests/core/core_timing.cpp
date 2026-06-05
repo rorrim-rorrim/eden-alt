@@ -53,14 +53,15 @@ u64 TestTimerSpeed(Core::Timing::CoreTiming& core_timing) {
 } // Anonymous namespace
 
 TEST_CASE("CoreTiming[BasicOrder]", "[core]") {
+    Core::System system{};
     ScopeInit guard;
     auto& core_timing = guard.core_timing;
     std::vector<std::shared_ptr<Core::Timing::EventType>> events{
-        Core::Timing::CreateEvent("callbackA", HostCallbackTemplate<0>),
-        Core::Timing::CreateEvent("callbackB", HostCallbackTemplate<1>),
-        Core::Timing::CreateEvent("callbackC", HostCallbackTemplate<2>),
-        Core::Timing::CreateEvent("callbackD", HostCallbackTemplate<3>),
-        Core::Timing::CreateEvent("callbackE", HostCallbackTemplate<4>),
+        system.CreateEvent("callbackA", HostCallbackTemplate<0>),
+        system.CreateEvent("callbackB", HostCallbackTemplate<1>),
+        system.CreateEvent("callbackC", HostCallbackTemplate<2>),
+        system.CreateEvent("callbackD", HostCallbackTemplate<3>),
+        system.CreateEvent("callbackE", HostCallbackTemplate<4>),
     };
 
     expected_callback = 0;
@@ -93,14 +94,15 @@ TEST_CASE("CoreTiming[BasicOrder]", "[core]") {
 }
 
 TEST_CASE("CoreTiming[BasicOrderNoPausing]", "[core]") {
+    Core::System system{};
     ScopeInit guard;
     auto& core_timing = guard.core_timing;
     std::vector<std::shared_ptr<Core::Timing::EventType>> events{
-        Core::Timing::CreateEvent("callbackA", HostCallbackTemplate<0>),
-        Core::Timing::CreateEvent("callbackB", HostCallbackTemplate<1>),
-        Core::Timing::CreateEvent("callbackC", HostCallbackTemplate<2>),
-        Core::Timing::CreateEvent("callbackD", HostCallbackTemplate<3>),
-        Core::Timing::CreateEvent("callbackE", HostCallbackTemplate<4>),
+        system.CreateEvent("callbackA", HostCallbackTemplate<0>),
+        system.CreateEvent("callbackB", HostCallbackTemplate<1>),
+        system.CreateEvent("callbackC", HostCallbackTemplate<2>),
+        system.CreateEvent("callbackD", HostCallbackTemplate<3>),
+        system.CreateEvent("callbackE", HostCallbackTemplate<4>),
     };
 
     core_timing.SyncPause(true);
