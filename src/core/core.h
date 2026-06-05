@@ -19,6 +19,7 @@
 #include "core/file_sys/vfs/vfs_types.h"
 #include "core/hle/service/os/event.h"
 #include "core/hle/service/kernel_helpers.h"
+#include "core/core_timing.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -437,6 +438,8 @@ public:
 
     /// Applies any changes to settings to this core instance.
     void ApplySettings();
+
+    std::shared_ptr<Core::Timing::EventType> CreateEvent(std::string name, Core::Timing::TimedCallback&& callback);
 
 private:
     struct Impl;

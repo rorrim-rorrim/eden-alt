@@ -13,11 +13,10 @@ namespace Kernel {
 
 void KHardwareTimer::Initialize() {
     // Create the timing callback to register with CoreTiming.
-    m_event_type = Core::Timing::CreateEvent("KHardwareTimer::Callback",
-                                             [this](s64, std::chrono::nanoseconds) {
-                                                 this->DoTask();
-                                                 return std::nullopt;
-                                             });
+    m_event_type = m_kernel.System().CreateEvent("KHardwareTimer::Callback", [this](s64, std::chrono::nanoseconds) {
+        this->DoTask();
+        return std::nullopt;
+    });
 }
 
 void KHardwareTimer::Finalize() {

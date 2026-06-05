@@ -233,12 +233,12 @@ CheatEngine::~CheatEngine() {
 }
 
 void CheatEngine::Initialize() {
-    event = Core::Timing::CreateEvent(
-        "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
-        [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            FrameCallback(ns_late);
-            return std::nullopt;
-        });
+    event = system.CreateEvent(
+    "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
+    [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+        FrameCallback(ns_late);
+        return std::nullopt;
+    });
     core_timing.ScheduleLoopingEvent(CHEAT_ENGINE_NS, CHEAT_ENGINE_NS, event);
 
     metadata.process_id = system.ApplicationProcess()->GetProcessId();

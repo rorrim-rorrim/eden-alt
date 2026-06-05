@@ -968,4 +968,8 @@ void System::ApplySettings() {
     }
 }
 
+std::shared_ptr<Core::Timing::EventType> System::CreateEvent(std::string name, Core::Timing::TimedCallback&& callback) {
+    return std::make_shared<Core::Timing::EventType>(std::move(callback), std::move(name));
+}
+
 } // namespace Core
