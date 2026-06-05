@@ -492,14 +492,14 @@ void KPageTableBase::Finalize() {
         if (auto* const insecure_resource_limit =
                 KSystemControl::GetInsecureMemoryResourceLimit(m_system.Kernel());
             insecure_resource_limit != nullptr) {
-            insecure_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax,
+            insecure_resource_limit->Release(m_system.Kernel(), Svc::LimitableResource::PhysicalMemoryMax,
                                              m_mapped_insecure_memory);
         }
     }
 
     // Release any ipc server memory.
     if (m_mapped_ipc_server_memory) {
-        m_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax,
+        m_resource_limit->Release(m_system.Kernel(), Svc::LimitableResource::PhysicalMemoryMax,
                                   m_mapped_ipc_server_memory);
     }
 }
@@ -1389,7 +1389,7 @@ Result KPageTableBase::MapInsecureMemory(KProcessAddress address, size_t size) {
 
     // Reserve the insecure memory.
     // NOTE: ResultOutOfMemory is returned here instead of the usual LimitReached.
-    KScopedResourceReservation memory_reservation(insecure_resource_limit,
+    KScopedResourceReservation memory_reservation(m_system.Kernel(), insecure_resource_limit,
                                                   Svc::LimitableResource::PhysicalMemoryMax, size);
     R_UNLESS(memory_reservation.Succeeded(), ResultOutOfMemory);
 
@@ -1493,7 +1493,7 @@ Result KPageTableBase::UnmapInsecureMemory(KProcessAddress address, size_t size)
     if (auto* const insecure_resource_limit =
             KSystemControl::GetInsecureMemoryResourceLimit(m_system.Kernel());
         insecure_resource_limit != nullptr) {
-        insecure_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax, size);
+        insecure_resource_limit->Release(m_system.Kernel(), Svc::LimitableResource::PhysicalMemoryMax, size);
     }
 
     R_SUCCEED();
@@ -2158,7 +2158,7 @@ Result KPageTableBase::SetHeapSize(KProcessAddress* out, size_t size) {
                                 false, unmap_properties, OperationType::Unmap, false));
 
             // Release the memory from the resource limit.
-            m_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax,
+            m_resource_limit->Release(m_system.Kernel(), Svc::LimitableResource::PhysicalMemoryMax,
                                       num_pages * PageSize);
 
             // Apply the memory block update.
@@ -2188,7 +2188,7 @@ Result KPageTableBase::SetHeapSize(KProcessAddress* out, size_t size) {
     }
 
     // Reserve memory for the heap extension.
-    KScopedResourceReservation memory_reservation(
+    KScopedResourceReservation memory_reservation(m_system.Kernel(),
         m_resource_limit, Svc::LimitableResource::PhysicalMemoryMax, allocation_size);
     R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
@@ -4493,7 +4493,7 @@ Result KPageTableBase::SetupForIpcServer(KProcessAddress* out_addr, size_t size,
 
     // Reserve space for any partial pages we allocate.
     const size_t unmapped_size = aligned_src_size - mapping_src_size;
-    KScopedResourceReservation memory_reservation(
+    KScopedResourceReservation memory_reservation(m_system.Kernel(),
         m_resource_limit, Svc::LimitableResource::PhysicalMemoryMax, unmapped_size);
     R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
@@ -4799,7 +4799,7 @@ Result KPageTableBase::CleanupForIpcServer(KProcessAddress address, size_t size,
     const KProcessAddress mapping_start = Common::AlignUp(GetInteger(address), PageSize);
     const KProcessAddress mapping_end = Common::AlignDown(GetInteger(address) + size, PageSize);
     const size_t mapping_size = (mapping_start < mapping_end) ? mapping_end - mapping_start : 0;
-    m_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax,
+    m_resource_limit->Release(m_system.Kernel(), Svc::LimitableResource::PhysicalMemoryMax,
                               aligned_size - mapping_size);
 
     R_SUCCEED();
@@ -5168,7 +5168,7 @@ Result KPageTableBase::MapPhysicalMemory(KProcessAddress address, size_t size) {
         // Allocate and map the memory.
         {
             // Reserve the memory from the process resource limit.
-            KScopedResourceReservation memory_reservation(
+            KScopedResourceReservation memory_reservation(m_system.Kernel(),
                 m_resource_limit, Svc::LimitableResource::PhysicalMemoryMax, size - mapped_size);
             R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
@@ -5541,7 +5541,7 @@ Result KPageTableBase::UnmapPhysicalMemory(KProcessAddress address, size_t size)
 
     // Release the memory resource.
     m_mapped_physical_memory_size -= mapped_size;
-    m_resource_limit->Release(Svc::LimitableResource::PhysicalMemoryMax, mapped_size);
+    m_resource_limit->Release(m_system.Kernel(), Svc::LimitableResource::PhysicalMemoryMax, mapped_size);
 
     // Update memory blocks.
     m_memory_block_manager.Update(std::addressof(allocator), address, size / PageSize,

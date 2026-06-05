@@ -22,7 +22,7 @@ Result SendSyncRequestLight(Core::System& system, Handle session_handle, u32* ar
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Send the request.
-    R_TRY(session->SendSyncRequest(args));
+    R_TRY(session->SendSyncRequest(system.Kernel(), args));
 
     R_SUCCEED();
 }
@@ -35,7 +35,7 @@ Result ReplyAndReceiveLight(Core::System& system, Handle session_handle, u32* ar
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Handle the request.
-    R_TRY(session->ReplyAndReceive(args));
+    R_TRY(session->ReplyAndReceive(system.Kernel(), args));
 
     R_SUCCEED();
 }

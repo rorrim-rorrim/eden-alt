@@ -108,7 +108,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, hid_core{}, cpu_manager{system},
+        : kernel{system}, fs_controller{system}, hid_core{system.Kernel()}, cpu_manager{system},
           reporter{system}, applet_manager{system}, frontend_applets{system}, profile_manager{} {}
 
     u64 program_id;
@@ -923,7 +923,7 @@ void System::PushGeneralChannelData(std::vector<u8>&& data) {
     const bool was_empty = impl->general_channel.empty();
     impl->general_channel.push_back(std::move(data));
     if (was_empty) {
-        impl->general_channel_event->Signal();
+        impl->general_channel_event->Signal(impl->kernel);
     }
 }
 
@@ -935,7 +935,7 @@ bool System::TryPopGeneralChannel(std::vector<u8>& out_data) {
     out_data = std::move(impl->general_channel.back());
     impl->general_channel.pop_back();
     if (impl->general_channel.empty()) {
-        impl->general_channel_event->Clear();
+        impl->general_channel_event->Clear(impl->kernel);
     }
     return true;
 }

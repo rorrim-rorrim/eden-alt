@@ -56,11 +56,11 @@ Result MapSharedMemory(Core::System& system, Handle shmem_handle, u64 address, u
     R_UNLESS(page_table.CanContain(address, size, KMemoryState::Shared), ResultInvalidMemoryRegion);
 
     // Add the shared memory to the process.
-    R_TRY(process.AddSharedMemory(shmem.GetPointerUnsafe(), address, size));
+    R_TRY(process.AddSharedMemory(system.Kernel(), shmem.GetPointerUnsafe(), address, size));
 
     // Ensure that we clean up the shared memory if we fail to map it.
     ON_RESULT_FAILURE {
-        process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
+        process.RemoveSharedMemory(system.Kernel(), shmem.GetPointerUnsafe(), address, size);
     };
 
     // Map the shared memory.
@@ -89,7 +89,7 @@ Result UnmapSharedMemory(Core::System& system, Handle shmem_handle, u64 address,
     R_TRY(shmem->Unmap(process, address, size));
 
     // Remove the shared memory from the process.
-    process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
+    process.RemoveSharedMemory(system.Kernel(), shmem.GetPointerUnsafe(), address, size);
 
     R_SUCCEED();
 }

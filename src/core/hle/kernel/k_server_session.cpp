@@ -554,7 +554,7 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
     recv_list_broken = false;
 
     // Set the server process for the request.
-    request->SetServerProcess(std::addressof(dst_process));
+    request->SetServerProcess(kernel, std::addressof(dst_process));
 
     // Determine the message buffers.
     u32 *dst_msg_ptr, *src_msg_ptr;
@@ -1076,19 +1076,17 @@ void ReplyAsyncError(KProcess* to_process, uint64_t to_msg_buf, size_t to_msg_bu
 } // namespace
 
 KServerSession::KServerSession(KernelCore& kernel)
-    : KSynchronizationObject{kernel}, m_lock{m_kernel} {}
+    : KSynchronizationObject{kernel}, m_lock{kernel} {}
 
 KServerSession::~KServerSession() = default;
 
-void KServerSession::Destroy() {
-    m_parent->OnServerClosed();
-
-    this->CleanupRequests();
-
-    m_parent->Close();
+void KServerSession::Destroy(KernelCore& kernel) {
+    m_parent->OnServerClosed(kernel);
+    this->CleanupRequests(kernel);
+    m_parent->Close(kernel);
 }
 
-Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server_buffer_size,
+Result KServerSession::ReceiveRequest(KernelCore& kernel, uintptr_t server_message, uintptr_t server_buffer_size,
                                       KPhysicalAddress server_message_paddr,
                                       std::shared_ptr<Service::HLERequestContext>* out_context,
                                       std::weak_ptr<Service::SessionRequestManager> manager) {
@@ -1100,7 +1098,7 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
     KThread* client_thread;
 
     {
-        KScopedSchedulerLock sl{m_kernel};
+        KScopedSchedulerLock sl{kernel};
 
         // Ensure that we can service the request.
         R_UNLESS(!m_parent->IsClientClosed(), ResultSessionClosed);
@@ -1120,11 +1118,11 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
         R_UNLESS(client_thread != nullptr, ResultSessionClosed);
 
         // Open the client thread.
-        client_thread->Open();
+        client_thread->Open(kernel);
     }
 
     SCOPE_EXIT {
-        client_thread->Close();
+        client_thread->Close(kernel);
     };
 
     // Set the request as our current.
@@ -1146,13 +1144,13 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
         Core::Memory::Memory& memory{client_thread->GetOwnerProcess()->GetMemory()};
         u32* cmd_buf{reinterpret_cast<u32*>(memory.GetPointer(client_message))};
         *out_context =
-            std::make_shared<Service::HLERequestContext>(m_kernel, memory, this, client_thread);
+            std::make_shared<Service::HLERequestContext>(kernel, memory, this, client_thread);
         (*out_context)->SetSessionRequestManager(manager);
         (*out_context)->PopulateFromIncomingCommandBuffer(cmd_buf);
         // We succeeded.
         R_SUCCEED();
     } else {
-        result = ReceiveMessage(m_kernel, recv_list_broken, server_message, server_buffer_size,
+        result = ReceiveMessage(kernel, recv_list_broken, server_message, server_buffer_size,
                                 server_message_paddr, *client_thread, client_message,
                                 client_buffer_size, this, request);
     }
@@ -1164,11 +1162,11 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
 
         // Clear the current request.
         {
-            KScopedSchedulerLock sl(m_kernel);
+            KScopedSchedulerLock sl(kernel);
             ASSERT(m_current_request == request);
             m_current_request = nullptr;
             if (!m_request_list.empty()) {
-                this->NotifyAvailable();
+                this->NotifyAvailable(kernel);
             }
         }
 
@@ -1176,7 +1174,7 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
         {
             // After we reply, close our reference to the request.
             SCOPE_EXIT {
-                request->Close();
+                request->Close(kernel);
             };
 
             // Get the event to check whether the request is async.
@@ -1195,13 +1193,13 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
                 client_pt.UnlockForIpcUserBuffer(client_message, client_buffer_size);
 
                 // Signal the event.
-                event->Signal();
+                event->Signal(kernel);
             } else {
                 // End the client thread's wait.
-                KScopedSchedulerLock sl(m_kernel);
+                KScopedSchedulerLock sl(kernel);
 
                 if (!client_thread->IsTerminationRequested()) {
-                    client_thread->EndWait(result_for_client);
+                    client_thread->EndWait(kernel, result_for_client);
                 }
             }
         }
@@ -1217,7 +1215,7 @@ Result KServerSession::ReceiveRequest(uintptr_t server_message, uintptr_t server
     R_RETURN(result);
 }
 
-Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buffer_size,
+Result KServerSession::SendReply(KernelCore& kernel, uintptr_t server_message, uintptr_t server_buffer_size,
                                  KPhysicalAddress server_message_paddr, bool is_hle) {
     // Lock the session.
     KScopedLightLock lk{m_lock};
@@ -1225,7 +1223,7 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
     // Get the request.
     KSessionRequest* request;
     {
-        KScopedSchedulerLock sl{m_kernel};
+        KScopedSchedulerLock sl{kernel};
 
         // Get the current request.
         request = m_current_request;
@@ -1234,13 +1232,13 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
         // Clear the current request, since we're processing it.
         m_current_request = nullptr;
         if (!m_request_list.empty()) {
-            this->NotifyAvailable();
+            this->NotifyAvailable(kernel);
         }
     }
 
     // Close reference to the request once we're done processing it.
     SCOPE_EXIT {
-        request->Close();
+        request->Close(kernel);
     };
 
     // Extract relevant information from the request.
@@ -1259,7 +1257,7 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
             // HLE servers write directly to a pointer to the thread command buffer. Therefore
             // the reply has already been written in this case.
         } else {
-            result = SendMessage(m_kernel, server_message, server_buffer_size, server_message_paddr,
+            result = SendMessage(kernel, server_message, server_buffer_size, server_message_paddr,
                                  *client_thread, client_message, client_buffer_size, this, request);
         }
     } else if (!is_hle) {
@@ -1271,7 +1269,7 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
             (client_process != nullptr) ? std::addressof(client_process->GetPageTable()) : nullptr;
 
         // Cleanup server handles.
-        result = CleanupServerHandles(m_kernel, server_message, server_buffer_size,
+        result = CleanupServerHandles(kernel, server_message, server_buffer_size,
                                       server_message_paddr);
 
         // Cleanup mappings.
@@ -1309,13 +1307,13 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
             client_page_table->UnlockForIpcUserBuffer(client_message, client_buffer_size);
 
             // Signal the event.
-            event->Signal();
+            event->Signal(kernel);
         } else {
             // End the client thread's wait.
-            KScopedSchedulerLock sl{m_kernel};
+            KScopedSchedulerLock sl{kernel};
 
             if (!client_thread->IsTerminationRequested()) {
-                client_thread->EndWait(client_result);
+                client_thread->EndWait(kernel, client_result);
             }
         }
     }
@@ -1323,45 +1321,45 @@ Result KServerSession::SendReply(uintptr_t server_message, uintptr_t server_buff
     R_RETURN(result);
 }
 
-Result KServerSession::OnRequest(KSessionRequest* request) {
+Result KServerSession::OnRequest(KernelCore& kernel, KSessionRequest* request) {
     // Create the wait queue.
-    ThreadQueueImplForKServerSessionRequest wait_queue{m_kernel};
+    ThreadQueueImplForKServerSessionRequest wait_queue{kernel};
 
     {
         // Lock the scheduler.
-        KScopedSchedulerLock sl{m_kernel};
+        KScopedSchedulerLock sl{kernel};
 
         // Ensure that we can handle new requests.
         R_UNLESS(!m_parent->IsServerClosed(), ResultSessionClosed);
 
         // Check that we're not terminating.
-        R_UNLESS(!GetCurrentThread(m_kernel).IsTerminationRequested(), ResultTerminationRequested);
+        R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(), ResultTerminationRequested);
 
         // Get whether we're empty.
         const bool was_empty = m_request_list.empty();
 
         // Add the request to the list.
-        request->Open();
+        request->Open(kernel);
         m_request_list.push_back(*request);
 
         // If we were empty, signal.
         if (was_empty) {
-            this->NotifyAvailable();
+            this->NotifyAvailable(kernel);
         }
 
         // If we have a request event, this is asynchronous, and we don't need to wait.
         R_SUCCEED_IF(request->GetEvent() != nullptr);
 
         // This is a synchronous request, so we should wait for our request to complete.
-        GetCurrentThread(m_kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
-        GetCurrentThread(m_kernel).BeginWait(std::addressof(wait_queue));
+        GetCurrentThread(kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
+        GetCurrentThread(kernel).BeginWait(kernel, std::addressof(wait_queue));
     }
 
-    return GetCurrentThread(m_kernel).GetWaitResult();
+    return GetCurrentThread(kernel).GetWaitResult();
 }
 
-bool KServerSession::IsSignaled() const {
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
+bool KServerSession::IsSignaled(KernelCore& kernel) const {
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     // If the client is closed, we're always signaled.
     if (m_parent->IsClientClosed()) {
@@ -1372,7 +1370,7 @@ bool KServerSession::IsSignaled() const {
     return !m_request_list.empty() && m_current_request == nullptr;
 }
 
-void KServerSession::CleanupRequests() {
+void KServerSession::CleanupRequests(KernelCore& kernel) {
     KScopedLightLock lk(m_lock);
 
     // Clean up any pending requests.
@@ -1380,7 +1378,7 @@ void KServerSession::CleanupRequests() {
         // Get the next request.
         KSessionRequest* request = nullptr;
         {
-            KScopedSchedulerLock sl{m_kernel};
+            KScopedSchedulerLock sl{kernel};
 
             if (m_current_request) {
                 // Choose the current request if we have one.
@@ -1400,7 +1398,7 @@ void KServerSession::CleanupRequests() {
 
         // Close a reference to the request once it's cleaned up.
         SCOPE_EXIT {
-            request->Close();
+            request->Close(kernel);
         };
 
         // Extract relevant information from the request.
@@ -1430,20 +1428,20 @@ void KServerSession::CleanupRequests() {
                 client_page_table->UnlockForIpcUserBuffer(client_message, client_buffer_size);
 
                 // Signal the event.
-                event->Signal();
+                event->Signal(kernel);
             } else {
                 // End the client thread's wait.
-                KScopedSchedulerLock sl{m_kernel};
+                KScopedSchedulerLock sl{kernel};
 
                 if (!client_thread->IsTerminationRequested()) {
-                    client_thread->EndWait(ResultSessionClosed);
+                    client_thread->EndWait(kernel, ResultSessionClosed);
                 }
             }
         }
     }
 }
 
-void KServerSession::OnClientClosed() {
+void KServerSession::OnClientClosed(KernelCore& kernel) {
     KScopedLightLock lk{m_lock};
 
     // Handle any pending requests.
@@ -1458,12 +1456,12 @@ void KServerSession::OnClientClosed() {
 
         // Get the next request.
         {
-            KScopedSchedulerLock sl{m_kernel};
+            KScopedSchedulerLock sl{kernel};
 
             if (m_current_request != nullptr && m_current_request != prev_request) {
                 // Set the request, open a reference as we process it.
                 request = m_current_request;
-                request->Open();
+                request->Open(kernel);
                 cur_request = true;
 
                 // Get thread and event for the request.
@@ -1499,14 +1497,14 @@ void KServerSession::OnClientClosed() {
 
         // Ensure that we close the request when done.
         SCOPE_EXIT {
-            request->Close();
+            request->Close(kernel);
         };
 
         // If we're terminating, close a reference to the thread and event.
         if (terminate) {
-            thread->Close();
+            thread->Close(kernel);
             if (event != nullptr) {
-                event->Close();
+                event->Close(kernel);
             }
         }
 
@@ -1530,12 +1528,12 @@ void KServerSession::OnClientClosed() {
             client_pt.UnlockForIpcUserBuffer(request->GetAddress(), request->GetSize());
 
             // Signal the event.
-            event->Signal();
+            event->Signal(kernel);
         }
     }
 
     // Notify.
-    this->NotifyAvailable(ResultSessionClosed);
+    this->NotifyAvailable(kernel, ResultSessionClosed);
 }
 
 } // namespace Kernel

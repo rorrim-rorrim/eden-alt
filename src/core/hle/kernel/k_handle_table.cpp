@@ -21,11 +21,9 @@ void KHandleTable::Finalize(KernelCore& kernel) {
     }
 
     // Close and free all entries.
-    for (size_t i = 0; i < saved_table_size; i++) {
-        if (KAutoObject* obj = m_objects[i]; obj != nullptr) {
-            obj->Close();
-        }
-    }
+    for (size_t i = 0; i < saved_table_size; i++)
+        if (KAutoObject* obj = m_objects[i]; obj != nullptr)
+            obj->Close(kernel);
 }
 
 bool KHandleTable::Remove(KernelCore& kernel, Handle handle) {
@@ -58,7 +56,7 @@ bool KHandleTable::Remove(KernelCore& kernel, Handle handle) {
 
     // Close the object.
     kernel.UnregisterInUseObject(obj);
-    obj->Close();
+    obj->Close(kernel);
     return true;
 }
 
@@ -77,7 +75,7 @@ Result KHandleTable::Add(KernelCore& kernel, Handle* out_handle, KAutoObject* ob
         m_entry_infos[index].linear_id = linear_id;
         m_objects[index] = obj;
 
-        obj->Open();
+        obj->Open(kernel);
 
         *out_handle = EncodeHandle(static_cast<u16>(index), linear_id);
     }
@@ -91,10 +89,10 @@ KScopedAutoObject<KAutoObject> KHandleTable::GetObjectForIpc(KernelCore& kernel,
     if (handle == Svc::PseudoHandle::CurrentProcess) {
         auto* const cur_process = cur_thread->GetOwnerProcess();
         ASSERT(cur_process != nullptr);
-        return cur_process;
+        return {kernel, cur_process};
     }
     if (handle == Svc::PseudoHandle::CurrentThread) {
-        return cur_thread;
+        return {kernel, cur_thread};
     }
     return GetObjectForIpcWithoutPseudoHandle(kernel, handle);
 }
@@ -148,7 +146,7 @@ void KHandleTable::Register(KernelCore& kernel, Handle handle, KAutoObject* obj)
         m_entry_infos[index].linear_id = static_cast<u16>(linear_id);
         m_objects[index] = obj;
 
-        obj->Open();
+        obj->Open(kernel);
     }
 }
 

@@ -46,7 +46,7 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
     R_UNLESS(process.CheckThreadPriority(priority), ResultInvalidPriority);
 
     // Reserve a new thread from the process resource limit (waiting up to 100ms).
-    KScopedResourceReservation thread_reservation(std::addressof(process),
+    KScopedResourceReservation thread_reservation(system.Kernel(), std::addressof(process),
                                                   LimitableResource::ThreadCountMax, 1,
                                                   kernel.HardwareTimer().GetTick() + 100000000);
     R_UNLESS(thread_reservation.Succeeded(), ResultLimitReached);
@@ -55,7 +55,7 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
     KThread* thread = KThread::Create(kernel);
     R_UNLESS(thread != nullptr, ResultOutOfResource)
     SCOPE_EXIT {
-        thread->Close();
+        thread->Close(system.Kernel());
     };
 
     // Initialize the thread.
@@ -69,7 +69,7 @@ Result CreateThread(Core::System& system, Handle* out_handle, u64 entry_point, u
     thread_reservation.Commit();
 
     // Clone the current fpu status to the new thread.
-    thread->CloneFpuStatus();
+    thread->CloneFpuStatus(system.Kernel());
 
     // Register the new thread.
     KThread::Register(kernel, thread);
@@ -92,7 +92,7 @@ Result StartThread(Core::System& system, Handle thread_handle) {
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Try to start the thread.
-    R_TRY(thread->Run());
+    R_TRY(thread->Run(system.Kernel()));
 
     R_SUCCEED();
 }
@@ -101,7 +101,7 @@ Result StartThread(Core::System& system, Handle thread_handle) {
 void ExitThread(Core::System& system) {
     auto* const current_thread = GetCurrentThreadPointer(system.Kernel());
     system.GlobalSchedulerContext().RemoveThread(current_thread);
-    current_thread->Exit();
+    current_thread->Exit(system.Kernel());
 }
 
 /// Sleep the current thread
@@ -129,7 +129,7 @@ void SleepThread(Core::System& system, s64 ns) {
 
         // Sleep.
         // NOTE: Nintendo does not check the result of this sleep.
-        static_cast<void>(GetCurrentThread(kernel).Sleep(timeout));
+        static_cast<void>(GetCurrentThread(kernel).Sleep(kernel, timeout));
     } else if (yield_type == Svc::YieldType::WithoutCoreMigration) {
         KScheduler::YieldWithoutCoreMigration(kernel);
     } else if (yield_type == Svc::YieldType::WithCoreMigration) {
@@ -143,26 +143,23 @@ void SleepThread(Core::System& system, s64 ns) {
 
 /// Gets the thread context
 Result GetThreadContext3(Core::System& system, u64 out_context, Handle thread_handle) {
-    LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle={:#X}", out_context,
-              thread_handle);
-
-    auto& kernel = system.Kernel();
+    LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle={:#X}", out_context, thread_handle);
 
     // Get the thread from its handle.
-    KScopedAutoObject thread = GetCurrentProcess(kernel).GetHandleTable().GetObject<KThread>(system.Kernel(), thread_handle);
+    KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), thread_handle);
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Require the handle be to a non-current thread in the current process.
-    R_UNLESS(thread->GetOwnerProcess() == GetCurrentProcessPointer(kernel), ResultInvalidHandle);
-    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(kernel), ResultBusy);
+    R_UNLESS(thread->GetOwnerProcess() == GetCurrentProcessPointer(system.Kernel()), ResultInvalidHandle);
+    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(system.Kernel()), ResultBusy);
 
     // Get the thread context.
     Svc::ThreadContext context{};
-    R_TRY(thread->GetThreadContext3(std::addressof(context)));
+    R_TRY(thread->GetThreadContext3(system.Kernel(), std::addressof(context)));
 
     // Copy the thread context to user space.
     R_UNLESS(
-        GetCurrentMemory(kernel).WriteBlock(out_context, std::addressof(context), sizeof(context)),
+        GetCurrentMemory(system.Kernel()).WriteBlock(out_context, std::addressof(context), sizeof(context)),
         ResultInvalidPointer);
 
     R_SUCCEED();
@@ -196,7 +193,7 @@ Result SetThreadPriority(Core::System& system, Handle thread_handle, s32 priorit
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Set the thread priority.
-    thread->SetBasePriority(priority);
+    thread->SetBasePriority(system.Kernel(), priority);
     R_SUCCEED();
 }
 
@@ -249,7 +246,7 @@ Result GetThreadCoreMask(Core::System& system, s32* out_core_id, u64* out_affini
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Get the core mask.
-    R_RETURN(thread->GetCoreMask(out_core_id, out_affinity_mask));
+    R_RETURN(thread->GetCoreMask(system.Kernel(), out_core_id, out_affinity_mask));
 }
 
 Result SetThreadCoreMask(Core::System& system, Handle thread_handle, s32 core_id,
@@ -279,7 +276,7 @@ Result SetThreadCoreMask(Core::System& system, Handle thread_handle, s32 core_id
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Set the core mask.
-    R_RETURN(thread->SetCoreMask(core_id, affinity_mask));
+    R_RETURN(thread->SetCoreMask(system.Kernel(), core_id, affinity_mask));
 }
 
 /// Get the ID for the specified thread.

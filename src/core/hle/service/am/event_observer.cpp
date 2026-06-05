@@ -41,7 +41,7 @@ EventObserver::EventObserver(Core::System& system, WindowSystem& window_system)
 EventObserver::~EventObserver() {
     // Signal thread and wait for processing to finish.
     m_stop_source.request_stop();
-    m_wakeup_event.Signal();
+    m_wakeup_event.Signal(m_system.Kernel());
     m_thread.join();
 
     // Free remaining owned sessions.
@@ -76,11 +76,11 @@ void EventObserver::TrackAppletProcess(Applet& applet) {
     }
 
     // Signal wakeup.
-    m_wakeup_event.Signal();
+    m_wakeup_event.Signal(m_system.Kernel());
 }
 
 void EventObserver::RequestUpdate() {
-    m_wakeup_event.Signal();
+    m_wakeup_event.Signal(m_system.Kernel());
 }
 
 void EventObserver::LinkDeferred() {
@@ -121,7 +121,7 @@ void EventObserver::Process(MultiWaitHolder* holder) {
 }
 
 void EventObserver::OnWakeupEvent(MultiWaitHolder* holder) {
-    m_wakeup_event.Clear();
+    m_wakeup_event.Clear(m_system.Kernel());
 
     // Perform recalculation.
     m_window_system.Update();

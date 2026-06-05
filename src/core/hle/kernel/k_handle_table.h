@@ -78,12 +78,12 @@ public:
         KScopedSpinLock lk(m_lock);
 
         if constexpr (std::is_same_v<T, KAutoObject>) {
-            return this->GetObjectImpl(handle);
+            return {kernel, this->GetObjectImpl(handle)};
         } else {
             if (auto* obj = this->GetObjectImpl(handle); obj != nullptr) [[likely]] {
-                return obj->DynamicCast<T*>();
+                return {kernel, obj->DynamicCast<T*>()};
             } else {
-                return nullptr;
+                return {kernel, nullptr};
             }
         }
     }
@@ -95,16 +95,15 @@ public:
             if (handle == Svc::PseudoHandle::CurrentProcess) {
                 auto* const cur_process = GetCurrentProcessPointer(kernel);
                 ASSERT(cur_process != nullptr);
-                return cur_process;
+                return {kernel, cur_process};
             }
         } else if constexpr (std::derived_from<KThread, T>) {
             if (handle == Svc::PseudoHandle::CurrentThread) {
                 auto* const cur_thread = GetCurrentThreadPointer(kernel);
                 ASSERT(cur_thread != nullptr);
-                return cur_thread;
+                return {kernel, cur_thread};
             }
         }
-
         return this->template GetObjectWithoutPseudoHandle<T>(kernel, handle);
     }
 
@@ -112,14 +111,14 @@ public:
         // Lock and look up in table.
         KScopedDisableDispatch dd{kernel};
         KScopedSpinLock lk(m_lock);
-        return this->GetObjectImpl(handle);
+        return {kernel, this->GetObjectImpl(handle)};
     }
     KScopedAutoObject<KAutoObject> GetObjectForIpc(KernelCore& kernel, Handle handle, KThread* cur_thread) const;
     KScopedAutoObject<KAutoObject> GetObjectByIndex(KernelCore& kernel, Handle* out_handle, size_t index) const {
         KScopedDisableDispatch dd{kernel};
         KScopedSpinLock lk(m_lock);
 
-        return this->GetObjectByIndexImpl(out_handle, index);
+        return {kernel, this->GetObjectByIndexImpl(out_handle, index)};
     }
 
     Result Reserve(KernelCore& kernel, Handle* out_handle);
@@ -147,14 +146,14 @@ public:
                 }
 
                 // Cast the current object to the desired type.
-                T* cur_t = cur_object->DynamicCast<T*>();
-                if (cur_t == nullptr) [[unlikely]] {
+                T* cur_thread = cur_object->DynamicCast<T*>();
+                if (cur_thread == nullptr) [[unlikely]] {
                     break;
                 }
 
                 // Open a reference to the current object.
-                cur_t->Open();
-                out[num_opened] = cur_t;
+                cur_thread->Open(kernel);
+                out[num_opened] = cur_thread;
             }
         }
 
@@ -165,7 +164,7 @@ public:
 
         // If we didn't convert entry object, close the ones we opened.
         for (size_t i = 0; i < num_opened; i++) {
-            out[i]->Close();
+            out[i]->Close(kernel);
         }
 
         return false;

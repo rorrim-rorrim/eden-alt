@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -13,7 +13,10 @@
 
 namespace Service::HID {
 
-NPadResource::NPadResource(KernelHelpers::ServiceContext& context) : service_context{context} {}
+NPadResource::NPadResource(Kernel::KernelCore& kernel_, KernelHelpers::ServiceContext& context)
+    : kernel{kernel_}
+    , service_context{context}
+{}
 
 NPadResource::~NPadResource() = default;
 
@@ -526,7 +529,7 @@ Result NPadResource::AcquireNpadStyleSetUpdateEventHandle(u64 aruid,
     *out_event = &controller_state.style_set_update_event->GetReadableEvent();
 
     if (controller_state.is_styleset_update_event_initialized) {
-        controller_state.style_set_update_event->Signal();
+        controller_state.style_set_update_event->Signal(kernel);
     }
 
     return ResultSuccess;
@@ -539,7 +542,7 @@ Result NPadResource::SignalStyleSetUpdateEvent(u64 aruid, Core::HID::NpadIdType 
     }
     auto controller = state[aruid_index].controller_state[NpadIdTypeToIndex(npad_id)];
     if (controller.is_styleset_update_event_initialized) {
-        controller.style_set_update_event->Signal();
+        controller.style_set_update_event->Signal(kernel);
     }
     return ResultSuccess;
 }

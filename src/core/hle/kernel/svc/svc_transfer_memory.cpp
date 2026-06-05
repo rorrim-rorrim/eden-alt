@@ -46,8 +46,7 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
     auto& handle_table = process.GetHandleTable();
 
     // Reserve a new transfer memory from the process resource limit.
-    KScopedResourceReservation trmem_reservation(std::addressof(process),
-                                                 LimitableResource::TransferMemoryCountMax);
+    KScopedResourceReservation trmem_reservation(system.Kernel(), std::addressof(process), LimitableResource::TransferMemoryCountMax);
     R_UNLESS(trmem_reservation.Succeeded(), ResultLimitReached);
 
     // Create the transfer memory.
@@ -56,14 +55,14 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
 
     // Ensure the only reference is in the handle table when we're done.
     SCOPE_EXIT {
-        trmem->Close();
+        trmem->Close(system.Kernel());
     };
 
     // Ensure that the region is in range.
     R_UNLESS(process.GetPageTable().Contains(address, size), ResultInvalidCurrentMemory);
 
     // Initialize the transfer memory.
-    R_TRY(trmem->Initialize(address, size, map_perm));
+    R_TRY(trmem->Initialize(system.Kernel(), address, size, map_perm));
 
     // Commit the reservation.
     trmem_reservation.Commit();
@@ -99,7 +98,7 @@ Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t add
              ResultInvalidMemoryRegion);
 
     // Map the transfer memory.
-    R_TRY(trmem->Map(address, size, map_perm));
+    R_TRY(trmem->Map(system.Kernel(), address, size, map_perm));
 
     // We succeeded.
     R_SUCCEED();
@@ -126,7 +125,7 @@ Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t a
              ResultInvalidMemoryRegion);
 
     // Unmap the transfer memory.
-    R_TRY(trmem->Unmap(address, size));
+    R_TRY(trmem->Unmap(system.Kernel(), address, size));
 
     R_SUCCEED();
 }

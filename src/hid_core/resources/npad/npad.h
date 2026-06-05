@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -209,7 +212,6 @@ private:
     NpadVibration vibration_handler{};
 
     std::atomic<u64> press_state{};
-    std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax>
-        controller_data{};
+    std::array<std::array<NpadControllerData, MaxSupportedNpadIdTypes>, AruidIndexMax> controller_data{};
 };
 } // namespace Service::HID

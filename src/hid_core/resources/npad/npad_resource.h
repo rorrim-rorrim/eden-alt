@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -20,6 +23,7 @@ class System;
 }
 
 namespace Kernel {
+class KernelCore;
 class KReadableEvent;
 }
 
@@ -37,8 +41,7 @@ struct NpadState {
     DataStatusFlag flag{};
     u64 aruid{};
     NPadData data{};
-    std::array<std::array<Core::HID::NpadButton, StyleIndexCount>, MaxSupportedNpadIdTypes>
-        button_config;
+    std::array<std::array<Core::HID::NpadButton, StyleIndexCount>, MaxSupportedNpadIdTypes> button_config;
     std::array<NpadControllerState, MaxSupportedNpadIdTypes> controller_state;
     NpadRevision npad_revision;
 };
@@ -46,7 +49,7 @@ struct NpadState {
 /// Handles Npad request from HID interfaces
 class NPadResource final {
 public:
-    explicit NPadResource(KernelHelpers::ServiceContext& context);
+    explicit NPadResource(Kernel::KernelCore& kernel, KernelHelpers::ServiceContext& context);
     ~NPadResource();
 
     NPadData* GetActiveData();
@@ -127,6 +130,7 @@ private:
     NpadJoyHoldType default_hold_type{};
     s32 ref_counter{};
 
+    Kernel::KernelCore& kernel;
     KernelHelpers::ServiceContext& service_context;
 };
 } // namespace Service::HID

@@ -54,7 +54,7 @@ public:
     bool IsLocked() const noexcept;
     void UnregisterDummyThreadForWakeup(KThread* thread) noexcept;
     void RegisterDummyThreadForWakeup(KThread* thread) noexcept;
-    void WakeupWaitingDummyThreads() noexcept;
+    void WakeupWaitingDummyThreads(KernelCore& kernel) noexcept;
 
 private:
     friend class KScopedSchedulerLock;

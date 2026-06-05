@@ -29,7 +29,22 @@
 namespace Service::HID {
 
 NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service_context_)
-    : hid_core{hid_core_}, service_context{service_context_}, npad_resource{service_context} {
+    : hid_core{hid_core_}
+    , service_context{service_context_}
+    , npad_resource{hid_core_.kernel, service_context}
+    , abstracted_pads{{
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+        AbstractPad{hid_core_.kernel},
+    }}
+{
     for (std::size_t aruid_index = 0; aruid_index < AruidIndexMax; ++aruid_index) {
         for (std::size_t i = 0; i < controller_data[aruid_index].size(); ++i) {
             auto& controller = controller_data[aruid_index][i];
@@ -43,7 +58,6 @@ NPad::NPad(Core::HID::HIDCore& hid_core_, KernelHelpers::ServiceContext& service
         }
     }
     for (std::size_t i = 0; i < abstracted_pads.size(); ++i) {
-        abstracted_pads[i] = AbstractPad{};
         abstracted_pads[i].SetNpadId(IndexToNpadIdType(i));
     }
 }

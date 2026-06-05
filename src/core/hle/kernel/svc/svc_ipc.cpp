@@ -26,11 +26,11 @@ Result SendSyncRequestImpl(KernelCore& kernel, uintptr_t message, size_t buffer_
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Get the parent, and persist a reference to it until we're done.
-    KScopedAutoObject parent = session->GetParent();
+    KScopedAutoObject parent = {kernel, session->GetParent()};
     ASSERT(parent.IsNotNull());
 
     // Send the request.
-    R_RETURN(session->SendSyncRequest(message, buffer_size));
+    R_RETURN(session->SendSyncRequest(kernel, message, buffer_size));
 }
 
 Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t message,
@@ -48,7 +48,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
         };
 
         // Send the reply.
-        R_TRY(session->SendReply(message, buffer_size, message_paddr));
+        R_TRY(session->SendReply(kernel, message, buffer_size, message_paddr));
     }
 
     // Receive a message.
@@ -74,8 +74,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
         while (true) {
             // Wait for an object.
             s32 index;
-            Result result = KSynchronizationObject::Wait(kernel, std::addressof(index), objs,
-                                                         num_objects, timeout);
+            Result result = KSynchronizationObject::Wait(kernel, std::addressof(index), objs, num_objects, timeout);
             if (ResultTimedOut == result) {
                 R_THROW(result);
             }
@@ -84,7 +83,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
             if (R_SUCCEEDED(result)) {
                 KServerSession* session = objs[index]->DynamicCast<KServerSession*>();
                 if (session != nullptr) {
-                    result = session->ReceiveRequest(message, buffer_size, message_paddr);
+                    result = session->ReceiveRequest(kernel, message, buffer_size, message_paddr);
                     if (ResultNotFound == result) {
                         continue;
                     }
@@ -131,7 +130,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
     // Ensure handles are closed when we're done.
     SCOPE_EXIT {
         for (auto i = 0; i < num_handles; ++i) {
-            objs[i]->Close();
+            objs[i]->Close(kernel);
         }
     };
 
@@ -185,8 +184,7 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     auto& handle_table = process.GetHandleTable();
 
     // Reserve a new event from the process resource limit.
-    KScopedResourceReservation event_reservation(std::addressof(process),
-                                                 Svc::LimitableResource::EventCountMax);
+    KScopedResourceReservation event_reservation(system.Kernel(), std::addressof(process), Svc::LimitableResource::EventCountMax);
     R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
 
     // Get the client session.
@@ -194,7 +192,7 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Get the parent, and persist a reference to it until we're done.
-    KScopedAutoObject parent = session->GetParent();
+    KScopedAutoObject parent = {system.Kernel(), session->GetParent()};
     ASSERT(parent.IsNotNull());
 
     // Create a new event.
@@ -202,15 +200,15 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.
-    event->Initialize(std::addressof(process));
+    event->Initialize(system.Kernel(), std::addressof(process));
 
     // Commit our reservation.
     event_reservation.Commit();
 
     // At end of scope, kill the standing references to the sub events.
     SCOPE_EXIT {
-        event->GetReadableEvent().Close();
-        event->Close();
+        event->GetReadableEvent().Close(system.Kernel());
+        event->Close(system.Kernel());
     };
 
     // Register the event.
@@ -225,7 +223,7 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     };
 
     // Send the async request.
-    R_RETURN(session->SendAsyncRequest(event, message, buffer_size));
+    R_RETURN(session->SendAsyncRequest(system.Kernel(), event, message, buffer_size));
 }
 
 Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles, s32 num_handles,

@@ -70,11 +70,11 @@ void GlobalSchedulerContext::UnregisterDummyThreadForWakeup(KThread* thread) noe
     }
 }
 
-void GlobalSchedulerContext::WakeupWaitingDummyThreads() noexcept {
+void GlobalSchedulerContext::WakeupWaitingDummyThreads(KernelCore& kernel) noexcept {
     ASSERT(this->IsLocked());
     if (m_woken_dummy_threads.size() > 0) {
         for (auto* thread : m_woken_dummy_threads)
-            thread->DummyThreadEndWait();
+            thread->DummyThreadEndWait(kernel);
         m_woken_dummy_threads.clear();
     }
 }

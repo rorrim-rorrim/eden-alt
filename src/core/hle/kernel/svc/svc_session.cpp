@@ -26,7 +26,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
 
     // Reserve a new session from the process resource limit.
     // TODO: Dynamic resource limits
-    KScopedResourceReservation session_reservation(std::addressof(process),
+    KScopedResourceReservation session_reservation(system.Kernel(), std::addressof(process),
                                                    LimitableResource::SessionCountMax);
     if (session_reservation.Succeeded()) {
         session = T::Create(system.Kernel());
@@ -65,7 +65,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     R_UNLESS(session != nullptr, ResultOutOfResource);
 
     // Initialize the session.
-    session->Initialize(nullptr, name);
+    session->Initialize(system.Kernel(), nullptr, name);
 
     // Commit the session reservation.
     session_reservation.Commit();
@@ -73,8 +73,8 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     // Ensure that we clean up the session (and its only references are handle table) on function
     // end.
     SCOPE_EXIT {
-        session->GetClientSession().Close();
-        session->GetServerSession().Close();
+        session->GetClientSession().Close(system.Kernel());
+        session->GetServerSession().Close(system.Kernel());
     };
 
     // Register the session.
@@ -119,10 +119,10 @@ Result AcceptSession(Core::System& system, Handle* out, Handle port_handle) {
 
     // Accept the session.
     KAutoObject* session;
-    if (port->IsLight()) {
-        session = port->AcceptLightSession();
+    if (port->IsLight(system.Kernel())) {
+        session = port->AcceptLightSession(system.Kernel());
     } else {
-        session = port->AcceptSession();
+        session = port->AcceptSession(system.Kernel());
     }
 
     // Ensure we accepted successfully.
@@ -130,7 +130,7 @@ Result AcceptSession(Core::System& system, Handle* out, Handle port_handle) {
 
     // Register the session.
     handle_table.Register(system.Kernel(), *out, session);
-    session->Close();
+    session->Close(system.Kernel());
 
     R_SUCCEED();
 }

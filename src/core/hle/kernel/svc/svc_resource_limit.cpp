@@ -22,7 +22,7 @@ Result CreateResourceLimit(Core::System& system, Handle* out_handle) {
 
     // Ensure we don't leak a reference to the limit.
     SCOPE_EXIT {
-        resource_limit->Close();
+        resource_limit->Close(system.Kernel());
     };
 
     // Initialize the resource limit.

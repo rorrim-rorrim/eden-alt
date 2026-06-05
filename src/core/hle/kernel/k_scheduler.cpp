@@ -57,7 +57,7 @@ void KScheduler::RequestScheduleOnInterrupt() {
 
 void KScheduler::DisableScheduling(KernelCore& kernel) {
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() >= 0);
-    GetCurrentThread(kernel).DisableDispatch();
+    GetCurrentThread(kernel).DisableDispatch(kernel);
 }
 
 void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling) {
@@ -74,7 +74,7 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
     scheduler->RescheduleOtherCores(cores_needing_scheduling);
 
     if (GetCurrentThread(kernel).GetDisableDispatchCount() > 1) {
-        GetCurrentThread(kernel).EnableDispatch();
+        GetCurrentThread(kernel).EnableDispatch(kernel);
     } else {
         scheduler->RescheduleCurrentCore();
     }
@@ -85,10 +85,10 @@ void KScheduler::RescheduleCurrentHLEThread(KernelCore& kernel) {
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
 
     // Ensure dummy threads that are waiting block.
-    GetCurrentThread(kernel).DummyThreadBeginWait();
+    GetCurrentThread(kernel).DummyThreadBeginWait(kernel);
 
     ASSERT(GetCurrentThread(kernel).GetState() != ThreadState::Waiting);
-    GetCurrentThread(kernel).EnableDispatch();
+    GetCurrentThread(kernel).EnableDispatch(kernel);
 }
 
 u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
@@ -107,13 +107,13 @@ void KScheduler::Schedule() {
 }
 
 void KScheduler::ScheduleOnInterrupt() {
-    GetCurrentThread(m_kernel).DisableDispatch();
+    GetCurrentThread(m_kernel).DisableDispatch(m_kernel);
     Schedule();
-    GetCurrentThread(m_kernel).EnableDispatch();
+    GetCurrentThread(m_kernel).EnableDispatch(m_kernel);
 }
 
 void KScheduler::PreemptSingleCore() {
-    GetCurrentThread(m_kernel).DisableDispatch();
+    GetCurrentThread(m_kernel).DisableDispatch(m_kernel);
 
     auto* thread = GetCurrentThreadPointer(m_kernel);
     auto& previous_scheduler = m_kernel.Scheduler(thread->GetCurrentCore());
@@ -121,14 +121,14 @@ void KScheduler::PreemptSingleCore() {
 
     Common::Fiber::YieldTo(thread->GetHostContext(), *m_switch_fiber);
 
-    GetCurrentThread(m_kernel).EnableDispatch();
+    GetCurrentThread(m_kernel).EnableDispatch(m_kernel);
 }
 
 void KScheduler::RescheduleCurrentCore() {
     ASSERT(!m_kernel.IsPhantomModeForSingleCore());
     ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() == 1);
 
-    GetCurrentThread(m_kernel).EnableDispatch();
+    GetCurrentThread(m_kernel).EnableDispatch(m_kernel);
 
     if (m_state.needs_scheduling.load()) {
         // Disable interrupts, and then check again if rescheduling is needed.
@@ -141,9 +141,9 @@ void KScheduler::RescheduleCurrentCore() {
 void KScheduler::RescheduleCurrentCoreImpl() {
     // Check that scheduling is needed.
     if (m_state.needs_scheduling.load()) [[likely]] {
-        GetCurrentThread(m_kernel).DisableDispatch();
+        GetCurrentThread(m_kernel).DisableDispatch(m_kernel);
         Schedule();
-        GetCurrentThread(m_kernel).EnableDispatch();
+        GetCurrentThread(m_kernel).EnableDispatch(m_kernel);
     }
 }
 
@@ -179,7 +179,7 @@ void KScheduler::Activate() {
 }
 
 void KScheduler::OnThreadStart() {
-    GetCurrentThread(m_kernel).EnableDispatch();
+    GetCurrentThread(m_kernel).EnableDispatch(m_kernel);
 }
 
 u64 KScheduler::UpdateHighestPriorityThread(KThread* highest_thread) {
@@ -319,13 +319,13 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
     }
 
     // HACK: any waiting dummy threads can wake up now.
-    kernel.GlobalSchedulerContext().WakeupWaitingDummyThreads();
+    kernel.GlobalSchedulerContext().WakeupWaitingDummyThreads(kernel);
 
     // HACK: if we are a dummy thread, and we need to go sleep, indicate
     // that for when the lock is released.
     KThread* const cur_thread = GetCurrentThreadPointer(kernel);
     if (cur_thread->IsDummyThread() && cur_thread->GetState() != ThreadState::Runnable) {
-        cur_thread->RequestDummyThreadWait();
+        cur_thread->RequestDummyThreadWait(kernel);
     }
 
     return cores_needing_scheduling;
@@ -386,7 +386,7 @@ void KScheduler::SwitchThread(KThread* next_thread) {
     // cpu::SwitchThreadLocalRegion(GetInteger(next_thread->GetThreadLocalRegionAddress()));
 
     // Update the thread's cpu time differential in TLS, if relevant.
-    next_thread->UpdateTlsThreadCpuTime(cur_tick);
+    next_thread->UpdateTlsThreadCpuTime(m_kernel, cur_tick);
 }
 
 void KScheduler::ScheduleImpl() {

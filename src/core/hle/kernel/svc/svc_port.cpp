@@ -43,11 +43,11 @@ Result ConnectToNamedPort(Core::System& system, Handle* out, u64 user_name) {
 
     // Create a session.
     KClientSession* session;
-    R_TRY(port->CreateSession(std::addressof(session)));
+    R_TRY(port->CreateSession(system.Kernel(), std::addressof(session)));
 
     // Register the session in the table, close the extra reference.
     handle_table.Register(system.Kernel(), *out, session);
-    session->Close();
+    session->Close(system.Kernel());
 
     // We succeeded.
     R_SUCCEED();
@@ -68,12 +68,12 @@ Result CreatePort(Core::System& system, Handle* out_server, Handle* out_client,
     R_UNLESS(port != nullptr, ResultOutOfResource);
 
     // Initialize the port.
-    port->Initialize(max_sessions, is_light, name);
+    port->Initialize(system.Kernel(), max_sessions, is_light, name);
 
     // Ensure that we clean up the port (and its only references are handle table) on function end.
     SCOPE_EXIT {
-        port->GetServerPort().Close();
-        port->GetClientPort().Close();
+        port->GetServerPort().Close(system.Kernel());
+        port->GetClientPort().Close(system.Kernel());
     };
 
     // Register the port.
@@ -108,17 +108,15 @@ Result ConnectToPort(Core::System& system, Handle* out, Handle port) {
 
     // Create the session.
     KAutoObject* session;
-    if (client_port->IsLight()) {
-        R_TRY(client_port->CreateLightSession(
-            reinterpret_cast<KLightClientSession**>(std::addressof(session))));
+    if (client_port->IsLight(system.Kernel())) {
+        R_TRY(client_port->CreateLightSession(system.Kernel(), reinterpret_cast<KLightClientSession**>(std::addressof(session))));
     } else {
-        R_TRY(client_port->CreateSession(
-            reinterpret_cast<KClientSession**>(std::addressof(session))));
+        R_TRY(client_port->CreateSession(system.Kernel(), reinterpret_cast<KClientSession**>(std::addressof(session))));
     }
 
     // Register the session.
     handle_table.Register(system.Kernel(), *out, session);
-    session->Close();
+    session->Close(system.Kernel());
 
     // We succeeded.
     R_SUCCEED();
@@ -146,15 +144,15 @@ Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t
         R_UNLESS(port != nullptr, ResultOutOfResource);
 
         // Initialize the new port.
-        port->Initialize(max_sessions, false, 0);
+        port->Initialize(system.Kernel(), max_sessions, false, 0);
 
         // Register the port.
         KPort::Register(system.Kernel(), port);
 
         // Ensure that our only reference to the port is in the handle table when we're done.
         SCOPE_EXIT {
-            port->GetClientPort().Close();
-            port->GetServerPort().Close();
+            port->GetClientPort().Close(system.Kernel());
+            port->GetServerPort().Close(system.Kernel());
         };
 
         // Register the handle in the table.

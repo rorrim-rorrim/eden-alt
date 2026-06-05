@@ -113,7 +113,7 @@ void Break(Core::System& system, BreakReason reason, u64 info1, u64 info2) {
     if (system.DebuggerEnabled() && should_break) {
         auto* thread = system.Kernel().GetCurrentEmuThread();
         system.GetDebugger().NotifyThreadStopped(thread);
-        thread->RequestSuspend(Kernel::SuspendType::Debug);
+        thread->RequestSuspend(system.Kernel(), Kernel::SuspendType::Debug);
     }
 }
 

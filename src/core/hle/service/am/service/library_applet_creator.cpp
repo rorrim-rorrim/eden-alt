@@ -207,7 +207,7 @@ Result ILibraryAppletCreator::CreateLibraryApplet(
     }
 
     // Applet is created, can now be launched.
-    m_applet->library_applet_launchable_event.Signal();
+    m_applet->library_applet_launchable_event.Signal(system.Kernel());
     *out_library_applet_accessor = library_applet;
     R_SUCCEED();
 }
@@ -233,7 +233,7 @@ Result ILibraryAppletCreator::CreateLibraryAppletEx(
     }
 
     // Applet is created, can now be launched.
-    m_applet->library_applet_launchable_event.Signal();
+    m_applet->library_applet_launchable_event.Signal(system.Kernel());
     *out_library_applet_accessor = library_applet;
     R_SUCCEED();
 }
@@ -266,7 +266,7 @@ Result ILibraryAppletCreator::CreateTransferMemoryStorage(
     }
 
     *out_storage = std::make_shared<IStorage>(
-        system, AM::CreateTransferMemoryStorage(transfer_memory_handle->GetOwner()->GetMemory(),
+        system, AM::CreateTransferMemoryStorage(system.Kernel(), transfer_memory_handle->GetOwner()->GetMemory(),
                                                 transfer_memory_handle.Get(), is_writable, size));
     R_SUCCEED();
 }
@@ -287,7 +287,7 @@ Result ILibraryAppletCreator::CreateHandleStorage(
     }
 
     *out_storage = std::make_shared<IStorage>(
-        system, AM::CreateHandleStorage(transfer_memory_handle->GetOwner()->GetMemory(),
+        system, AM::CreateHandleStorage(system.Kernel(), transfer_memory_handle->GetOwner()->GetMemory(),
                                         transfer_memory_handle.Get(), size));
     R_SUCCEED();
 }

@@ -73,14 +73,14 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
     while (true) {
         // If the thread is scheduled for termination, exit.
         if (thread->HasDpc() && thread->IsTerminationRequested()) {
-            thread->Exit();
+            thread->Exit(kernel);
         }
 
         // Notify the debugger and go to sleep if a step was performed
         // and this thread has been scheduled again.
         if (thread->GetStepState() == StepState::StepPerformed) {
             system.GetDebugger().NotifyThreadStopped(thread);
-            thread->RequestSuspend(SuspendType::Debug);
+            thread->RequestSuspend(kernel, SuspendType::Debug);
             return;
         }
 
@@ -136,7 +136,7 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
             } else {
                 interface->LogBacktrace(process);
             }
-            thread->RequestSuspend(SuspendType::Debug);
+            thread->RequestSuspend(kernel, SuspendType::Debug);
             return;
         }
 
@@ -145,7 +145,7 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadWatchpoint(thread, *interface->HaltedWatchpoint());
             }
-            thread->RequestSuspend(SuspendType::Debug);
+            thread->RequestSuspend(kernel, SuspendType::Debug);
             return;
         }
 

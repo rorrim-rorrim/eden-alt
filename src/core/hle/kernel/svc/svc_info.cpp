@@ -90,11 +90,11 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::TotalMemorySize:
-            *result = process->GetTotalUserPhysicalMemorySize();
+            *result = process->GetTotalUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::UsedMemorySize:
-            *result = process->GetUsedUserPhysicalMemorySize();
+            *result = process->GetUsedUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::SystemResourceSizeTotal:
@@ -114,11 +114,11 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::TotalNonSystemMemorySize:
-            *result = process->GetTotalNonSystemUserPhysicalMemorySize();
+            *result = process->GetTotalNonSystemUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::UsedNonSystemMemorySize:
-            *result = process->GetUsedNonSystemUserPhysicalMemorySize();
+            *result = process->GetUsedNonSystemUserPhysicalMemorySize(system.Kernel());
             R_SUCCEED();
 
         case InfoType::IsApplication:

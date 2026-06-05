@@ -374,10 +374,9 @@ public:
     template <typename T>
     Kernel::KScopedAutoObject<T> GetObjectFromHandle(u32 handle) {
         auto obj = client_handle_table->GetObjectForIpc(kernel, handle, thread);
-        if (obj.IsNotNull()) {
-            return obj->DynamicCast<T*>();
-        }
-        return nullptr;
+        if (obj.IsNotNull())
+            return {kernel, obj->DynamicCast<T*>()};
+        return {kernel, nullptr};
     }
 
     [[nodiscard]] std::shared_ptr<SessionRequestManager> GetManager() const {

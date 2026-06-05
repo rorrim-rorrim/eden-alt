@@ -24,7 +24,7 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
     if ((program_id & 0xFFFFFFFFFFFFFF00ull) == 0x0100000000001000ull) {
         KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
         if (event.IsNotNull()) {
-            event->Signal();
+            event->Signal(system.Kernel());
         } else {
             LOG_WARNING(Kernel_SVC, "SignalEvent best-effort unknown handle=0x{:08X} (ignored)",
                         event_handle);
@@ -37,7 +37,7 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
     KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
     R_UNLESS(event.IsNotNull(), ResultInvalidHandle);
 
-    R_RETURN(event->Signal());
+    R_RETURN(event->Signal(system.Kernel()));
 }
 
 Result ClearEvent(Core::System& system, Handle event_handle) {
@@ -50,7 +50,7 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
     {
         KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
         if (event.IsNotNull()) {
-            event->Clear();
+            event->Clear(system.Kernel());
             R_SUCCEED();
         }
     }
@@ -59,7 +59,7 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
     {
         KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(system.Kernel(), event_handle);
         if (readable_event.IsNotNull()) {
-            readable_event->Clear();
+            readable_event->Clear(system.Kernel());
             R_SUCCEED();
         }
     }
@@ -71,32 +71,31 @@ Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
     LOG_DEBUG(Kernel_SVC, "called");
 
     // Get the kernel reference and handle table.
-    auto& kernel = system.Kernel();
-    auto& handle_table = GetCurrentProcess(kernel).GetHandleTable();
+    auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
 
     // Reserve a new event from the process resource limit
-    KScopedResourceReservation event_reservation(GetCurrentProcessPointer(kernel),
+    KScopedResourceReservation event_reservation(system.Kernel(), GetCurrentProcessPointer(system.Kernel()),
                                                  LimitableResource::EventCountMax);
     R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
 
     // Create a new event.
-    KEvent* event = KEvent::Create(kernel);
+    KEvent* event = KEvent::Create(system.Kernel());
     R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.
-    event->Initialize(GetCurrentProcessPointer(kernel));
+    event->Initialize(system.Kernel(), GetCurrentProcessPointer(system.Kernel()));
 
     // Commit the thread reservation.
     event_reservation.Commit();
 
     // Ensure that we clean up the event (and its only references are handle table) on function end.
     SCOPE_EXIT {
-        event->GetReadableEvent().Close();
-        event->Close();
+        event->GetReadableEvent().Close(system.Kernel());
+        event->Close(system.Kernel());
     };
 
     // Register the event.
-    KEvent::Register(kernel, event);
+    KEvent::Register(system.Kernel(), event);
 
     // Add the event to the handle table.
     R_TRY(handle_table.Add(system.Kernel(), out_write, event));

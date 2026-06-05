@@ -32,11 +32,11 @@ Result CreateDeviceAddressSpace(Core::System& system, Handle* out, uint64_t das_
     KDeviceAddressSpace* das = KDeviceAddressSpace::Create(system.Kernel());
     R_UNLESS(das != nullptr, ResultOutOfResource);
     SCOPE_EXIT {
-        das->Close();
+        das->Close(system.Kernel());
     };
 
     // Initialize the device address space.
-    R_TRY(das->Initialize(das_address, das_size));
+    R_TRY(das->Initialize(system.Kernel(), das_address, das_size));
 
     // Register the device address space.
     KDeviceAddressSpace::Register(system.Kernel(), das);

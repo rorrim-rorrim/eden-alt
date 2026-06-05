@@ -33,7 +33,7 @@ Result SetThreadActivity(Core::System& system, Handle thread_handle,
     R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(system.Kernel()), ResultBusy);
 
     // Set the activity.
-    R_TRY(thread->SetActivity(thread_activity));
+    R_TRY(thread->SetActivity(system.Kernel(), thread_activity));
 
     return ResultSuccess;
 }
