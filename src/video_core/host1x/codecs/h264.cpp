@@ -50,6 +50,16 @@ bool H264::IsInterlaced() {
            current_context.h264_parameter_set.luma_bot_offset.Address() != 0;
 }
 
+std::optional<FFmpeg::FrameDimensions> H264::GetFrameDimensions() {
+    const auto& params = current_context.h264_parameter_set;
+    const s32 width = static_cast<s32>(params.pic_width_in_mbs) * 16;
+    const s32 height = static_cast<s32>(params.frame_height_in_mbs) * 16;
+    if (width <= 0 || height <= 0) {
+        return std::nullopt;
+    }
+    return FFmpeg::FrameDimensions{width, height};
+}
+
 std::span<const u8> H264::ComposeFrame() {
     host1x.gmmu_manager.ReadBlock(regs.picture_info_offset.Address(), &current_context, sizeof(H264DecoderContext));
     const s64 frame_number = current_context.h264_parameter_set.frame_number.Value();
