@@ -996,7 +996,7 @@ Result KProcess::Run(s32 priority, size_t stack_size) {
 
     // Add the thread to our handle table.
     Handle thread_handle;
-    R_TRY(m_handle_table.Add(std::addressof(thread_handle), main_thread));
+    R_TRY(m_handle_table.Add(m_kernel, std::addressof(thread_handle), main_thread));
 
     // Set the thread arguments. Two distinct entry conventions:
     //  * Kernel/NSO entry  (no homebrew ABI):  x0 = 0,                x1 = thread_handle

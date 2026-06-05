@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -68,7 +71,7 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* ow
 
 void KSharedMemory::Finalize() {
     // Close and finalize the page group.
-    m_page_group->Close();
+    m_page_group->Close(m_kernel);
     m_page_group->Finalize();
 
     // Release the memory reservation.

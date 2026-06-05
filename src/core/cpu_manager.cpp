@@ -81,7 +81,7 @@ void CpuManager::MultiCoreRunGuestThread() {
     while (true) {
         auto* physical_core = &kernel.CurrentPhysicalCore();
         while (!physical_core->IsInterrupted()) {
-            physical_core->RunThread(thread);
+            physical_core->RunThread(kernel, thread);
             physical_core = &kernel.CurrentPhysicalCore();
         }
 
@@ -119,7 +119,7 @@ void CpuManager::SingleCoreRunGuestThread() {
     while (true) {
         auto* physical_core = &kernel.CurrentPhysicalCore();
         if (!physical_core->IsInterrupted()) {
-            physical_core->RunThread(thread);
+            physical_core->RunThread(kernel, thread);
             physical_core = &kernel.CurrentPhysicalCore();
         }
 

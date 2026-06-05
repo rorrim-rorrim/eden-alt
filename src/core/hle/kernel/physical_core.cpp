@@ -17,14 +17,15 @@
 namespace Kernel {
 
 PhysicalCore::PhysicalCore(KernelCore& kernel, std::size_t core_index)
-    : m_kernel{kernel}, m_core_index{core_index} {
+    : m_core_index{core_index}
+{
     m_is_single_core = !kernel.IsMulticore();
 }
 PhysicalCore::~PhysicalCore() = default;
 
-void PhysicalCore::RunThread(Kernel::KThread* thread) {
+void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
     auto* process = thread->GetOwnerProcess();
-    auto& system = m_kernel.System();
+    auto& system = kernel.System();
     auto* interface = process->GetArmInterface(m_core_index);
 
     interface->Initialize();
@@ -208,8 +209,8 @@ void PhysicalCore::CloneFpuStatus(KThread* dst) const {
     dst->GetContext().fpsr = ctx.fpsr;
 }
 
-void PhysicalCore::LogBacktrace() {
-    auto* process = GetCurrentProcessPointer(m_kernel);
+void PhysicalCore::LogBacktrace(KernelCore& kernel) {
+    auto* process = GetCurrentProcessPointer(kernel);
     if (!process) {
         return;
     }

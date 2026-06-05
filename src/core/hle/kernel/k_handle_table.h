@@ -105,7 +105,7 @@ public:
             }
         }
 
-        return this->template GetObjectWithoutPseudoHandle<T>(handle);
+        return this->template GetObjectWithoutPseudoHandle<T>(kernel, handle);
     }
 
     KScopedAutoObject<KAutoObject> GetObjectForIpcWithoutPseudoHandle(KernelCore& kernel, Handle handle) const {

@@ -106,7 +106,8 @@ public:
 } // namespace
 
 KConditionVariable::KConditionVariable(Core::System& system)
-    : m_system{system}, m_kernel{system.Kernel()} {}
+    : m_system{system}
+{}
 
 KConditionVariable::~KConditionVariable() = default;
 
@@ -194,9 +195,9 @@ Result KConditionVariable::WaitForAddress(KernelCore& kernel, Handle handle, KPr
     R_RETURN(cur_thread->GetWaitResult());
 }
 
-void KConditionVariable::SignalImpl(KThread* thread) {
+void KConditionVariable::SignalImpl(KernelCore& kernel, KThread* thread) {
     // Check pre-conditions.
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     // Update the tag.
     KProcessAddress address = thread->GetAddressKey();
@@ -211,8 +212,7 @@ void KConditionVariable::SignalImpl(KThread* thread) {
         // TODO(bunnei): We should call CanAccessAtomic(..) here.
         can_access = true;
         if (can_access) {
-            UpdateLockAtomic(m_kernel, std::addressof(prev_tag), address, own_tag,
-                             Svc::HandleWaitMask);
+            UpdateLockAtomic(kernel, std::addressof(prev_tag), address, own_tag, Svc::HandleWaitMask);
         }
     }
 
@@ -222,9 +222,9 @@ void KConditionVariable::SignalImpl(KThread* thread) {
             thread->EndWait(ResultSuccess);
         } else {
             // Get the previous owner.
-            KThread* owner_thread = GetCurrentProcess(m_kernel)
+            KThread* owner_thread = GetCurrentProcess(kernel)
                 .GetHandleTable()
-                .GetObjectWithoutPseudoHandle<KThread>(m_kernel, Handle(prev_tag & ~Svc::HandleWaitMask))
+                .GetObjectWithoutPseudoHandle<KThread>(kernel, Handle(prev_tag & ~Svc::HandleWaitMask))
                 .ReleasePointerUnsafe();
 
             if (owner_thread) {
@@ -246,17 +246,16 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
     // Perform signaling.
     s32 num_waiters{};
     {
-        KScopedSchedulerLock sl(m_kernel);
+        KScopedSchedulerLock sl(m_system.Kernel());
 
         auto it = m_tree.nfind_key({cv_key, -1});
-        while ((it != m_tree.end()) && (count <= 0 || num_waiters < count) &&
-               (it->GetConditionVariableKey() == cv_key)) {
+        while ((it != m_tree.end()) && (count <= 0 || num_waiters < count) && (it->GetConditionVariableKey() == cv_key)) {
             KThread* target_thread = std::addressof(*it);
 
             it = m_tree.erase(it);
             target_thread->ClearConditionVariable();
 
-            this->SignalImpl(target_thread);
+            this->SignalImpl(m_system.Kernel(), target_thread);
 
             ++num_waiters;
         }
@@ -264,20 +263,20 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
         // If we have no waiters, clear the has waiter flag.
         if (it == m_tree.end() || it->GetConditionVariableKey() != cv_key) {
             constexpr u32 HasNoWaiterFlag = 0;
-            WriteToUser(m_kernel, cv_key, HasNoWaiterFlag);
+            WriteToUser(m_system.Kernel(), cv_key, HasNoWaiterFlag);
         }
     }
 }
 
 Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 timeout) {
     // Prepare to wait.
-    KThread* cur_thread = GetCurrentThreadPointer(m_kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(m_system.Kernel());
     KHardwareTimer* timer{};
-    ThreadQueueImplForKConditionVariableWaitConditionVariable wait_queue(m_kernel,
+    ThreadQueueImplForKConditionVariableWaitConditionVariable wait_queue(m_system.Kernel(),
                                                                          std::addressof(m_tree));
 
     {
-        KScopedSchedulerLockAndSleep slp(m_kernel, std::addressof(timer), cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp(m_system.Kernel(), std::addressof(timer), cur_thread, timeout);
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -308,12 +307,12 @@ Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 ti
             // Write to the cv key.
             {
                 constexpr u32 HasWaiterFlag = 1;
-                WriteToUser(m_kernel, key, HasWaiterFlag);
+                WriteToUser(m_system.Kernel(), key, HasWaiterFlag);
                 std::atomic_thread_fence(std::memory_order_seq_cst);
             }
 
             // Write the value to userspace.
-            if (!WriteToUser(m_kernel, addr, next_value)) {
+            if (!WriteToUser(m_system.Kernel(), addr, next_value)) {
                 slp.CancelSleep();
                 R_THROW(ResultInvalidCurrentMemory);
             }
