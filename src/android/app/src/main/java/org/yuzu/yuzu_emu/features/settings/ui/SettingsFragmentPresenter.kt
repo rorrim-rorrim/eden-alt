@@ -269,7 +269,7 @@ class SettingsFragmentPresenter(
     // TODO(crueter): sub-submenus?
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         sl.apply {
-            // add(IntSetting.RENDERER_NVDEC_EMULATION.key)
+            add(IntSetting.RENDERER_NVDEC_EMULATION.key)
 
             add(IntSetting.RENDERER_RESOLUTION.key)
             add(IntSetting.RENDERER_VSYNC.key)

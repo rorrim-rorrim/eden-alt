@@ -4,6 +4,10 @@
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <cstring>
+#include <string_view>
+#include <vector>
+
 #include "common/assert.h"
 #include "common/logging.h"
 #include "common/scope_exit.h"
@@ -83,6 +87,57 @@ std::string AVError(int errnum) {
     return errbuf;
 }
 
+#ifdef ANDROID
+// Match a 3- or 4-byte annex-B start code at `i`. Returns its length, or 0.
+size_t MatchStartCode(std::span<const u8> data, size_t i) {
+    const size_t n = data.size();
+    if (i + 3 < n && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1) {
+        return 4;
+    }
+    if (i + 2 < n && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 1) {
+        return 3;
+    }
+    return 0;
+}
+
+// Pull SPS (NAL type 7) + PPS (NAL type 8) out of an annex-B frame into an
+// extradata buffer, each prefixed with a 4-byte start code. Eden synthesizes
+// these inline into the very first frame; h264_mediacodec wants them at open.
+std::vector<u8> ExtractH264AnnexBExtradata(std::span<const u8> packet) {
+    std::vector<u8> extradata;
+    const size_t size = packet.size();
+    size_t i = 0;
+    while (i < size) {
+        const size_t sc = MatchStartCode(packet, i);
+        if (sc == 0) {
+            ++i;
+            continue;
+        }
+        const size_t nal_start = i + sc;
+        if (nal_start >= size) {
+            break;
+        }
+        const u8 nal_type = packet[nal_start] & 0x1F;
+
+        size_t j = nal_start + 1;
+        while (j < size && MatchStartCode(packet, j) == 0) {
+            ++j;
+        }
+
+        if (nal_type == 7 || nal_type == 8) {
+            constexpr u8 start[4] = {0, 0, 0, 1};
+            extradata.insert(extradata.end(), start, start + sizeof(start));
+            extradata.insert(extradata.end(), packet.begin() + nal_start, packet.begin() + j);
+        } else if (nal_type == 1 || nal_type == 5) {
+            break;
+        }
+        i = j;
+    }
+    return extradata;
+}
+
+#endif
+
 }
 
 Packet::Packet(std::span<const u8> data) {
@@ -117,7 +172,26 @@ Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
             return AV_CODEC_ID_NONE;
         }
     }();
-    m_codec = avcodec_find_decoder(av_codec);
+
+#ifdef ANDROID
+    // FFmpeg exposes MediaCodec via dedicated decoders rather than as a
+    // hw_config on the regular ones.
+    if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
+        const char* mc_name = nullptr;
+        switch (av_codec) {
+        case AV_CODEC_ID_H264: mc_name = "h264_mediacodec"; break;
+        case AV_CODEC_ID_VP8:  mc_name = "vp8_mediacodec";  break;
+        case AV_CODEC_ID_VP9:  mc_name = "vp9_mediacodec";  break;
+        default: break;
+        }
+        if (mc_name) {
+            m_codec = avcodec_find_decoder_by_name(mc_name);
+        }
+    }
+#endif
+    if (!m_codec) {
+        m_codec = avcodec_find_decoder(av_codec);
+    }
 }
 
 bool Decoder::SupportsDecodingOnDevice(AVPixelFormat* out_pix_fmt, AVHWDeviceType type) const {
@@ -205,6 +279,9 @@ DecoderContext::DecoderContext(const Decoder& decoder) : m_decoder{decoder} {
     av_opt_set(m_codec_context->priv_data, "tune", "zerolatency", 0);
     m_codec_context->thread_count = 0;
     m_codec_context->thread_type &= ~FF_THREAD_FRAME;
+    // Forwarded into MediaCodec as KEY_LOW_LATENCY on Android.
+    m_codec_context->flags |= AV_CODEC_FLAG_LOW_DELAY;
+    m_codec_context->flags2 |= AV_CODEC_FLAG2_FAST;
 }
 
 DecoderContext::~DecoderContext() {
@@ -218,7 +295,19 @@ void DecoderContext::InitializeHardwareDecoder(const HardwareContext& context, A
     m_codec_context->pix_fmt = hw_pix_fmt;
 }
 
-bool DecoderContext::OpenContext(const Decoder& decoder) {
+bool DecoderContext::OpenContext(const Decoder& decoder, std::span<const u8> extradata) {
+    if (!extradata.empty()) {
+        av_freep(&m_codec_context->extradata);
+        m_codec_context->extradata = static_cast<u8*>(
+            av_mallocz(extradata.size() + AV_INPUT_BUFFER_PADDING_SIZE));
+        if (!m_codec_context->extradata) {
+            LOG_ERROR(HW_GPU, "Failed to allocate extradata");
+            return false;
+        }
+        std::memcpy(m_codec_context->extradata, extradata.data(), extradata.size());
+        m_codec_context->extradata_size = static_cast<int>(extradata.size());
+    }
+
     if (const int ret = avcodec_open2(m_codec_context, decoder.GetCodec(), nullptr); ret < 0) {
         LOG_ERROR(HW_GPU, "avcodec_open2 error: {}", AVError(ret));
         return false;
@@ -278,6 +367,12 @@ void DecodeApi::Reset() {
     m_hardware_context.reset();
     m_decoder_context.reset();
     m_decoder.reset();
+    m_opened = false;
+    m_needs_h264_extradata = false;
+    m_next_pts = 0;
+    while (!m_pending_offsets.empty()) {
+        m_pending_offsets.pop();
+    }
 }
 
 bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
@@ -293,23 +388,69 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
         m_hardware_context->InitializeForDecoder(*m_decoder_context, *m_decoder);
     }
 
-    // Open the decoder context.
+#ifdef ANDROID
+    // h264_mediacodec needs SPS/PPS in extradata at open. We pull them from
+    // the first frame's bitstream in SendPacket.
+    m_needs_h264_extradata = m_decoder->GetCodec() &&
+                             std::string_view(m_decoder->GetCodec()->name) == "h264_mediacodec";
+    if (m_needs_h264_extradata) {
+        return true;
+    }
+#endif
+
     if (!m_decoder_context->OpenContext(*m_decoder)) {
         this->Reset();
         return false;
     }
+    m_opened = true;
 
     return true;
 }
 
-bool DecodeApi::SendPacket(std::span<const u8> packet_data) {
+bool DecodeApi::SendPacket(std::span<const u8> packet_data, const FrameOffsets& offsets,
+                           std::optional<FrameDimensions> dimensions) {
+    if (!m_opened) {
+        std::vector<u8> extradata;
+#ifdef ANDROID
+        if (m_needs_h264_extradata) {
+            extradata = ExtractH264AnnexBExtradata(packet_data);
+            if (extradata.empty()) {
+                return true;
+            }
+            if (dimensions) {
+                auto* ctx = m_decoder_context->GetCodecContext();
+                ctx->width = dimensions->width;
+                ctx->height = dimensions->height;
+                ctx->coded_width = dimensions->width;
+                ctx->coded_height = dimensions->height;
+            }
+        }
+#endif
+        if (!m_decoder_context->OpenContext(*m_decoder, extradata)) {
+            this->Reset();
+            return false;
+        }
+        m_opened = true;
+    }
+    m_pending_offsets.push(offsets);
     FFmpeg::Packet packet(packet_data);
+    packet.GetPacket()->pts = m_next_pts;
+    packet.GetPacket()->dts = m_next_pts;
+    ++m_next_pts;
     return m_decoder_context->SendPacket(packet);
 }
 
-std::shared_ptr<Frame> DecodeApi::ReceiveFrame() {
-    // Receive raw frame from decoder.
-    return m_decoder_context->ReceiveFrame();
+std::optional<DecodeApi::DecodedFrame> DecodeApi::ReceiveFrame() {
+    auto frame = m_decoder_context->ReceiveFrame();
+    if (!frame) {
+        return std::nullopt;
+    }
+    FrameOffsets offsets{};
+    if (!m_pending_offsets.empty()) {
+        offsets = m_pending_offsets.front();
+        m_pending_offsets.pop();
+    }
+    return DecodedFrame{std::move(frame), offsets};
 }
 
 }

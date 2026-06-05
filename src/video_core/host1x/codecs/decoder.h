@@ -45,6 +45,9 @@ protected:
     virtual std::tuple<u64, u64> GetProgressiveOffsets() = 0;
     virtual std::tuple<u64, u64, u64, u64> GetInterlacedOffsets() = 0;
     virtual bool IsInterlaced() = 0;
+    virtual std::optional<FFmpeg::FrameDimensions> GetFrameDimensions() {
+        return std::nullopt;
+    }
 
     FFmpeg::DecodeApi decode_api;
     Host1x::Host1x& host1x;

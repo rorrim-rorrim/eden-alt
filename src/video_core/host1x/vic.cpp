@@ -136,7 +136,7 @@ void Vic::Execute() noexcept {
                         break;
                     }
                     Blend(config, slot_config, config.output_surface_config.out_pixel_format);
-                } else {
+                } else if (nvdec_id != -1) {
                     LOG_ERROR(HW_GPU, "Vic {} failed to get frame with offset {:#X}", id, luma_offset);
                 }
             }
