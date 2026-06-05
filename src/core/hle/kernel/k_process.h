@@ -571,7 +571,7 @@ private:
 
     Result InitializeHandleTable(s32 size) {
         // Try to initialize the handle table.
-        R_TRY(m_handle_table.Initialize(size));
+        R_TRY(m_handle_table.Initialize(m_kernel, size));
 
         // We succeeded, so note that we did.
         m_is_handle_table_initialized = true;
@@ -580,7 +580,7 @@ private:
 
     void FinalizeHandleTable() {
         // Finalize the table.
-        m_handle_table.Finalize();
+        m_handle_table.Finalize(m_kernel);
 
         // Note that the table is finalized.
         m_is_handle_table_initialized = false;

@@ -46,7 +46,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         R_UNLESS(info_sub_id == 0, ResultInvalidEnumValue);
 
         const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), handle);
         R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
 
         switch (info_id_type) {
@@ -175,7 +175,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         }
 
         Handle resource_handle{};
-        R_TRY(handle_table.Add(std::addressof(resource_handle), resource_limit));
+        R_TRY(handle_table.Add(system.Kernel(), std::addressof(resource_handle), resource_limit));
 
         *result = resource_handle;
         R_SUCCEED();
@@ -203,8 +203,8 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         }
 
         KScopedAutoObject thread = GetCurrentProcess(system.Kernel())
-                                       .GetHandleTable()
-                                       .GetObject<KThread>(static_cast<Handle>(handle));
+            .GetHandleTable()
+            .GetObject<KThread>(system.Kernel(), Handle(handle));
         if (thread.IsNull()) {
             LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
                       static_cast<Handle>(handle));
@@ -256,7 +256,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
 
         // Get a new handle for the current process.
         Handle tmp;
-        R_TRY(handle_table.Add(std::addressof(tmp), current_process));
+        R_TRY(handle_table.Add(system.Kernel(), std::addressof(tmp), current_process));
 
         // Set the output.
         *result = tmp;

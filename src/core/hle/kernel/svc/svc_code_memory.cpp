@@ -63,7 +63,7 @@ Result CreateCodeMemory(Core::System& system, Handle* out, u64 address, uint64_t
     KCodeMemory::Register(kernel, code_mem);
 
     // Add the code memory to the handle table.
-    R_TRY(GetCurrentProcess(system.Kernel()).GetHandleTable().Add(out, code_mem));
+    R_TRY(GetCurrentProcess(system.Kernel()).GetHandleTable().Add(system.Kernel(), out, code_mem));
 
     R_SUCCEED();
 }
@@ -85,8 +85,8 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
 
     // Get the code memory from its handle.
     KScopedAutoObject code_mem = GetCurrentProcess(system.Kernel())
-                                     .GetHandleTable()
-                                     .GetObject<KCodeMemory>(code_memory_handle);
+        .GetHandleTable()
+        .GetObject<KCodeMemory>(system.Kernel(), code_memory_handle);
     R_UNLESS(code_mem.IsNotNull(), ResultInvalidHandle);
 
     // NOTE: Here, Atmosphere extends the SVC to allow code memory operations on one's own process.

@@ -22,7 +22,7 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
     // Fail-safe for system applets
     const auto program_id = GetCurrentProcess(system.Kernel()).GetProgramId();
     if ((program_id & 0xFFFFFFFFFFFFFF00ull) == 0x0100000000001000ull) {
-        KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
+        KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
         if (event.IsNotNull()) {
             event->Signal();
         } else {
@@ -34,7 +34,7 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
 
 
     // Get the event.
-    KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
+    KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
     R_UNLESS(event.IsNotNull(), ResultInvalidHandle);
 
     R_RETURN(event->Signal());
@@ -48,7 +48,7 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
 
     // Try to clear the writable event.
     {
-        KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
+        KScopedAutoObject event = handle_table.GetObject<KEvent>(system.Kernel(), event_handle);
         if (event.IsNotNull()) {
             event->Clear();
             R_SUCCEED();
@@ -57,7 +57,7 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
 
     // Try to clear the readable event.
     {
-        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(event_handle);
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(system.Kernel(), event_handle);
         if (readable_event.IsNotNull()) {
             readable_event->Clear();
             R_SUCCEED();
@@ -99,15 +99,15 @@ Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
     KEvent::Register(kernel, event);
 
     // Add the event to the handle table.
-    R_TRY(handle_table.Add(out_write, event));
+    R_TRY(handle_table.Add(system.Kernel(), out_write, event));
 
     // Ensure that we maintain a clean handle state on exit.
     ON_RESULT_FAILURE {
-        handle_table.Remove(*out_write);
+        handle_table.Remove(system.Kernel(), *out_write);
     };
 
     // Add the readable event to the handle table.
-    R_RETURN(handle_table.Add(out_read, std::addressof(event->GetReadableEvent())));
+    R_RETURN(handle_table.Add(system.Kernel(), out_read, std::addressof(event->GetReadableEvent())));
 }
 
 Result SignalEvent64(Core::System& system, Handle event_handle) {

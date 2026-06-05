@@ -22,13 +22,11 @@ Result SetThreadActivity(Core::System& system, Handle thread_handle,
     R_UNLESS(IsValidThreadActivity(thread_activity), ResultInvalidEnumValue);
 
     // Get the thread from its handle.
-    KScopedAutoObject thread =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(thread_handle);
+    KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), thread_handle);
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Check that the activity is being set on a non-current thread for the current process.
-    R_UNLESS(thread->GetOwnerProcess() == GetCurrentProcessPointer(system.Kernel()),
-             ResultInvalidHandle);
+    R_UNLESS(thread->GetOwnerProcess() == GetCurrentProcessPointer(system.Kernel()), ResultInvalidHandle);
     R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(system.Kernel()), ResultBusy);
 
     // Set the activity.

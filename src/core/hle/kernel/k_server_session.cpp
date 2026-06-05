@@ -159,7 +159,7 @@ private:
 };
 
 template <bool MoveHandleAllowed>
-Result ProcessMessageSpecialData(s32& offset, KProcess& dst_process, KProcess& src_process,
+Result ProcessMessageSpecialData(KernelCore& kernel, s32& offset, KProcess& dst_process, KProcess& src_process,
                                  KThread& src_thread, const MessageBuffer& dst_msg,
                                  const MessageBuffer& src_msg,
                                  const MessageBuffer::SpecialHeader& src_special_header) {
@@ -185,10 +185,9 @@ Result ProcessMessageSpecialData(s32& offset, KProcess& dst_process, KProcess& s
         // If we're in a success state, try to move the handle to the new table.
         if (R_SUCCEEDED(result) && src_handle != Svc::InvalidHandle) {
             KScopedAutoObject obj =
-                src_handle_table.GetObjectForIpc(src_handle, std::addressof(src_thread));
+                src_handle_table.GetObjectForIpc(kernel, src_handle, std::addressof(src_thread));
             if (obj.IsNotNull()) {
-                Result add_result =
-                    dst_handle_table.Add(std::addressof(dst_handle), obj.GetPointerUnsafe());
+                Result add_result = dst_handle_table.Add(kernel, std::addressof(dst_handle), obj.GetPointerUnsafe());
                 if (R_FAILED(add_result)) {
                     result = add_result;
                     dst_handle = Svc::InvalidHandle;
@@ -213,12 +212,10 @@ Result ProcessMessageSpecialData(s32& offset, KProcess& dst_process, KProcess& s
             if (src_handle != Svc::InvalidHandle) {
                 if (R_SUCCEEDED(result)) {
                     KScopedAutoObject obj =
-                        src_handle_table.GetObjectForIpcWithoutPseudoHandle(src_handle);
+                        src_handle_table.GetObjectForIpcWithoutPseudoHandle(kernel, src_handle);
                     if (obj.IsNotNull()) {
-                        Result add_result = dst_handle_table.Add(std::addressof(dst_handle),
-                                                                 obj.GetPointerUnsafe());
-
-                        src_handle_table.Remove(src_handle);
+                        Result add_result = dst_handle_table.Add(kernel, std::addressof(dst_handle), obj.GetPointerUnsafe());
+                        src_handle_table.Remove(kernel, src_handle);
 
                         if (R_FAILED(add_result)) {
                             result = add_result;
@@ -228,7 +225,7 @@ Result ProcessMessageSpecialData(s32& offset, KProcess& dst_process, KProcess& s
                         result = ResultInvalidHandle;
                     }
                 } else {
-                    src_handle_table.Remove(src_handle);
+                    src_handle_table.Remove(kernel, src_handle);
                 }
             }
 
@@ -336,7 +333,7 @@ constexpr Result GetMapAliasTestStateAndAttributeMask(KMemoryState& out_state,
     R_SUCCEED();
 }
 
-void CleanupSpecialData(KProcess& dst_process, u32* dst_msg_ptr, size_t dst_buffer_size) {
+void CleanupSpecialData(KernelCore& kernel, KProcess& dst_process, u32* dst_msg_ptr, size_t dst_buffer_size) {
     // Parse the message.
     const MessageBuffer dst_msg(dst_msg_ptr, dst_buffer_size);
     const MessageBuffer::MessageHeader dst_header(dst_msg);
@@ -363,15 +360,14 @@ void CleanupSpecialData(KProcess& dst_process, u32* dst_msg_ptr, size_t dst_buff
         const Handle handle = dst_msg.GetHandle(offset);
 
         if (handle != Svc::InvalidHandle) {
-            dst_handle_table.Remove(handle);
+            dst_handle_table.Remove(kernel, handle);
         }
 
         offset = dst_msg.SetHandle(offset, Svc::InvalidHandle);
     }
 }
 
-Result CleanupServerHandles(KernelCore& kernel, uint64_t message, size_t buffer_size,
-                            KPhysicalAddress message_paddr) {
+Result CleanupServerHandles(KernelCore& kernel, uint64_t message, size_t buffer_size, KPhysicalAddress message_paddr) {
     // Server is assumed to be current thread.
     KThread& thread = GetCurrentThread(kernel);
 
@@ -410,7 +406,7 @@ Result CleanupServerHandles(KernelCore& kernel, uint64_t message, size_t buffer_
 
         // Close the handles.
         for (auto i = 0; i < special_header.GetMoveHandleCount(); ++i) {
-            handle_table.Remove(msg.GetHandle(offset));
+            handle_table.Remove(kernel, msg.GetHandle(offset));
             offset += static_cast<int>(sizeof(Svc::Handle) / sizeof(u32));
         }
     }
@@ -639,7 +635,7 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
 
         // Cleanup special data.
         if (src_header.GetHasSpecialHeader()) {
-            CleanupSpecialData(dst_process, dst_msg_ptr, dst_buffer_size);
+            CleanupSpecialData(kernel, dst_process, dst_msg_ptr, dst_buffer_size);
         }
 
         // Cleanup the header if the receive list isn't broken.
@@ -661,7 +657,7 @@ Result ReceiveMessage(KernelCore& kernel, bool& recv_list_broken, uint64_t dst_m
         };
 
         // Process special data.
-        R_TRY(ProcessMessageSpecialData<false>(offset, dst_process, src_process, src_thread,
+        R_TRY(ProcessMessageSpecialData<false>(kernel, offset, dst_process, src_process, src_thread,
                                                dst_msg, src_msg, src_special_header));
     }
 
@@ -922,7 +918,7 @@ Result SendMessage(KernelCore& kernel, uint64_t src_message_buffer, size_t src_b
             // Cleanup special data.
             if (processed_special_data) {
                 if (src_header.GetHasSpecialHeader()) {
-                    CleanupSpecialData(dst_process, dst_msg_ptr, dst_buffer_size);
+                    CleanupSpecialData(kernel, dst_process, dst_msg_ptr, dst_buffer_size);
                 }
             } else {
                 CleanupServerHandles(kernel, src_user ? src_message_buffer : 0, src_buffer_size,
@@ -987,7 +983,7 @@ Result SendMessage(KernelCore& kernel, uint64_t src_message_buffer, size_t src_b
         ASSERT(GetCurrentThreadPointer(kernel) == std::addressof(src_thread));
         processed_special_data = true;
         if (src_header.GetHasSpecialHeader()) {
-            R_TRY(ProcessMessageSpecialData<true>(offset, dst_process, src_process, src_thread,
+            R_TRY(ProcessMessageSpecialData<true>(kernel, offset, dst_process, src_process, src_thread,
                                                   dst_msg, src_msg, src_special_header));
         }
 

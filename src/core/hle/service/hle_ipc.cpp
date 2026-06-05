@@ -275,14 +275,14 @@ Result HLERequestContext::WriteToOutgoingCommandBuffer() {
     for (auto& object : outgoing_copy_objects) {
         Handle handle{};
         if (object) {
-            R_TRY(handle_table.Add(&handle, object));
+            R_TRY(handle_table.Add(kernel, &handle, object));
         }
         cmd_buf[current_offset++] = handle;
     }
     for (auto& object : outgoing_move_objects) {
         Handle handle{};
         if (object) {
-            R_TRY(handle_table.Add(&handle, object));
+            R_TRY(handle_table.Add(kernel, &handle, object));
 
             // Close our reference to the object, as it is being moved to the caller.
             object->Close();

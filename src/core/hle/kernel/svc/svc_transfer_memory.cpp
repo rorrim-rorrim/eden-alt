@@ -69,7 +69,7 @@ Result CreateTransferMemory(Core::System& system, Handle* out, u64 address, u64 
     KTransferMemory::Register(kernel, trmem);
 
     // Add the transfer memory to the handle table.
-    R_RETURN(handle_table.Add(out, trmem));
+    R_RETURN(handle_table.Add(system.Kernel(), out, trmem));
 }
 
 Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address, uint64_t size,
@@ -86,7 +86,7 @@ Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t add
     // Get the transfer memory.
     KScopedAutoObject trmem = GetCurrentProcess(system.Kernel())
                                   .GetHandleTable()
-                                  .GetObject<KTransferMemory>(trmem_handle);
+                                  .GetObject<KTransferMemory>(system.Kernel(), trmem_handle);
     R_UNLESS(trmem.IsNotNull(), ResultInvalidHandle);
 
     // Verify that the mapping is in range.
@@ -113,7 +113,7 @@ Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t a
     // Get the transfer memory.
     KScopedAutoObject trmem = GetCurrentProcess(system.Kernel())
                                   .GetHandleTable()
-                                  .GetObject<KTransferMemory>(trmem_handle);
+                                  .GetObject<KTransferMemory>(system.Kernel(), trmem_handle);
     R_UNLESS(trmem.IsNotNull(), ResultInvalidHandle);
 
     // Verify that the mapping is in range.

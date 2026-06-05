@@ -78,15 +78,15 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     T::Register(system.Kernel(), session);
 
     // Add the server session to the handle table.
-    R_TRY(handle_table.Add(out_server, std::addressof(session->GetServerSession())));
+    R_TRY(handle_table.Add(system.Kernel(), out_server, std::addressof(session->GetServerSession())));
 
     // Ensure that we maintain a clean handle state on exit.
     ON_RESULT_FAILURE {
-        handle_table.Remove(*out_server);
+        handle_table.Remove(system.Kernel(), *out_server);
     };
 
     // Add the client session to the handle table.
-    R_RETURN(handle_table.Add(out_client, std::addressof(session->GetClientSession())));
+    R_RETURN(handle_table.Add(system.Kernel(), out_client, std::addressof(session->GetClientSession())));
 }
 
 } // namespace
@@ -105,13 +105,13 @@ Result AcceptSession(Core::System& system, Handle* out, Handle port_handle) {
     auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
 
     // Get the server port.
-    KScopedAutoObject port = handle_table.GetObject<KServerPort>(port_handle);
+    KScopedAutoObject port = handle_table.GetObject<KServerPort>(system.Kernel(), port_handle);
     R_UNLESS(port.IsNotNull(), ResultInvalidHandle);
 
     // Reserve an entry for the new session.
-    R_TRY(handle_table.Reserve(out));
+    R_TRY(handle_table.Reserve(system.Kernel(), out));
     ON_RESULT_FAILURE {
-        handle_table.Unreserve(*out);
+        handle_table.Unreserve(system.Kernel(), *out);
     };
 
     // Accept the session.
@@ -126,7 +126,7 @@ Result AcceptSession(Core::System& system, Handle* out, Handle port_handle) {
     R_UNLESS(session != nullptr, ResultNotFound);
 
     // Register the session.
-    handle_table.Register(*out, session);
+    handle_table.Register(system.Kernel(), *out, session);
     session->Close();
 
     R_SUCCEED();

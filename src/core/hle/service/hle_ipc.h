@@ -373,7 +373,7 @@ public:
 
     template <typename T>
     Kernel::KScopedAutoObject<T> GetObjectFromHandle(u32 handle) {
-        auto obj = client_handle_table->GetObjectForIpc(handle, thread);
+        auto obj = client_handle_table->GetObjectForIpc(kernel, handle, thread);
         if (obj.IsNotNull()) {
             return obj->DynamicCast<T*>();
         }

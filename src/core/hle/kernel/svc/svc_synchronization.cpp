@@ -20,7 +20,7 @@ Result CloseHandle(Core::System& system, Handle handle) {
     LOG_TRACE(Kernel_SVC, "Closing handle 0x{:08X}", handle);
 
     // Remove the handle.
-    R_UNLESS(GetCurrentProcess(system.Kernel()).GetHandleTable().Remove(handle),
+    R_UNLESS(GetCurrentProcess(system.Kernel()).GetHandleTable().Remove(system.Kernel(), handle),
              ResultInvalidHandle);
 
     R_SUCCEED();
@@ -35,7 +35,7 @@ Result ResetSignal(Core::System& system, Handle handle) {
 
     // Try to reset as readable event.
     {
-        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(handle);
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(system.Kernel(), handle);
         if (readable_event.IsNotNull()) {
             R_RETURN(readable_event->Reset());
         }
@@ -43,7 +43,7 @@ Result ResetSignal(Core::System& system, Handle handle) {
 
     // Try to reset as process.
     {
-        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), handle);
         if (process.IsNotNull()) {
             R_RETURN(process->Reset());
         }
@@ -75,9 +75,7 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
                  ResultInvalidPointer);
 
         // Convert the handles to objects.
-        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(
-                     objs.data(), handles.data(), num_handles),
-                 ResultInvalidHandle);
+        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(system.Kernel(), objs.data(), handles.data(), num_handles), ResultInvalidHandle);
     }
 
     // Ensure handles are closed when we're done.
@@ -112,7 +110,7 @@ Result CancelSynchronization(Core::System& system, Handle handle) {
 
     // Get the thread from its handle.
     KScopedAutoObject thread =
-        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(handle);
+        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), handle);
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Cancel the thread's wait.

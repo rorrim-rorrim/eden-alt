@@ -23,7 +23,7 @@ Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageIn
                           Handle process_handle, uint64_t address) {
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);

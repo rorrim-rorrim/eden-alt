@@ -6,14 +6,15 @@
 
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_process.h"
+#include "core/hle/kernel/kernel.h"
 
 namespace Kernel {
 
-void KHandleTable::Finalize() {
+void KHandleTable::Finalize(KernelCore& kernel) {
     // Get the table and clear our record of it.
     u16 saved_table_size = 0;
     {
-        KScopedDisableDispatch dd{m_kernel};
+        KScopedDisableDispatch dd{kernel};
         KScopedSpinLock lk(m_lock);
 
         std::swap(m_table_size, saved_table_size);
@@ -27,7 +28,7 @@ void KHandleTable::Finalize() {
     }
 }
 
-bool KHandleTable::Remove(Handle handle) {
+bool KHandleTable::Remove(KernelCore& kernel, Handle handle) {
     // Don't allow removal of a pseudo-handle.
     if (Svc::IsPseudoHandle(handle)) [[unlikely]] {
         return false;
@@ -42,7 +43,7 @@ bool KHandleTable::Remove(Handle handle) {
     // Find the object and free the entry.
     KAutoObject* obj = nullptr;
     {
-        KScopedDisableDispatch dd{m_kernel};
+        KScopedDisableDispatch dd{kernel};
         KScopedSpinLock lk(m_lock);
 
         if (this->IsValidHandle(handle)) [[likely]] {
@@ -56,13 +57,13 @@ bool KHandleTable::Remove(Handle handle) {
     }
 
     // Close the object.
-    m_kernel.UnregisterInUseObject(obj);
+    kernel.UnregisterInUseObject(obj);
     obj->Close();
     return true;
 }
 
-Result KHandleTable::Add(Handle* out_handle, KAutoObject* obj) {
-    KScopedDisableDispatch dd{m_kernel};
+Result KHandleTable::Add(KernelCore& kernel, Handle* out_handle, KAutoObject* obj) {
+    KScopedDisableDispatch dd{kernel};
     KScopedSpinLock lk(m_lock);
 
     // Never exceed our capacity.
@@ -84,8 +85,7 @@ Result KHandleTable::Add(Handle* out_handle, KAutoObject* obj) {
     R_SUCCEED();
 }
 
-KScopedAutoObject<KAutoObject> KHandleTable::GetObjectForIpc(Handle handle,
-                                                             KThread* cur_thread) const {
+KScopedAutoObject<KAutoObject> KHandleTable::GetObjectForIpc(KernelCore& kernel, Handle handle, KThread* cur_thread) const {
     // Handle pseudo-handles.
     ASSERT(cur_thread != nullptr);
     if (handle == Svc::PseudoHandle::CurrentProcess) {
@@ -96,12 +96,11 @@ KScopedAutoObject<KAutoObject> KHandleTable::GetObjectForIpc(Handle handle,
     if (handle == Svc::PseudoHandle::CurrentThread) {
         return cur_thread;
     }
-
-    return GetObjectForIpcWithoutPseudoHandle(handle);
+    return GetObjectForIpcWithoutPseudoHandle(kernel, handle);
 }
 
-Result KHandleTable::Reserve(Handle* out_handle) {
-    KScopedDisableDispatch dd{m_kernel};
+Result KHandleTable::Reserve(KernelCore& kernel, Handle* out_handle) {
+    KScopedDisableDispatch dd{kernel};
     KScopedSpinLock lk(m_lock);
 
     // Never exceed our capacity.
@@ -111,8 +110,8 @@ Result KHandleTable::Reserve(Handle* out_handle) {
     R_SUCCEED();
 }
 
-void KHandleTable::Unreserve(Handle handle) {
-    KScopedDisableDispatch dd{m_kernel};
+void KHandleTable::Unreserve(KernelCore& kernel, Handle handle) {
+    KScopedDisableDispatch dd{kernel};
     KScopedSpinLock lk(m_lock);
 
     // Unpack the handle.
@@ -130,8 +129,8 @@ void KHandleTable::Unreserve(Handle handle) {
     }
 }
 
-void KHandleTable::Register(Handle handle, KAutoObject* obj) {
-    KScopedDisableDispatch dd{m_kernel};
+void KHandleTable::Register(KernelCore& kernel, Handle handle, KAutoObject* obj) {
+    KScopedDisableDispatch dd{kernel};
     KScopedSpinLock lk(m_lock);
 
     // Unpack the handle.

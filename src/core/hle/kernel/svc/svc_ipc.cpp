@@ -20,11 +20,9 @@ namespace Kernel::Svc {
 
 namespace {
 
-Result SendSyncRequestImpl(KernelCore& kernel, uintptr_t message, size_t buffer_size,
-                           Handle session_handle) {
+Result SendSyncRequestImpl(KernelCore& kernel, uintptr_t message, size_t buffer_size, Handle session_handle) {
     // Get the client session.
-    KScopedAutoObject session =
-        GetCurrentProcess(kernel).GetHandleTable().GetObject<KClientSession>(session_handle);
+    KScopedAutoObject session = GetCurrentProcess(kernel).GetHandleTable().GetObject<KClientSession>(kernel, session_handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Get the parent, and persist a reference to it until we're done.
@@ -41,8 +39,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
                            int64_t timeout_ns) {
     // Reply to the target, if one is specified.
     if (reply_target != InvalidHandle) {
-        KScopedAutoObject session =
-            GetCurrentProcess(kernel).GetHandleTable().GetObject<KServerSession>(reply_target);
+        KScopedAutoObject session = GetCurrentProcess(kernel).GetHandleTable().GetObject<KServerSession>(kernel, reply_target);
         R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
         // If we fail to reply, we want to set the output index to -1.
@@ -127,7 +124,7 @@ Result ReplyAndReceiveImpl(KernelCore& kernel, int32_t* out_index, uintptr_t mes
 
         // Convert the handles to objects.
         R_UNLESS(
-            handle_table.GetMultipleObjects<KSynchronizationObject>(objs, handles, num_handles),
+            handle_table.GetMultipleObjects<KSynchronizationObject>(kernel, objs, handles, num_handles),
             ResultInvalidHandle);
     }
 
@@ -193,7 +190,7 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
 
     // Get the client session.
-    KScopedAutoObject session = process.GetHandleTable().GetObject<KClientSession>(session_handle);
+    KScopedAutoObject session = process.GetHandleTable().GetObject<KClientSession>(system.Kernel(), session_handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     // Get the parent, and persist a reference to it until we're done.
@@ -220,11 +217,11 @@ Result SendAsyncRequestWithUserBuffer(Core::System& system, Handle* out_event_ha
     KEvent::Register(system.Kernel(), event);
 
     // Add the readable event to the handle table.
-    R_TRY(handle_table.Add(out_event_handle, std::addressof(event->GetReadableEvent())));
+    R_TRY(handle_table.Add(system.Kernel(), out_event_handle, std::addressof(event->GetReadableEvent())));
 
     // Ensure that if we fail to send the request, we close the readable handle.
     ON_RESULT_FAILURE {
-        handle_table.Remove(*out_event_handle);
+        handle_table.Remove(system.Kernel(), *out_event_handle);
     };
 
     // Send the async request.
