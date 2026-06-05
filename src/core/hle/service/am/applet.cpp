@@ -52,7 +52,7 @@ void Applet::UpdateSuspensionStateLocked(bool force_message) {
 
     // Signal if the focus state was changed or the process state was changed.
     if (update_requested_focus_state || was_changed || force_message) {
-        lifecycle_manager.SignalSystemEventIfNeeded();
+        lifecycle_manager.SignalSystemEventIfNeeded(context.kernel);
     }
 }
 

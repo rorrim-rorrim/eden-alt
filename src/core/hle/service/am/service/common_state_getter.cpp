@@ -99,7 +99,7 @@ Result ICommonStateGetter::GetEventHandle(OutCopyHandle<Kernel::KReadableEvent> 
 Result ICommonStateGetter::ReceiveMessage(Out<AppletMessage> out_applet_message) {
     LOG_DEBUG(Service_AM, "called");
 
-    if (!m_applet->lifecycle_manager.PopMessage(out_applet_message)) {
+    if (!m_applet->lifecycle_manager.PopMessage(system.Kernel(), out_applet_message)) {
         LOG_ERROR(Service_AM, "Tried to pop message but none was available!");
         R_THROW(AM::ResultNoMessages);
     }
@@ -281,25 +281,25 @@ Result ICommonStateGetter::PerformSystemButtonPressingIfInFocus(SystemButtonType
     switch (type) {
     case SystemButtonType::HomeButtonShortPressing:
         if (!m_applet->home_button_short_pressed_blocked) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectShortPressingHomeButton);
         }
         break;
     case SystemButtonType::HomeButtonLongPressing:
         if (!m_applet->home_button_long_pressed_blocked) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectLongPressingHomeButton);
         }
         break;
     case SystemButtonType::CaptureButtonShortPressing:
         if (m_applet->handling_capture_button_short_pressed_message_enabled_for_applet) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectShortPressingCaptureButton);
         }
         break;
     case SystemButtonType::CaptureButtonLongPressing:
         if (m_applet->handling_capture_button_long_pressed_message_enabled_for_applet) {
-            m_applet->lifecycle_manager.PushUnorderedMessage(
+            m_applet->lifecycle_manager.PushUnorderedMessage(system.Kernel(),
                 AppletMessage::DetectLongPressingCaptureButton);
         }
         break;
