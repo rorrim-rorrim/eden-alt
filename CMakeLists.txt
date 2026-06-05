@@ -457,9 +457,8 @@ AddJsonPackage(nlohmann)
 if (NOT YUZU_STATIC_ROOM)
     # zlib
     AddJsonPackage(zlib)
-
-    if (ZLIB_ADDED)
-        add_library(ZLIB::ZLIB ALIAS zlibstatic)
+    if (NOT TARGET ZLIB::ZLIB)
+        add_library(ZLIB::ZLIB ALIAS zlib-ng)
     endif()
 
     # Opus

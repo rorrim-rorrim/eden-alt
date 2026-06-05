@@ -72,14 +72,15 @@
     },
     "zlib": {
         "package": "ZLIB",
-        "repo": "madler/zlib",
-        "tag": "v%VERSION%",
-        "hash": "16fea4df307a68cf0035858abe2fd550250618a97590e202037acd18a666f57afc10f8836cbbd472d54a0e76539d0e558cb26f059d53de52ff90634bbf4f47d4",
-        "version": "1.2",
-        "git_version": "1.3.2",
+        "repo": "zlib-ng/zlib-ng",
+        "tag": "%VERSION%",
+        "hash": "e2057c764f1d5aaee738edee7e977182c5b097e3c95489dcd8de813f237d92a05daaa86d68d44b331d9fec5d1802586a8f6cfb658ba849874aaa14e72a8107f5",
+        "version": "2.3",
+        "git_version": "2.3.3",
         "options": [
-            "ZLIB_BUILD_SHARED OFF",
-            "ZLIB_INSTALL OFF"
+            "ZLIB_COMPAT ON",
+            "ZLIB_ALIASES ON",
+            "BUILD_SHARED_LIBS OFF"
         ]
     },
     "zstd": {
