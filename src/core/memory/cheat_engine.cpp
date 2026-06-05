@@ -231,9 +231,7 @@ CheatEngine::~CheatEngine() {
 }
 
 void CheatEngine::Initialize() {
-    event = system.CreateEvent(
-    "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
-    [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+    event = system.CreateTimingEvent("CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id), [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
         FrameCallback(ns_late);
         return std::nullopt;
     });

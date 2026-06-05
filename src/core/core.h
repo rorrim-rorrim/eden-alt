@@ -439,7 +439,7 @@ public:
     /// Applies any changes to settings to this core instance.
     void ApplySettings();
 
-    std::shared_ptr<Core::Timing::EventType> CreateEvent(std::string name, Core::Timing::TimedCallback&& callback);
+    std::shared_ptr<Core::Timing::EventType> CreateTimingEvent(std::string name, Core::Timing::TimedCallback&& callback);
 
 private:
     struct Impl;
