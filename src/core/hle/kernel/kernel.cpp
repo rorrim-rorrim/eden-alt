@@ -417,8 +417,7 @@ struct KernelCore::Impl {
         return is_shutting_down.load(std::memory_order_relaxed);
     }
 
-    KThread* GetCurrentEmuThread() {
-        auto& t = tls_data;
+    KThread* GetCurrentEmuThread(ThreadLocalData& t) {
         return t.current_thread ? t.current_thread : (t.current_thread = GetHostDummyThread(t, nullptr));
     }
 
@@ -1125,7 +1124,7 @@ u32 KernelCore::GetCurrentHostThreadID() const {
 }
 
 KThread* KernelCore::GetCurrentEmuThread() const {
-    return impl->GetCurrentEmuThread();
+    return impl->GetCurrentEmuThread(Impl::tls_data);
 }
 
 void KernelCore::SetCurrentEmuThread(KThread* thread) {
