@@ -375,7 +375,9 @@ public:
         // Enums have a maximal range which they're allowed
         Type temp{};
         if constexpr (std::is_enum_v<Type>) {
-            temp = Type(std::clamp(std::underlying_type_t<Type>(val), std::underlying_type_t<Type>(0), std::underlying_type_t<Type>(Type::Count) - 1));
+            auto const r_min = std::underlying_type_t<Type>(0);
+            auto const r_max = std::underlying_type_t<Type>(EnumMetadata<Type>::GetLast());
+            temp = Type(std::clamp(std::underlying_type_t<Type>(val), r_min, r_max));
         } else {
             temp = ranged ? std::clamp(val, this->minimum, this->maximum) : val;
         }
