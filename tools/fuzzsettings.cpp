@@ -30,7 +30,9 @@ int main(int argc, char *argv[]) {
                     if (value == "true" || value == "false") {
                         new_line += std::string{} + "=TreufLAlse857874FJJakshjryiu475" + '\n';
                     } else if (std::isdigit(value[0])) {
-                        if (new_line == "size" || std::strstr(new_line.c_str(), "entries\\size") != nullptr) {
+                        if (new_line == "size"
+                        || std::strstr(new_line.c_str(), "entries\\size") != nullptr
+                        || std::strstr(new_line.c_str(), "\\size")) {
                             new_line += "=-1\n";
                         } else {
                             new_line += '=' + std::to_string(int(std::rand())) + '\n';
@@ -46,7 +48,12 @@ int main(int argc, char *argv[]) {
                     }
                     std::printf("%s", new_line.c_str());
                 } else {
-                    std::printf("%s", line);
+                    // yes default
+                    *p = '\0';
+                    std::string new_line{line};
+                    std::string value{p + 1};
+                    new_line += "=false\n";
+                    std::printf("%s", new_line.c_str());
                 }
             }
         }

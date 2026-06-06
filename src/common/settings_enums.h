@@ -75,7 +75,7 @@ struct EnumMetadata {
 #define PP_HEAD(A, ...) A
 
 #define ENUM(NAME, ...) \
-    enum class NAME : u32 { __VA_ARGS__ }; \
+    enum class NAME : u32 { __VA_ARGS__, Count }; \
     template<> inline std::vector<std::pair<std::string_view, NAME>> EnumMetadata<NAME>::Canonicalizations() { \
         return {PAIR(NAME, __VA_ARGS__)}; \
     } \

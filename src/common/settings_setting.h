@@ -11,6 +11,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <typeindex>
 #include <typeinfo>
 #include <fmt/core.h>
@@ -371,7 +372,13 @@ public:
      * @param val The new value
      */
     void SetValue(const Type& val) override final {
-        Type temp{ranged ? std::clamp(val, this->minimum, this->maximum) : val};
+        // Enums have a maximal range which they're allowed
+        Type temp{};
+        if constexpr (std::is_enum_v<Type>) {
+            temp = Type(std::clamp(std::underlying_type_t<Type>(val), std::underlying_type_t<Type>(0), std::underlying_type_t<Type>(Type::Count) - 1));
+        } else {
+            temp = ranged ? std::clamp(val, this->minimum, this->maximum) : val;
+        }
         if (use_global) {
             std::swap(this->value, temp);
         } else {
