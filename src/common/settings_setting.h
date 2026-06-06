@@ -102,7 +102,15 @@ public:
      * @param val The desired value
      */
     virtual void SetValue(const Type& val) {
-        Type temp{ranged ? std::clamp(val, minimum, maximum) : val};
+        // Enums have a maximal range which they're allowed
+        Type temp{};
+        if constexpr (std::is_enum_v<Type>) {
+            auto const r_min = std::underlying_type_t<Type>(0);
+            auto const r_max = std::underlying_type_t<Type>(EnumMetadata<Type>::GetLast());
+            temp = Type(std::clamp(std::underlying_type_t<Type>(val), r_min, r_max));
+        } else {
+            temp = ranged ? std::clamp(val, this->minimum, this->maximum) : val;
+        }
         std::swap(value, temp);
     }
 
