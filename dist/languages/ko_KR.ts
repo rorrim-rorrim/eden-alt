@@ -8250,7 +8250,7 @@ If you wish to clean up the files which were left in the old data location, you 
 %1</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/migration_worker.h" line="74"/>
+        <location filename="../../src/yuzu/migration_worker.h" line="73"/>
         <source>Data was migrated successfully.</source>
         <translation>데이터 마이그레이션이 성공적으로 완료되었습니다.</translation>
     </message>
@@ -10623,66 +10623,66 @@ By selecting &quot;From Eden&quot;, previous save data stored in Ryujinx will be
         <translation>%1 다운로드가 가능합니다.</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="78"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="79"/>
         <source>New Version Location</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="80"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="81"/>
         <source>All Files (*.*)</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="88"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="128"/>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="143"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
         <source>Failed to save file</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="89"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="90"/>
         <source>Could not open file %1 for writing.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Downloading...</source>
         <translation>다운로드 중...</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="111"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="112"/>
         <source>Cancel</source>
         <translation>취소</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="129"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="130"/>
         <source>Could not write to file %1.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="144"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="145"/>
         <source>Could not commit to file %1.</source>
         <translation type="unfinished"/>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="156"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
         <source>Failed to download file</source>
         <translation>파일 다운로드에 실패했습니다</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="157"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="158"/>
         <source>Could not download from %1%2
 Error code: %3</source>
         <translation>%1%2에서 다운로드할 수 없습니다
 오류 코드: %3</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="170"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
         <source>Download Complete</source>
         <translation>다운로드 완료</translation>
     </message>
     <message>
-        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="171"/>
+        <location filename="../../src/yuzu/updater/update_dialog.cpp" line="172"/>
         <source>Successfully downloaded %1. Would you like to open it?</source>
         <translation>%1이(가) 성공적으로 다운로드됐습니다. 열어보겠습니까?</translation>
     </message>
