@@ -245,13 +245,14 @@ void Config::ReadMotionTouchValues() {
 
             Settings::TouchFromButtonMap map;
             map.name = ReadStringSetting(std::string("name"), std::string("default"));
-
-            const int num_touch_maps = BeginArray(std::string("entries"));
-            map.buttons.reserve(num_touch_maps);
-            for (int j = 0; j < num_touch_maps; j++) {
-                SetArrayIndex(j);
-                std::string touch_mapping = ReadStringSetting(std::string("bind"));
-                map.buttons.emplace_back(std::move(touch_mapping));
+            int const num_touch_maps = BeginArray(std::string("entries"));
+            if (num_touch_maps > 0) {
+                map.buttons.reserve(num_touch_maps);
+                for (int j = 0; j < num_touch_maps; j++) {
+                    SetArrayIndex(j);
+                    std::string touch_mapping = ReadStringSetting(std::string("bind"));
+                    map.buttons.emplace_back(std::move(touch_mapping));
+                }
             }
             EndArray(); // entries
             Settings::values.touch_from_button_maps.emplace_back(std::move(map));
@@ -1049,8 +1050,7 @@ std::string Config::GetFullKey(const std::string& key, bool skipArrayIndex) {
 
 int Config::BeginArray(const std::string& array) {
     array_stack.push_back(ConfigArray{AdjustKey(array), 0, 0});
-    const int size = config->GetLongValue(GetSection().c_str(),
-                                          GetFullKey(std::string("size"), true).c_str(), 0);
+    const int size = config->GetLongValue(GetSection().c_str(), GetFullKey(std::string("size"), true).c_str(), 0);
     array_stack.back().size = size;
     return size;
 }
