@@ -226,7 +226,7 @@ struct KernelCore::Impl {
             ASSERT(Kernel::KThread::InitializeIdleThread(system, idle_thread, core).IsSuccess());
             KThread::Register(system.Kernel(), idle_thread);
 
-            schedulers[i]->Initialize(main_thread, idle_thread, core);
+            schedulers[i]->Initialize(system.Kernel(), main_thread, idle_thread, core);
         }
     }
 

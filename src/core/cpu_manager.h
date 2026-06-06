@@ -17,6 +17,10 @@
 #include "common/thread.h"
 #include "core/hardware_properties.h"
 
+namespace Kernel {
+class KernelCore;
+}
+
 namespace Common {
 class Event;
 class Fiber;
@@ -54,39 +58,39 @@ public:
     void Initialize();
     void Shutdown();
 
-    std::function<void()> GetGuestActivateFunc() {
-        return [this] { GuestActivate(); };
+    std::function<void()> GetGuestActivateFunc(Kernel::KernelCore& kernel) {
+        return [this, &kernel] { GuestActivate(kernel); };
     }
-    std::function<void()> GetGuestThreadFunc() {
-        return [this] { GuestThreadFunction(); };
+    std::function<void()> GetGuestThreadFunc(Kernel::KernelCore& kernel) {
+        return [this, &kernel] { GuestThreadFunction(kernel); };
     }
-    std::function<void()> GetIdleThreadStartFunc() {
-        return [this] { IdleThreadFunction(); };
+    std::function<void()> GetIdleThreadStartFunc(Kernel::KernelCore& kernel) {
+        return [this, &kernel] { IdleThreadFunction(kernel); };
     }
-    std::function<void()> GetShutdownThreadStartFunc() {
-        return [this] { ShutdownThreadFunction(); };
+    std::function<void()> GetShutdownThreadStartFunc(Kernel::KernelCore& kernel) {
+        return [this, &kernel] { ShutdownThreadFunction(kernel); };
     }
 
-    void PreemptSingleCore(bool from_running_environment = true);
+    void PreemptSingleCore(Kernel::KernelCore& kernel, bool from_running_environment = true);
 
     std::size_t CurrentCore() const {
         return current_core.load();
     }
 
 private:
-    void GuestThreadFunction();
-    void IdleThreadFunction();
-    void ShutdownThreadFunction();
+    void GuestThreadFunction(Kernel::KernelCore& kernel);
+    void IdleThreadFunction(Kernel::KernelCore& kernel);
+    void ShutdownThreadFunction(Kernel::KernelCore& kernel);
 
-    void MultiCoreRunGuestThread();
-    void MultiCoreRunIdleThread();
+    void MultiCoreRunGuestThread(Kernel::KernelCore& kernel);
+    void MultiCoreRunIdleThread(Kernel::KernelCore& kernel);
 
-    void SingleCoreRunGuestThread();
-    void SingleCoreRunIdleThread();
+    void SingleCoreRunGuestThread(Kernel::KernelCore& kernel);
+    void SingleCoreRunIdleThread(Kernel::KernelCore& kernel);
 
-    void GuestActivate();
-    void HandleInterrupt();
-    void ShutdownThread();
+    void GuestActivate(Kernel::KernelCore& kernel);
+    void HandleInterrupt(Kernel::KernelCore& kernel);
+    void ShutdownThread(Kernel::KernelCore& kernel);
     void RunThread(std::stop_token stop_token, std::size_t core);
 
     static constexpr std::size_t max_cycle_runs = 5;
@@ -97,7 +101,7 @@ private:
         std::jthread host_thread;
     };
     std::array<CoreData, Core::Hardware::NUM_CPU_CORES> core_data{};
-    System& system;
+    Core::System& system;
     std::atomic<std::size_t> current_core{};
     std::size_t idle_count{};
     std::size_t num_cores{};

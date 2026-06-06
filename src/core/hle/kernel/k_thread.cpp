@@ -287,37 +287,27 @@ namespace Kernel {
     }
 
     Result KThread::InitializeMainThread(Core::System& system, KThread* thread, s32 virt_core) {
-        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, IdleThreadPriority, virt_core, {},
-                                  ThreadType::Main, system.GetCpuManager().GetGuestActivateFunc()));
+        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main, system.GetCpuManager().GetGuestActivateFunc(system.Kernel())));
     }
 
     Result KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
-        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, IdleThreadPriority, virt_core, {},
-                                  ThreadType::Main, system.GetCpuManager().GetIdleThreadStartFunc()));
+        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main, system.GetCpuManager().GetIdleThreadStartFunc(system.Kernel())));
     }
 
-    Result KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread,
-                                                 KThreadFunction func, uintptr_t arg, s32 virt_core) {
-        R_RETURN(InitializeThread(system.Kernel(), thread, func, arg, {}, {}, virt_core, nullptr,
-                                  ThreadType::HighPriority,
-                                  system.GetCpuManager().GetShutdownThreadStartFunc()));
+    Result KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread, KThreadFunction func, uintptr_t arg, s32 virt_core) {
+        R_RETURN(InitializeThread(system.Kernel(), thread, func, arg, {}, {}, virt_core, nullptr, ThreadType::HighPriority, system.GetCpuManager().GetShutdownThreadStartFunc(system.Kernel())));
     }
 
-    Result KThread::InitializeUserThread(Core::System& system, KThread* thread, KThreadFunction func,
-                                         uintptr_t arg, KProcessAddress user_stack_top, s32 prio,
-                                         s32 virt_core, KProcess* owner) {
+    Result KThread::InitializeUserThread(Core::System& system, KThread* thread, KThreadFunction func, uintptr_t arg, KProcessAddress user_stack_top, s32 prio, s32 virt_core, KProcess* owner) {
         system.Kernel().GlobalSchedulerContext().AddThread(thread);
-        R_RETURN(InitializeThread(system.Kernel(), thread, func, arg, user_stack_top, prio, virt_core, owner,
-                                  ThreadType::User, system.GetCpuManager().GetGuestThreadFunc()));
+        R_RETURN(InitializeThread(system.Kernel(), thread, func, arg, user_stack_top, prio, virt_core, owner, ThreadType::User, system.GetCpuManager().GetGuestThreadFunc(system.Kernel())));
     }
 
-    Result KThread::InitializeServiceThread(Core::System& system, KThread* thread,
-                                            std::function<void()>&& func, s32 prio, s32 virt_core,
-                                            KProcess* owner) {
+    Result KThread::InitializeServiceThread(Core::System& system, KThread* thread, std::function<void()>&& func, s32 prio, s32 virt_core, KProcess* owner) {
         system.Kernel().GlobalSchedulerContext().AddThread(thread);
         std::function<void()> func2{[&system, func_{std::move(func)}] {
             // Similar to UserModeThreadStarter.
-            system.Kernel().CurrentScheduler()->OnThreadStart();
+            system.Kernel().CurrentScheduler()->OnThreadStart(system.Kernel());
 
             // Run the guest function.
             func_();
@@ -1449,7 +1439,7 @@ namespace Kernel {
             auto* scheduler = m_kernel.CurrentScheduler();
 
             if (scheduler && !m_kernel.IsPhantomModeForSingleCore()) {
-                scheduler->RescheduleCurrentCore();
+                scheduler->RescheduleCurrentCore(m_kernel);
             } else {
                 KScheduler::RescheduleCurrentHLEThread(m_kernel);
             }
