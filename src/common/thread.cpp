@@ -78,6 +78,8 @@ void SetCurrentThreadPriority(ThreadPriority new_priority) {
         }
     }();
     set_thread_priority(find_thread(NULL), priority);
+#elif defined(__EMSCRIPTEN__)
+    // TODO: set priority?
 #else
     pthread_t this_thread = pthread_self();
     const auto scheduling_type = SCHED_OTHER;
@@ -127,6 +129,8 @@ void SetCurrentThreadName(const char* name) {
     // See for reference
     // https://gitlab.freedesktop.org/mesa/mesa/-/blame/main/src/util/u_thread.c?ref_type=heads#L75
     (void)name;
+#elif defined(__EMSCRIPTEN__)
+    // TODO: set thread name?
 #else
     pthread_setname_np(pthread_self(), name);
 #endif
