@@ -220,7 +220,7 @@ endif()
 if(CXX_CLANG)
     target_compile_options(common PRIVATE
         $<$<COMPILE_LANGUAGE:C,CXX>:-fsized-deallocation>
-        $<$<COMPILE_LANGUAGE:C,CXX>:-Werror=unreachable-code-aggressive>)
+        $<$<COMPILE_LANGUAGE:C,CXX>:-Wunreachable-code-aggressive>)
     target_compile_definitions(
         common
         PRIVATE
@@ -235,7 +235,11 @@ else()
     target_link_libraries(common PUBLIC Boost::headers)
 endif()
 target_link_libraries(common PRIVATE OpenSSL::SSL)
-target_link_libraries(common PUBLIC Boost::filesystem Boost::context httplib::httplib nlohmann_json::nlohmann_json)
+target_link_libraries(common PUBLIC Boost::filesystem httplib::httplib nlohmann_json::nlohmann_json)
+if (NOT PLATFORM_EMSCRIPTEN)
+    # Emscripten is: "bring your own implementation", boost doesn't add upstream support sadly
+    target_link_libraries(common PRIVATE Boost::context)
+endif()
 
 if (lz4_ADDED)
     target_include_directories(common PRIVATE ${lz4_SOURCE_DIR}/lib)

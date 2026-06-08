@@ -31,7 +31,7 @@ struct CbufWordKey {
 
 struct CbufWordKeyHash {
     constexpr size_t operator()(const CbufWordKey& k) const noexcept {
-        return (size_t(k.index) << 32) ^ k.offset;
+        return size_t((u64(k.index) << 32) ^ u64(k.offset));
     }
 };
 
@@ -46,12 +46,12 @@ struct HandleKey {
 };
 struct HandleKeyHash {
     constexpr size_t operator()(const HandleKey& k) const noexcept {
-        size_t h = (size_t(k.index) << 32) ^ k.offset;
-        h ^= (size_t(k.shift_left) << 1);
-        h ^= (size_t(k.sec_index) << 33) ^ (size_t(k.sec_offset) << 2);
-        h ^= (size_t(k.sec_shift_left) << 3);
+        u64 h = (u64(k.index) << 32) ^ k.offset;
+        h ^= (u64(k.shift_left) << 1);
+        h ^= (u64(k.sec_index) << 33) ^ (u64(k.sec_offset) << 2);
+        h ^= (u64(k.sec_shift_left) << 3);
         h ^= k.has_secondary ? 0x9e3779b97f4a7c15ULL : 0ULL;
-        return h;
+        return size_t(h);
     }
 };
 
