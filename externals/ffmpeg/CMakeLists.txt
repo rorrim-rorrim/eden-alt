@@ -332,9 +332,9 @@ else()
     if (NOT MAKE_FOUND)
         find_program(MAKE gmake)
     endif()
-    if (MAKE_FOUND)
+    if (MAKE_FOUND AND SYSTEM_THREADS GREATER 1)
         # This version of make (GNU's make) supports subprocess threading jobs
-        set(FFmpeg_MAKE_ARGS -j${SYSTEM_THREADS})
+        set(FFmpeg_MAKE_ARGS -j ${SYSTEM_THREADS})
     else()
         # No GNU make implies that this system may be highly non-GNU
         find_program(MAKE make required)
