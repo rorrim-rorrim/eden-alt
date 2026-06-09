@@ -5,6 +5,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <SDL3/SDL.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #include "common/logging.h"
 #include "common/scm_rev.h"
@@ -29,6 +32,9 @@ EmuWindow_SDL3::EmuWindow_SDL3(InputCommon::InputSubsystem* input_subsystem_, Co
 }
 
 EmuWindow_SDL3::~EmuWindow_SDL3() {
+#ifdef __EMSCRIPTEN__
+    emscripten_cancel_main_loop();
+#endif
     system.HIDCore().UnloadInputDevices();
     input_subsystem->Shutdown();
     SDL_Quit();

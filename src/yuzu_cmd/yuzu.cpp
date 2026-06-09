@@ -8,6 +8,9 @@
 #include <memory>
 #include <regex>
 #include <string>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #include <fmt/ostream.h>
 
@@ -446,9 +449,17 @@ int main(int argc, char** argv) {
     if (system.DebuggerEnabled()) {
         system.InitializeDebugger();
     }
-    while (emu_window->IsOpen()) {
+
+#ifdef __EMSCRIPTEN__
+    // Required so lambda fits snuggly into our "main loop"
+    static EmuWindow_SDL3* static_ems_emu_window = emu_window.get();
+    emscripten_set_main_loop([]() {
+        static_ems_emu_window->WaitEvent();
+    }, 0, 1);
+#else
+    while (emu_window->IsOpen())
         emu_window->WaitEvent();
-    }
+#endif
     system.DetachDebugger();
     void(system.Pause());
     system.ShutdownMainProcess();
