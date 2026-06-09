@@ -171,14 +171,141 @@ RendererVulkan::~RendererVulkan() {
     void(device.GetLogical().WaitIdle());
 }
 
+bool RendererVulkan::InterpolateFrames(Frame* prev_frame, Frame* interpolated_frame) {
+    if (!prev_frame || !interpolated_frame || prev_frame == interpolated_frame ||
+        !prev_frame->image || !interpolated_frame->image || prev_frame->width == 0 ||
+        prev_frame->height == 0 || interpolated_frame->width == 0 ||
+        interpolated_frame->height == 0) {
+        return false;
+    }
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([prev_frame, interpolated_frame](vk::CommandBuffer cmdbuf) {
+        constexpr VkImageSubresourceRange color_range{
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        };
+        const std::array pre_barriers{
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = *prev_frame->image,
+                .subresourceRange = color_range,
+            },
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = *interpolated_frame->image,
+                .subresourceRange = color_range,
+            },
+        };
+        const std::array post_barriers{
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = *prev_frame->image,
+                .subresourceRange = color_range,
+            },
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = *interpolated_frame->image,
+                .subresourceRange = color_range,
+            },
+        };
+        const VkImageBlit blit{
+            .srcSubresource{
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+            .srcOffsets{
+                {0, 0, 0},
+                {static_cast<s32>(prev_frame->width), static_cast<s32>(prev_frame->height), 1},
+            },
+            .dstSubresource{
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .mipLevel = 0,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+            .dstOffsets{
+                {0, 0, 0},
+                {static_cast<s32>(interpolated_frame->width),
+                 static_cast<s32>(interpolated_frame->height), 1},
+            },
+        };
+
+        cmdbuf.PipelineBarrier(vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER,
+                               VK_PIPELINE_STAGE_TRANSFER_BIT, {}, {}, {}, pre_barriers);
+        cmdbuf.BlitImage(*prev_frame->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                         *interpolated_frame->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                         blit, VK_FILTER_LINEAR);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER, {}, {}, {},
+                               post_barriers);
+    });
+    return true;
+}
+
 void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebuffers) {
+    if (framebuffers.empty()) {
+        return;
+    }
+
 #ifdef __ANDROID__
     static u64 frame_counter = 0;
-    if (Settings::values.enable_frame_skipping.GetValue()) {
+    const bool enable_frame_skipping = Settings::values.enable_frame_skipping.GetValue();
+    const bool enable_frame_interpolation = Settings::values.enable_frame_interpolation.GetValue();
+
+    if (enable_frame_skipping) {
         ++frame_counter;
         if ((frame_counter % 2) != 0) {
+            if (enable_frame_interpolation && previous_frame) {
+                Frame* interpolated_frame = present_manager.GetRenderFrame();
+                if (!InterpolateFrames(previous_frame, interpolated_frame)) {
+                    scheduler.RequestOutsideRenderPassOperationContext();
+                    blit_swapchain.DrawToFrame(rasterizer, interpolated_frame, framebuffers,
+                                               render_window.GetFramebufferLayout(),
+                                               swapchain.GetImageCount(),
+                                               swapchain.GetImageViewFormat());
+                }
+                scheduler.Flush(*interpolated_frame->render_ready);
+                present_manager.Present(interpolated_frame);
+            }
             return;
         }
+    } else {
+        frame_counter = 0;
     }
 #endif
 
@@ -205,6 +332,8 @@ void RendererVulkan::Composite(std::span<const Tegra::FramebufferConfig> framebu
 
     gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
+
+    previous_frame = frame;
 }
 
 void RendererVulkan::Report() const {
