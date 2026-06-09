@@ -89,7 +89,10 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     for (auto const& e : std::vector<std::pair<std::string_view, void (*)(Core::System&)>>{
         {"audio",      &Audio::LoopProcess},
         {"FS",         &FileSystem::LoopProcess},
+// Must match with src/core/CMakeLists.txt for target_source of jit.cpp
+#if defined(ARCHITECTURE_x86_64) || defined(ARCHITECTURE_arm64) || defined(ARCHITECTURE_riscv64) || defined(ARCHITECTURE_loongarch64)
         {"jit",        &JIT::LoopProcess},
+#endif
         {"ldn",        &LDN::LoopProcess},
         {"Loader",     &LDR::LoopProcess},
         {"nvservices", &Nvidia::LoopProcess},

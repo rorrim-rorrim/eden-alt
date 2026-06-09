@@ -154,6 +154,20 @@ endif()
 
 # awesome
 if (PLATFORM_FREEBSD OR PLATFORM_DRAGONFLYBSD)
-    set(CMAKE_EXE_LINKER_FLAGS
-        "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/local/lib")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${CMAKE_SYSROOT}/usr/local/lib")
+elseif (PLATFORM_EMSCRIPTEN)
+    set(EMSCRIPTEN_C_FLAGS "-s MEMORY64 -m64 -pipe -sMEMORY64=1")
+    set(EMSCRIPTEN_LINK_FLAGS "-sMEMORY64=1 -m64 -Wl,-mwasm64 -sASYNCIFY=1")
+
+    # This prevents FFmpeg and other libraries from assuming it's the host's CPU
+    # Additionally some Emscripten installs may not be very good... generally
+    set(EMSCRIPTEN_SYSTEM_PROCESSOR wasm)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EMSCRIPTEN_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} ${EMSCRIPTEN_C_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EMSCRIPTEN_LINK_FLAGS}")
+    set(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS} ${EMSCRIPTEN_LINK_FLAGS}")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${EMSCRIPTEN_LINK_FLAGS}")
+
+    unset(EMSCRIPTEN_C_FLAGS)
+    unset(EMSCRIPTEN_LINK_FLAGS)
 endif()
