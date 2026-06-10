@@ -216,6 +216,7 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     bool use_multiplayer = false;
     bool fullscreen = false;
     bool force_null_render = false;
+    bool force_single_core = false;
     std::string nickname{};
     std::string password{};
     std::string address{};
@@ -236,7 +237,8 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         {"version", no_argument, 0, 'v'},
         {"input-profile", no_argument, 0, 'i'},
         {"null-render", no_argument, 0, 'n'},
-        {"filter", no_argument, 0, 'F'},
+        {"singlecore", no_argument, 0, 's'},
+        {"filter", no_argument, 0, 'x'},
         {0, 0, 0, 0},
         // clang-format on
     };
@@ -310,7 +312,10 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
             case 'n':
                 force_null_render = true;
                 break;
-            case 'F':
+            case 's':
+                force_single_core = true;
+                break;
+            case 'x':
                 log_filter = argv[optind];
                 ++optind;
                 break;
@@ -349,6 +354,10 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     if (override_gdb_port.has_value()) {
         Settings::values.use_gdbstub = true;
         Settings::values.gdbstub_port = *override_gdb_port;
+    }
+
+    if (force_single_core) {
+        Settings::values.use_multi_core = false;
     }
 
     if (force_null_render) {

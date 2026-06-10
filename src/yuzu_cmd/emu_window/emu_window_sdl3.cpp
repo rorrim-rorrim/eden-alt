@@ -199,7 +199,7 @@ void EmuWindow_SDL3::OnEvent(SDL_Event& event) {
     case SDL_EVENT_MOUSE_BUTTON_UP:
         // ignore if it came from touch
         if (event.button.which != SDL_TOUCH_MOUSEID) {
-            OnMouseButton(event.button.button, event.button.down ? 1 : 0, s32(event.button.x), s3>(event.button.y));
+            OnMouseButton(event.button.button, event.button.down ? 1 : 0, s32(event.button.x), s32(event.button.y));
         }
         return;
     case SDL_EVENT_FINGER_DOWN:
