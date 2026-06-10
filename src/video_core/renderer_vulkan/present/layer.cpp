@@ -108,9 +108,9 @@ void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
         texture_info ? texture_info->image_view : *raw_image_views[image_index];
 
     if (auto* fxaa = std::get_if<FXAA>(&anti_alias)) {
-        fxaa->Draw(scheduler, image_index, &source_image, &source_image_view);
+        fxaa->Draw(device, scheduler, image_index, &source_image, &source_image_view);
     } else if (auto* smaa = std::get_if<SMAA>(&anti_alias)) {
-        smaa->Draw(scheduler, image_index, &source_image, &source_image_view);
+        smaa->Draw(device, scheduler, image_index, &source_image, &source_image_view);
     }
 
     auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
@@ -120,10 +120,10 @@ void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
     };
 
     if (auto* fsr = std::get_if<FSR>(&sr_filter)) {
-        source_image_view = fsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
+        source_image_view = fsr->Draw(device, scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
         crop_rect = {0, 0, 1, 1};
     } else if (auto* sgsr = std::get_if<SGSR>(&sr_filter)) {
-        source_image_view = sgsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
+        source_image_view = sgsr->Draw(device, scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
         crop_rect = {0, 0, 1, 1};
     }
 
