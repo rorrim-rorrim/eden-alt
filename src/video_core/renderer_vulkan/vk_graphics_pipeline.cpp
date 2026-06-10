@@ -288,7 +288,7 @@ GraphicsPipeline::GraphicsPipeline(
         Validate();
         MakePipeline(render_pass);
         if (pipeline_statistics) {
-            pipeline_statistics->Collect(*pipeline);
+            pipeline_statistics->Collect(device, *pipeline);
         }
 
         std::scoped_lock lock{build_mutex};

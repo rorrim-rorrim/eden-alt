@@ -94,7 +94,7 @@ ComputePipeline::ComputePipeline(const Device& device_, vk::PipelineCache& pipel
         }
 
         if (pipeline_statistics) {
-            pipeline_statistics->Collect(*pipeline);
+            pipeline_statistics->Collect(device, *pipeline);
         }
         std::scoped_lock lock{build_mutex};
         is_built = true;

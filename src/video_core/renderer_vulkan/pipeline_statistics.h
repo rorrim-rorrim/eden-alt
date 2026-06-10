@@ -16,9 +16,7 @@ class Device;
 class PipelineStatistics {
 public:
     explicit PipelineStatistics(const Device& device_);
-
-    void Collect(VkPipeline pipeline);
-
+    void Collect(const Device& device, VkPipeline pipeline);
     void Report() const;
 
 private:
@@ -30,8 +28,6 @@ private:
         u64 branches_count{};
         u64 basic_block_count{};
     };
-
-    const Device& device;
     mutable std::mutex mutex;
     std::vector<Stats> collected_stats;
 };
