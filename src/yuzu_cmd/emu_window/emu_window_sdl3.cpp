@@ -167,69 +167,56 @@ void EmuWindow_SDL3::Fullscreen() {
 }
 
 void EmuWindow_SDL3::OnEvent(SDL_Event& event) {
-    // Called on main thread
+    // Notice how we skip the "update title" aspect on most events
+    // this is because some WMs do NOT like changing titles while resizing
+    // so let's just... not do that, thanks :)
+    // Afterall we don't really expect the user to pay attention to the titlebar
+    // while they're moving a lot of shit around...
     switch (event.type) {
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
     case SDL_EVENT_WINDOW_MAXIMIZED:
     case SDL_EVENT_WINDOW_RESTORED:
-        OnResize();
-        break;
+        return OnResize();
     case SDL_EVENT_WINDOW_MINIMIZED:
         is_shown = false;
-        OnResize();
-        break;
+        return OnResize();
     case SDL_EVENT_WINDOW_EXPOSED:
         is_shown = true;
-        OnResize();
-        break;
+        return OnResize();
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
         is_open = false;
-        break;
+        return;
     case SDL_EVENT_KEY_DOWN:
     case SDL_EVENT_KEY_UP:
-        OnKeyEvent(static_cast<int>(event.key.scancode), event.key.down ? 1 : 0);
-        break;
+        return OnKeyEvent(int(event.key.scancode), event.key.down ? 1 : 0);
     case SDL_EVENT_MOUSE_MOTION:
         // ignore if it came from touch
         if (event.button.which != SDL_TOUCH_MOUSEID)
             OnMouseMotion(event.motion.x, event.motion.y);
-        break;
+        return;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
     case SDL_EVENT_MOUSE_BUTTON_UP:
         // ignore if it came from touch
         if (event.button.which != SDL_TOUCH_MOUSEID) {
-            OnMouseButton(event.button.button, event.button.down ? 1 : 0,
-                          static_cast<s32>(event.button.x), static_cast<s32>(event.button.y));
+            OnMouseButton(event.button.button, event.button.down ? 1 : 0, s32(event.button.x), s3>(event.button.y));
         }
-        break;
+        return;
     case SDL_EVENT_FINGER_DOWN:
-        OnFingerDown(event.tfinger.x, event.tfinger.y,
-                     static_cast<std::size_t>(event.tfinger.touchID));
-        break;
+        return OnFingerDown(event.tfinger.x, event.tfinger.y, std::size_t(event.tfinger.touchID));
     case SDL_EVENT_FINGER_MOTION:
-        OnFingerMotion(event.tfinger.x, event.tfinger.y,
-                       static_cast<std::size_t>(event.tfinger.touchID));
-        break;
+        return OnFingerMotion(event.tfinger.x, event.tfinger.y, std::size_t(event.tfinger.touchID));
     case SDL_EVENT_FINGER_UP:
-        OnFingerUp();
-        break;
+        return OnFingerUp();
     case SDL_EVENT_QUIT:
         is_open = false;
         break;
     default:
         break;
     }
-
-    const u32 current_time = SDL_GetTicks();
-    if (current_time > last_time + 2000) {
-        const auto results = system.GetAndResetPerfStats();
-        const auto title = fmt::format("{} | {}-{} | FPS: {:.0f} ({:.0f}%)",
-                                       Common::g_build_fullname,
-                                       Common::g_scm_branch,
-                                       Common::g_scm_desc,
-                                       results.average_game_fps,
-                                       results.emulation_speed * 100.0);
+    if (auto const current_time = SDL_GetTicks(); current_time > last_time + 2000) {
+        auto const results = system.GetAndResetPerfStats();
+        auto const title = fmt::format("{} | {}-{} | FPS: {:.0f} ({:.0f}%)", Common::g_build_fullname, Common::g_scm_branch, Common::g_scm_desc, results.average_game_fps, results.emulation_speed * 100.0);
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }
