@@ -59,7 +59,7 @@ public:
         };
 
     public:
-        explicit SessionMappings(KernelCore& kernel) : kernel(kernel) {}
+        explicit SessionMappings(KernelCore& kernel_) : kernel(kernel_) {}
 
         void Initialize() {}
         void Finalize();
