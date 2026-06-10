@@ -32,9 +32,6 @@ EmuWindow_SDL3::EmuWindow_SDL3(InputCommon::InputSubsystem* input_subsystem_, Co
 }
 
 EmuWindow_SDL3::~EmuWindow_SDL3() {
-#ifdef __EMSCRIPTEN__
-    emscripten_cancel_main_loop();
-#endif
     system.HIDCore().UnloadInputDevices();
     input_subsystem->Shutdown();
     SDL_Quit();
@@ -169,23 +166,8 @@ void EmuWindow_SDL3::Fullscreen() {
     }
 }
 
-void EmuWindow_SDL3::WaitEvent() {
+void EmuWindow_SDL3::OnEvent(SDL_Event& event) {
     // Called on main thread
-    SDL_Event event;
-
-    if (!SDL_WaitEvent(&event)) {
-        const char* error = SDL_GetError();
-        if (!error || strcmp(error, "") == 0) {
-            // https://github.com/libsdl-org/SDL/issues/5780
-            // Sometimes SDL will return without actually having hit an error condition;
-            // just ignore it in this case.
-            return;
-        }
-
-        LOG_CRITICAL(Frontend, "SDL_WaitEvent failed: {}", error);
-        exit(1);
-    }
-
     switch (event.type) {
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
@@ -255,6 +237,9 @@ void EmuWindow_SDL3::WaitEvent() {
 
 // Credits to Samantas5855 and others for this function.
 void EmuWindow_SDL3::SetWindowIcon() {
+#if defined(__EMSCRIPTEN__) || defined(__wasi__)
+    // Icons do not work yet
+#else
     SDL_IOStream* const yuzu_icon_stream = SDL_IOFromConstMem((void*)yuzu_icon, yuzu_icon_size);
     if (yuzu_icon_stream == nullptr) {
         LOG_WARNING(Frontend, "Failed to create Eden icon stream.");
@@ -268,6 +253,7 @@ void EmuWindow_SDL3::SetWindowIcon() {
     // The icon is attached to the window pointer
     SDL_SetWindowIcon(render_window, window_icon);
     SDL_DestroySurface(window_icon);
+#endif
 }
 
 void EmuWindow_SDL3::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {

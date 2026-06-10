@@ -13,6 +13,7 @@
 #include "core/frontend/graphics_context.h"
 
 struct SDL_Window;
+union SDL_Event;
 
 namespace Core {
 class System;
@@ -35,7 +36,7 @@ public:
     bool IsShown() const override;
 
     /// Wait for the next event on the main thread.
-    void WaitEvent();
+    void OnEvent(SDL_Event& event);
 
     // Sets the window icon from yuzu.bmp
     void SetWindowIcon();
