@@ -35,7 +35,7 @@ struct StagingBufferRef;
 
 class ComputePass {
 public:
-    explicit ComputePass(const Device& device, DescriptorPool& descriptor_pool,
+    explicit ComputePass(const Device& device, Scheduler& scheduler, DescriptorPool& descriptor_pool,
                          vk::Span<VkDescriptorSetLayoutBinding> bindings,
                          vk::Span<VkDescriptorUpdateTemplateEntry> templates,
                          const DescriptorBankInfo& bank_info,

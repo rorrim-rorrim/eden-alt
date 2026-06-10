@@ -276,7 +276,7 @@ GraphicsPipeline::GraphicsPipeline(
         descriptor_set_layout = builder.CreateDescriptorSetLayout(uses_push_descriptor);
 
         if (!uses_push_descriptor) {
-            descriptor_allocator = descriptor_pool.Allocator(*descriptor_set_layout, stage_infos);
+            descriptor_allocator = descriptor_pool.Allocator(device, scheduler, *descriptor_set_layout, stage_infos);
         }
 
         const VkDescriptorSetLayout set_layout{*descriptor_set_layout};
