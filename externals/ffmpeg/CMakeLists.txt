@@ -327,21 +327,16 @@ else()
 
     set(FFmpeg_BUILD_LIBRARIES ${FFmpeg_LIBRARIES})
 
-    find_program(MAKE_PROGRAM NAMES gmake gnumake GNUmake)
-    if (MAKE_PROGRAM_FOUND AND SYSTEM_THREADS GREATER 1)
-        # This version of make (GNU's make) supports subprocess threading jobs
-        set(FFmpeg_MAKE_ARGS -j${SYSTEM_THREADS})
-    else()
-        # No GNU make implies that this system may be highly non-GNU
-        find_program(MAKE make required)
-        set(FFmpeg_MAKE_ARGS "")
+    find_program(MAKE NAMES gmake make REQUIRED)
+    if (SYSTEM_THREADS GREATER 1)
+        set(FFmpeg_MAKE_ARGS -j ${SYSTEM_THREADS})
     endif()
 
     add_custom_command(
         OUTPUT
             ${FFmpeg_BUILD_LIBRARIES}
         COMMAND
-            ${MAKE_PROGRAM} ${FFmpeg_MAKE_ARGS}
+            ${MAKE} ${FFmpeg_MAKE_ARGS}
         WORKING_DIRECTORY
             ${FFmpeg_BUILD_DIR}
     )
