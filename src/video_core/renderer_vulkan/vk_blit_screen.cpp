@@ -131,7 +131,7 @@ void BlitScreen::DrawToFrame(RasterizerVulkan& rasterizer, Frame* frame,
         }
     }
 
-    window_adapt->Draw(rasterizer, scheduler, image_index, layers, framebuffers, layout, frame);
+    window_adapt->Draw(device, rasterizer, scheduler, image_index, layers, framebuffers, layout, frame);
 
     if (++image_index >= image_count) {
         image_index = 0;

@@ -30,7 +30,7 @@ public:
                              vk::ShaderModule&& fragment_shader);
     ~WindowAdaptPass();
 
-    void Draw(RasterizerVulkan& rasterizer, Scheduler& scheduler, size_t image_index,
+    void Draw(const Device& device, RasterizerVulkan& rasterizer, Scheduler& scheduler, size_t image_index,
               std::list<Layer>& layers, std::span<const Tegra::FramebufferConfig> configs,
               const Layout::FramebufferLayout& layout, Frame* dst);
 
@@ -38,14 +38,12 @@ public:
     VkRenderPass GetRenderPass();
 
 private:
-    void CreateDescriptorSetLayout();
-    void CreatePipelineLayout();
-    void CreateVertexShader();
-    void CreateRenderPass(VkFormat frame_format);
-    void CreatePipelines();
+    void CreateDescriptorSetLayout(const Device& device);
+    void CreatePipelineLayout(const Device& device);
+    void CreateVertexShader(const Device& device);
+    void CreateRenderPass(const Device& device, VkFormat frame_format);
+    void CreatePipelines(const Device& device);
 
-private:
-    const Device& device;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
     vk::Sampler sampler;
