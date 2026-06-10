@@ -8,6 +8,7 @@
 #include <memory>
 #include <regex>
 #include <string>
+#include "common/settings_enums.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -214,6 +215,7 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     std::optional<u16> override_gdb_port{};
     bool use_multiplayer = false;
     bool fullscreen = false;
+    bool force_null_render = false;
     std::string nickname{};
     std::string password{};
     std::string address{};
@@ -232,6 +234,7 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         {"user", required_argument, 0, 'u'},
         {"version", no_argument, 0, 'v'},
         {"input-profile", no_argument, 0, 'i'},
+        {"null-render", no_argument, 0, 'n'},
         {0, 0, 0, 0},
         // clang-format on
     };
@@ -302,6 +305,9 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
             case 'v':
                 PrintVersion();
                 return SDL_APP_FAILURE;
+            case 'n':
+                force_null_render = true;
+                break;
             }
         } else {
 #ifdef _WIN32
@@ -337,6 +343,10 @@ extern "C" SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     if (override_gdb_port.has_value()) {
         Settings::values.use_gdbstub = true;
         Settings::values.gdbstub_port = *override_gdb_port;
+    }
+
+    if (force_null_render) {
+        Settings::values.renderer_backend = Settings::RendererBackend::Null;
     }
 
 #ifdef _WIN32
