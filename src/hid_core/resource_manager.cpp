@@ -486,7 +486,7 @@ void ResourceManager::UpdateControllers(std::chrono::nanoseconds ns_late) {
 
 void ResourceManager::UpdateNpad(std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
-    npad->OnUpdate(core_timing);
+    npad->OnUpdate(system.Kernel(), core_timing);
 }
 
 void ResourceManager::UpdateMouseKeyboard(std::chrono::nanoseconds ns_late) {

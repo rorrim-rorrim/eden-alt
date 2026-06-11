@@ -537,9 +537,9 @@ Result NPadResource::SignalStyleSetUpdateEvent(Kernel::KernelCore& kernel, u64 a
     if (aruid_index >= AruidIndexMax) {
         return ResultNpadNotConnected;
     }
-    auto controller = state[aruid_index].controller_state[NpadIdTypeToIndex(npad_id)];
-    if (controller.is_styleset_update_event_initialized) {
-        controller.style_set_update_event->Signal(kernel);
+    auto& controller_state = state[aruid_index].controller_state[NpadIdTypeToIndex(npad_id)];
+    if (controller_state.is_styleset_update_event_initialized) {
+        controller_state.style_set_update_event->Signal(kernel);
     }
     return ResultSuccess;
 }
