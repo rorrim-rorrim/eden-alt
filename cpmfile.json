@@ -19,17 +19,16 @@
         "patches": [
             "0001-cpmutil-compat.patch",
             "0002-use-ccache.patch",
-            "0003-use-cmake-compiler-flags.patch",
-            "0004-use-shell-wrapper.patch"
+            "0003-use-cmake-compiler-flags.patch"
         ]
     },
     "openssl": {
         "repo": "openssl/openssl",
         "package": "OpenSSL",
         "min_version": "3",
-        "version": "3",
-        "hash": "f3781cbb4e9e190df38c3fe7fa80ba69bf6f9dbafb158e0426dd4604f2f1ba794450679005a38d0f9f1dad0696e2f22b8b086b2d7d08a0f99bb4fd3b0f7ed5d8",
-        "git_version": "rsaref",
+        "version": "4",
+        "hash": "2405891660b67e4cc01c7868e100f2766e1c6290120213ae62f775ef3d9610c3527bdc43d4c831260417450c74353b0693ae3e24cca3e99b02e4daa548b93904",
+        "git_version": "4.0.1",
         "tag": "openssl-%VERSION%",
         "patches": [
             "0001-add-bundled-cert.patch"
