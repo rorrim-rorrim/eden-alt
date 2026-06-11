@@ -9,8 +9,8 @@
     },
     "openssl-cmake": {
         "repo": "jimmy-park/openssl-cmake",
-        "hash": "2cc185c924fd70e7d886257ca0caa42b3b8f7f712f2052b4f94dde74759e27022de76178460e18c9bdfc57c366583999e198fbb6052d4e7d91c099d15a0ca63e",
-        "git_version": "3.6.2",
+        "hash": "bc73a6c035f299711bb90e20b16fa3521e8ffdab32d8d17f9e7f5cde1ff5def37ec6f9e03de25c3466d18885815c0874331f56e592b8a2f7deeb484c69c5c621",
+        "git_version": "4.0.1",
         "tag": "%VERSION%",
         "bundled": true,
         "options": [
@@ -28,8 +28,8 @@
         "package": "OpenSSL",
         "min_version": "3",
         "version": "3",
-        "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
-        "git_version": "3.6.2",
+        "hash": "f3781cbb4e9e190df38c3fe7fa80ba69bf6f9dbafb158e0426dd4604f2f1ba794450679005a38d0f9f1dad0696e2f22b8b086b2d7d08a0f99bb4fd3b0f7ed5d8",
+        "git_version": "rsaref",
         "tag": "openssl-%VERSION%",
         "patches": [
             "0001-add-bundled-cert.patch"

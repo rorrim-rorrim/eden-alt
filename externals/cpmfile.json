@@ -56,8 +56,8 @@
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
-        "git_version": "7.35.2"
+        "hash": "03d870f63741ff8c00501329bf9947bdf58e7cc4c3884e3de9b827f31942438887555f601a5f80d405946854eb54ab907b4e2a3ad955ca4ad890a243917dd4ae",
+        "git_version": "7.37.3"
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
@@ -203,8 +203,8 @@
     },
     "ffmpeg": {
         "repo": "FFmpeg/FFmpeg",
-        "sha": "c7b5f1537d",
-        "hash": "ed177621176b3961bdcaa339187d3a7688c1c8b060b79c4bb0257cbc67ad7021ae5d5adca5303b45625abbbe3d9aafdd87ce777b8690ac295290d744c875489a",
+        "sha": "5f998e304d",
+        "hash": "fd0382bbef971273a494f2139234fd87a79812621d161cc612920e0247d157835b188b946484bf3bc44edce59070c924f141c71636ad12b2fb722b9f496998fa",
         "bundled": true
     },
     "ffmpeg-ci": {
@@ -229,15 +229,15 @@
         "repo": "KhronosGroup/Vulkan-Headers",
         "package": "VulkanHeaders",
         "version": "1.4.317",
-        "hash": "d2846ea228415772645eea4b52a9efd33e6a563043dd3de059e798be6391a8f0ca089f455ae420ff22574939ed0f48ed7c6ff3d5a9987d5231dbf3b3f89b484b",
-        "git_version": "1.4.345",
+        "hash": "a248d5bdaddf0f983ca56259bee2395ca709623b99ea30e4aa75790fee6a3de7f37bb94beed0fab918dde5af7dc4c0190d07817a00715b66fbd450789d83e33b",
+        "git_version": "1.4.353",
         "tag": "v%VERSION%"
     },
     "vulkan-utility-libraries": {
         "repo": "KhronosGroup/Vulkan-Utility-Libraries",
         "package": "VulkanUtilityLibraries",
-        "hash": "114f6b237a6dcba923ccc576befb5dea3f1c9b3a30de7dc741f234a831d1c2d52d8a224afb37dd57dffca67ac0df461eaaab6a5ab5e503b393f91c166680c3e1",
-        "git_version": "1.4.345",
+        "hash": "494d829c25e4cb026f02186b67d7fd2305667c3dd964380564000ce9f5079e9c77babbe6b0ffb249400cedb983448ad50a3ac048d2b54974d0d987f07febdeef",
+        "git_version": "1.4.353",
         "tag": "v%VERSION%"
     },
     "frozen": {
