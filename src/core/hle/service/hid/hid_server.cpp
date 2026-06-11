@@ -702,8 +702,7 @@ Result IHidServer::AcquireNpadStyleSetUpdateEventHandle(
     LOG_DEBUG(Service_HID, "called, npad_id={}, applet_resource_user_id={}, unknown={}", npad_id,
               aruid.pid, unknown);
 
-    R_RETURN(GetResourceManager()->GetNpad()->AcquireNpadStyleSetUpdateEventHandle(
-        aruid.pid, out_event, npad_id));
+    R_RETURN(GetResourceManager()->GetNpad()->AcquireNpadStyleSetUpdateEventHandle(system.Kernel(), aruid.pid, out_event, npad_id));
 }
 
 Result IHidServer::DisconnectNpad(Core::HID::NpadIdType npad_id, ClientAppletResourceUserId aruid) {

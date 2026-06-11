@@ -84,7 +84,7 @@ public:
     bool SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID::NpadIdType npad_id,
                      NpadJoyDeviceType npad_device_type, NpadJoyAssignmentMode assignment_mode);
 
-    Result AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
+    Result AcquireNpadStyleSetUpdateEventHandle(Kernel::KernelCore& kernel, u64 aruid, Kernel::KReadableEvent** out_event,
                                                 Core::HID::NpadIdType npad_id);
 
     // Adds a new controller at an index.

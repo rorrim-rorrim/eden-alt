@@ -84,11 +84,9 @@ public:
     Result GetNpadJoyHoldType(NpadJoyHoldType& hold_type, u64 aruid) const;
 
     Result SetNpadHandheldActivationMode(u64 aruid, NpadHandheldActivationMode activation_mode);
-    Result GetNpadHandheldActivationMode(NpadHandheldActivationMode& activation_mode,
-                                         u64 aruid) const;
+    Result GetNpadHandheldActivationMode(NpadHandheldActivationMode& activation_mode, u64 aruid) const;
 
-    Result SetSupportedNpadIdType(u64 aruid,
-                                  std::span<const Core::HID::NpadIdType> supported_npad_list);
+    Result SetSupportedNpadIdType(u64 aruid, std::span<const Core::HID::NpadIdType> supported_npad_list);
     bool IsControllerSupported(u64 aruid, Core::HID::NpadStyleIndex style_index) const;
 
     Result SetLrAssignmentMode(u64 aruid, bool is_enabled);
@@ -97,28 +95,20 @@ public:
     Result SetAssigningSingleOnSlSrPress(u64 aruid, bool is_enabled);
     Result IsAssigningSingleOnSlSrPressEnabled(bool& is_enabled, u64 aruid) const;
 
-    Result AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
-                                                Core::HID::NpadIdType npad_id);
-    Result SignalStyleSetUpdateEvent(u64 aruid, Core::HID::NpadIdType npad_id);
-
-    Result GetHomeProtectionEnabled(bool& is_enabled, u64 aruid,
-                                    Core::HID::NpadIdType npad_id) const;
+    Result AcquireNpadStyleSetUpdateEventHandle(Kernel::KernelCore& kernel, u64 aruid, Kernel::KReadableEvent** out_event, Core::HID::NpadIdType npad_id);
+    Result SignalStyleSetUpdateEvent(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id);
+    Result GetHomeProtectionEnabled(bool& is_enabled, u64 aruid, Core::HID::NpadIdType npad_id) const;
     Result SetHomeProtectionEnabled(u64 aruid, Core::HID::NpadIdType npad_id, bool is_enabled);
 
     Result SetNpadAnalogStickUseCenterClamp(u64 aruid, bool is_enabled);
 
-    Result SetButtonConfig(u64 aruid, Core::HID::NpadIdType npad_id, std::size_t index,
-                           Core::HID::NpadButton button_config);
-    Core::HID::NpadButton GetButtonConfig(u64 aruid, Core::HID::NpadIdType npad_id,
-                                          std::size_t index, Core::HID::NpadButton mask,
-                                          bool is_enabled);
+    Result SetButtonConfig(u64 aruid, Core::HID::NpadIdType npad_id, std::size_t index, Core::HID::NpadButton button_config);
+    Core::HID::NpadButton GetButtonConfig(u64 aruid, Core::HID::NpadIdType npad_id, std::size_t index, Core::HID::NpadButton mask, bool is_enabled);
     void ResetButtonConfig();
 
-    Result SetNpadCaptureButtonAssignment(u64 aruid, Core::HID::NpadStyleSet npad_style_set,
-                                          Core::HID::NpadButton button_assignment);
+    Result SetNpadCaptureButtonAssignment(u64 aruid, Core::HID::NpadStyleSet npad_style_set, Core::HID::NpadButton button_assignment);
     Result ClearNpadCaptureButtonAssignment(u64 aruid);
-    std::size_t GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton> out_list,
-                                               u64 aruid) const;
+    std::size_t GetNpadCaptureButtonAssignment(std::span<Core::HID::NpadButton> out_list, u64 aruid) const;
 
     Result SetNpadSystemExtStateEnabled(u64 aruid, bool is_enabled);
 
@@ -127,10 +117,8 @@ private:
     AruidRegisterList registration_list{};
     std::array<NpadState, AruidIndexMax> state{};
     u64 active_data_aruid{};
+    KernelHelpers::ServiceContext& service_context;
     NpadJoyHoldType default_hold_type{};
     s32 ref_counter{};
-
-    Kernel::KernelCore& kernel;
-    KernelHelpers::ServiceContext& service_context;
 };
 } // namespace Service::HID

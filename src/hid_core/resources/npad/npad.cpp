@@ -202,7 +202,7 @@ void NPad::InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id) {
         return;
     }
     if (controller_type == Core::HID::NpadStyleIndex::None) {
-        npad_resource.SignalStyleSetUpdateEvent(aruid, npad_id);
+        npad_resource.SignalStyleSetUpdateEvent(hid_core.kernel, aruid, npad_id);
         return;
     }
 
@@ -386,7 +386,7 @@ void NPad::InitNewlyAddedController(u64 aruid, Core::HID::NpadIdType npad_id) {
                                           Common::Input::PollingMode::Active);
     }
 
-    npad_resource.SignalStyleSetUpdateEvent(aruid, npad_id);
+    npad_resource.SignalStyleSetUpdateEvent(hid_core.kernel, aruid, npad_id);
     WriteEmptyEntry(controller.shared_memory);
     hid_core.SetLastActiveController(npad_id);
     abstracted_pads[NpadIdTypeToIndex(npad_id)].Update();
@@ -793,10 +793,9 @@ bool NPad::SetNpadMode(u64 aruid, Core::HID::NpadIdType& new_npad_id, Core::HID:
     return true;
 }
 
-Result NPad::AcquireNpadStyleSetUpdateEventHandle(u64 aruid, Kernel::KReadableEvent** out_event,
-                                                  Core::HID::NpadIdType npad_id) {
+Result NPad::AcquireNpadStyleSetUpdateEventHandle(Kernel::KernelCore& kernel, u64 aruid, Kernel::KReadableEvent** out_event, Core::HID::NpadIdType npad_id) {
     std::scoped_lock lock{mutex};
-    return npad_resource.AcquireNpadStyleSetUpdateEventHandle(aruid, out_event, npad_id);
+    return npad_resource.AcquireNpadStyleSetUpdateEventHandle(kernel, aruid, out_event, npad_id);
 }
 
 void NPad::AddNewControllerAt(u64 aruid, Core::HID::NpadStyleIndex controller,
@@ -859,7 +858,7 @@ Result NPad::DisconnectNpad(u64 aruid, Core::HID::NpadIdType npad_id) {
     controller.is_dual_right_connected = true;
     controller.is_connected = false;
     controller.device->Disconnect();
-    npad_resource.SignalStyleSetUpdateEvent(aruid, npad_id);
+    npad_resource.SignalStyleSetUpdateEvent(hid_core.kernel, aruid, npad_id);
     WriteEmptyEntry(shared_memory);
     return ResultSuccess;
 }
