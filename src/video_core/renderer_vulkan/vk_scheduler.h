@@ -296,6 +296,9 @@ private:
     double last_target_fps{};
     u64 max_frame_count{};
     u64 frame_counter{};
+
+    u64 last_presented_tick = 0;
+    inline static constexpr u64 MAX_FRAMES_IN_FLIGHT = 2;
 };
 
 } // namespace Vulkan
