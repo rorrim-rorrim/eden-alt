@@ -26,7 +26,7 @@
         "repo": "openssl/openssl",
         "package": "OpenSSL",
         "min_version": "3",
-        "version": "4",
+        "version": "3",
         "hash": "2405891660b67e4cc01c7868e100f2766e1c6290120213ae62f775ef3d9610c3527bdc43d4c831260417450c74353b0693ae3e24cca3e99b02e4daa548b93904",
         "git_version": "4.0.1",
         "tag": "openssl-%VERSION%",
