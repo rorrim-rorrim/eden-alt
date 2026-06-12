@@ -27,7 +27,7 @@
 
 namespace Vulkan {
 
-constexpr u64 MIN_PENDING_FLUSHES = 2;
+constexpr u64 MIN_PENDING_FLUSHES = 3;
 constexpr u64 MAX_PENDING_FLUSHES = 6;
 
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
