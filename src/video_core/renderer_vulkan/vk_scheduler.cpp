@@ -122,9 +122,17 @@ u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
     if (should_throttle) {
         const u64 current_tick = master_semaphore->CurrentTick();
         const u64 gap = current_tick > last_submitted_tick ? current_tick - last_submitted_tick : 0;
-        const u64 dynamic_limit = gap < MIN_PENDING_FLUSHES ? MAX_PENDING_FLUSHES : gap > MAX_PENDING_FLUSHES ? MIN_PENDING_FLUSHES : gap;
-        if (gap > dynamic_limit) {
-            last_submitted_tick += dynamic_limit;
+        u64 correction_step;
+        if (gap < MIN_PENDING_FLUSHES) {
+            correction_step = MAX_PENDING_FLUSHES;
+        } else if (gap > MAX_PENDING_FLUSHES) {
+            correction_step = MIN_PENDING_FLUSHES;
+        } else {
+            correction_step = gap;
+        }
+        const u64 new_tick = last_submitted_tick + correction_step;
+        if (new_tick < current_tick) {
+            last_submitted_tick = new_tick;
             master_semaphore->Wait(last_submitted_tick);
         }
     }
