@@ -27,7 +27,8 @@
 
 namespace Vulkan {
 
-constexpr u32 MAX_PENDING_FLUSHES = 5;
+constexpr u64 MIN_PENDING_FLUSHES = 2;
+constexpr u64 MAX_PENDING_FLUSHES = 6;
 
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
                                          vk::CommandBuffer upload_cmdbuf) {
@@ -120,8 +121,10 @@ u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
     const bool should_throttle = Settings::IsGPULevelHigh();
     if (should_throttle) {
         const u64 current_tick = master_semaphore->CurrentTick();
-        if (current_tick > last_submitted_tick + MAX_PENDING_FLUSHES) {
-            last_submitted_tick = last_submitted_tick + MAX_PENDING_FLUSHES;
+        const u64 gap = current_tick > last_submitted_tick ? current_tick - last_submitted_tick : 0;
+        const u64 dynamic_limit = gap < MIN_PENDING_FLUSHES ? MAX_PENDING_FLUSHES : gap > MAX_PENDING_FLUSHES ? MIN_PENDING_FLUSHES : gap;
+        if (gap > dynamic_limit) {
+            last_submitted_tick += dynamic_limit;
             master_semaphore->Wait(last_submitted_tick);
         }
     }
