@@ -27,6 +27,7 @@
 
 namespace Vulkan {
 
+constexpr u32 MAX_PENDING_FLUSHES = 5;
 
 void Scheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
                                          vk::CommandBuffer upload_cmdbuf) {
@@ -115,12 +116,14 @@ Scheduler::Scheduler(const Device& device_, StateTracker& state_tracker_)
 Scheduler::~Scheduler() = default;
 
 u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
-    // Ensures GPU/CPU frame synchronization by limiting the number of in-flight frames.
-    u64 wait_tick = last_presented_tick + 1;
-    while (master_semaphore->CurrentTick() - last_presented_tick > MAX_FRAMES_IN_FLIGHT) {
-        master_semaphore->Wait(wait_tick);
-        last_presented_tick = wait_tick;
-        ++wait_tick;
+    // Prevent the CPU from getting too far ahead of the GPU by limiting pending flushes.
+    const bool should_throttle = Settings::IsGPULevelHigh();
+    if (should_throttle) {
+        const u64 current_tick = master_semaphore->CurrentTick();
+        if (current_tick > last_submitted_tick + MAX_PENDING_FLUSHES) {
+            last_submitted_tick = last_submitted_tick + MAX_PENDING_FLUSHES;
+            master_semaphore->Wait(last_submitted_tick);
+        }
     }
     const u64 signal_value = SubmitExecution(signal_semaphore, wait_semaphore);
     AllocateNewContext();
