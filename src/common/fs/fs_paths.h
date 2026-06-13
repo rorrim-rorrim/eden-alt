@@ -24,7 +24,6 @@
 #define PLAY_TIME_DIR "play_time"
 #define SCREENSHOTS_DIR "screenshots"
 #define SDMC_DIR "sdmc"
-#define CACHE_DIR "cache"
 #define SHADER_DIR "shader"
 #define TAS_DIR "tas"
 #define ICONS_DIR "icons"

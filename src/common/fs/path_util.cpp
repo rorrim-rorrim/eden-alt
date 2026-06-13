@@ -167,7 +167,7 @@ public:
         // config
         GenerateEdenPath(EdenPath::ConfigDir, eden_path_config);
         // cache
-        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache / CACHE_DIR);
+        GenerateEdenPath(EdenPath::CacheDir, eden_path_cache);
         GenerateEdenPath(EdenPath::ShaderDir, eden_path_cache / SHADER_DIR);
 #ifdef _WIN32
         GenerateLegacyPath(EmuPath::RyujinxDir, GetAppDataRoamingDirectory() / RYUJINX_DIR);
