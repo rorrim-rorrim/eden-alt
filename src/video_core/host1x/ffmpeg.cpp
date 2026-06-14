@@ -87,7 +87,7 @@ std::string AVError(int errnum) {
     return errbuf;
 }
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 // Match a 3- or 4-byte annex-B start code at `i`. Returns its length, or 0.
 size_t MatchStartCode(std::span<const u8> data, size_t i) {
     const size_t n = data.size();
@@ -173,7 +173,7 @@ Decoder::Decoder(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
         }
     }();
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     // FFmpeg exposes MediaCodec via dedicated decoders rather than as a
     // hw_config on the regular ones.
     if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
@@ -388,7 +388,7 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
         m_hardware_context->InitializeForDecoder(*m_decoder_context, *m_decoder);
     }
 
-#ifdef ANDROID
+#ifdef __ANDROID__
     // h264_mediacodec needs SPS/PPS in extradata at open. We pull them from
     // the first frame's bitstream in SendPacket.
     m_needs_h264_extradata = m_decoder->GetCodec() &&
@@ -411,7 +411,7 @@ bool DecodeApi::SendPacket(std::span<const u8> packet_data, const FrameOffsets& 
                            std::optional<FrameDimensions> dimensions) {
     if (!m_opened) {
         std::vector<u8> extradata;
-#ifdef ANDROID
+#ifdef __ANDROID__
         if (m_needs_h264_extradata) {
             extradata = ExtractH264AnnexBExtradata(packet_data);
             if (extradata.empty()) {
