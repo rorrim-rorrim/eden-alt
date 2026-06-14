@@ -121,8 +121,8 @@ u64 Scheduler::Flush(VkSemaphore signal_semaphore, VkSemaphore wait_semaphore) {
     if (should_throttle) {
         const u64 current_tick = master_semaphore->CurrentTick();
         const u64 gap = current_tick > last_submitted_tick ? current_tick - last_submitted_tick : 0;
-        const u64 correction_step = (std::min)(static_cast<u64>(MAX_PENDING_FLUSHES), static_cast<u64>(gap));
-        const u64 new_tick = last_submitted_tick + correction_step;
+        const u64 step = (std::min)(MAX_PENDING_FLUSHES, gap);
+        const u64 new_tick = last_submitted_tick + step;
         if (new_tick < current_tick) {
             last_submitted_tick = new_tick;
             master_semaphore->Wait(last_submitted_tick);
