@@ -27,11 +27,11 @@ TimeWorker::TimeWorker(Core::System& system, StandardSteadyClockResource& steady
       m_file_timestamp_worker{file_timestamp_worker}, m_timer_steady_clock{m_ctx.CreateEvent("Glue:TimeWorker:SteadyClockTimerEvent")},
       m_timer_file_system{m_ctx.CreateEvent("Glue:TimeWorker:FileTimeTimerEvent")},
       m_alarm_worker{m_system, m_steady_clock_resource}, m_pm_state_change_handler{m_alarm_worker} {
-    m_timer_steady_clock_timing_event = m_system.CreateEvent("Time::SteadyClockEvent", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+    m_timer_steady_clock_timing_event = m_system.CreateTimingEvent("Time::SteadyClockEvent", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
         m_timer_steady_clock->Signal();
         return std::nullopt;
     });
-    m_timer_file_system_timing_event = m_system.CreateEvent("Time::SteadyClockEvent", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
+    m_timer_file_system_timing_event = m_system.CreateTimingEvent("Time::SteadyClockEvent", [this](s64 time, std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
         m_timer_file_system->Signal();
         return std::nullopt;
     });
