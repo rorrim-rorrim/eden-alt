@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <thread>
+#include <vector>
 #include <functional>
 #include <string>
 #include "common/announce_multiplayer_room.h"
