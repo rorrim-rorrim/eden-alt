@@ -30,6 +30,7 @@ public:
     void Delete() override;
 
 private:
+    std::vector<std::jthread> detached_tasks;
     AnnounceMultiplayerRoom::Room room;
     Client client;
     std::string host;
