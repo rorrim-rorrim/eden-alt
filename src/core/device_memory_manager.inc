@@ -35,7 +35,7 @@ public:
         buffer.resize(8);
         const auto add_value = [&buffer](u32 value, size_t index) {
             if (buffer.size() < index + 1)
-                buffer.resize(index + 1);
+                buffer.resize(index + 8);
             buffer[index++] = value;
             return index;
         };
@@ -49,6 +49,7 @@ public:
             current = &storage[iter_entry - 1];
             index = add_value(current->value, index);
         }
+        buffer.resize(index);
     }
 
     u32 Register(u32 value) {
