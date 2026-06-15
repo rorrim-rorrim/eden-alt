@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <vector>
 
-#include <boost/container/static_vector.hpp>
+#include <boost/container/deque.hpp>
 
 #include "common/address_space.h"
 #include "common/address_space.inc"
