@@ -33,20 +33,21 @@ public:
 
     void GatherValues(u32 start_entry, Common::ScratchBuffer<u32>& buffer) {
         buffer.resize(8);
-        buffer.resize(0);
-        size_t index = 0;
-        const auto add_value = [&](u32 value) {
-            buffer.resize(index + 1);
+        const auto add_value = [&buffer](u32 value, size_t index) {
+            if (buffer.size() < index + 1)
+                buffer.resize(index + 1);
             buffer[index++] = value;
+            return index;
         };
 
+        size_t index = 0;
         u32 iter_entry = start_entry;
         Entry* current = &storage[iter_entry - 1];
-        add_value(current->value);
+        index = add_value(current->value, index);
         while (current->next_entry != 0) {
             iter_entry = current->next_entry;
             current = &storage[iter_entry - 1];
-            add_value(current->value);
+            index = add_value(current->value, index);
         }
     }
 
@@ -124,8 +125,8 @@ private:
         u32 value{};
     };
 
-    std::deque<Entry> storage;
-    std::deque<u32> free_entries;
+    std::vector<Entry> storage;
+    boost::container::deque<u32> free_entries;
 };
 
 struct EmptyAllocator {
@@ -619,7 +620,7 @@ template <typename Traits>
 void DeviceMemoryManager<Traits>::UpdatePagesCachedCount(DAddr addr, size_t size, s32 delta) {
     Common::ScopedRangeLock lk(counter_guard, addr, size);
     UpdatePagesCachedCountNoLock(addr, size, delta);
-} 
+}
 
 template <typename Traits>
 void DeviceMemoryManager<Traits>::UpdatePagesCachedBatch(std::span<const std::pair<DAddr, size_t>> ranges, s32 delta) {
