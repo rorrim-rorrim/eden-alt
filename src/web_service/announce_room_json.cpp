@@ -138,9 +138,10 @@ void RoomJson::Delete() {
     } else {
         // This jthread won't be destroyed until after the dtor has been ran
         // Once the thread finishes it will stay resident on the vector -- destroyed and freed by dtor()
-        detached_tasks.emplace_back([](std::stop_token stop_token, RoomJson& this_) {
-            this_.client.DeleteJson(fmt::format("/lobby/{}", this_.room_id), "", false);
-        }, *this);
+        // this is still valid while in dtor, so... yeah
+        detached_tasks.emplace_back([this](std::stop_token stop_token) {
+            client.DeleteJson(fmt::format("/lobby/{}", room_id), "", false);
+        });
     }
 }
 
