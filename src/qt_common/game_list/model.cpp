@@ -202,6 +202,7 @@ void GameListModel::LoadCompatibilityList() {
 }
 
 void GameListModel::Repopulate() {
+    current_worker.reset();
     QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
     PopulateAsync(UISettings::values.game_dirs);
 }
