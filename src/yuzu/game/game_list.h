@@ -121,7 +121,6 @@ signals:
 private slots:
     void OnTextChanged(const QString& new_text);
     void OnFilterCloseClicked();
-    void OnUpdateThemedIcons();
     void OnPopulatingCompleted(const QStringList& watch_list);
 
 private:
@@ -176,9 +175,6 @@ public:
 
 signals:
     void AddDirectory();
-
-private slots:
-    void onUpdateThemedIcons();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;

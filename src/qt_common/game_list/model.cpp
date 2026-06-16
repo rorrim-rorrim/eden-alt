@@ -233,60 +233,6 @@ void GameListModel::ResetExternalWatcher() {
     }
 }
 
-void GameListModel::OnUpdateThemedIcons() {
-    for (int i = 0; i < invisibleRootItem()->rowCount(); i++) {
-        QStandardItem* child = invisibleRootItem()->child(i);
-
-        const int icon_size = UISettings::values.folder_icon_size.GetValue();
-
-        switch (child->data(GameListItem::TypeRole).value<GameListItemType>()) {
-        case GameListItemType::SdmcDir:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("sd_card"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        case GameListItemType::UserNandDir:
-        case GameListItemType::SysNandDir:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("chip"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        case GameListItemType::CustomDir: {
-            const UISettings::GameDir& game_dir =
-                UISettings::values.game_dirs[child->data(GameListDir::GameDirRole).toInt()];
-            const QString icon_name = QFileInfo::exists(QString::fromStdString(game_dir.path))
-                                          ? QStringLiteral("folder")
-                                          : QStringLiteral("bad_folder");
-            child->setData(
-                QIcon::fromTheme(icon_name).pixmap(icon_size).scaled(
-                    icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        }
-        case GameListItemType::AddDir:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("list-add"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        case GameListItemType::Favorites:
-            child->setData(
-                QIcon::fromTheme(QStringLiteral("star"))
-                    .pixmap(icon_size)
-                    .scaled(icon_size, icon_size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation),
-                Qt::DecorationRole);
-            break;
-        default:
-            break;
-        }
-    }
-}
-
 void GameListModel::RetranslateUI() {
     setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
     setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));

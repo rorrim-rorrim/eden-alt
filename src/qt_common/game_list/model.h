@@ -64,7 +64,6 @@ public:
 
     void LoadCompatibilityList();
 
-    void OnUpdateThemedIcons();
     void RetranslateUI();
 
     QFileSystemWatcher* GetWatcher() const;

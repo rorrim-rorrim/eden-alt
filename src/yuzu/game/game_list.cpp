@@ -22,7 +22,6 @@
 #include <QVariantAnimation>
 
 #include "common/common_types.h"
-#include "common/logging.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
@@ -61,8 +60,6 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
     controller_navigation = new ControllerNavigation(system.HIDCore(), this);
 
     SetupScrollAnimation();
-
-    connect(main_window, &MainWindow::UpdateThemedIcons, this, &GameList::OnUpdateThemedIcons);
 
     connect(tree_view, &QTreeView::activated, this, &GameList::ValidateEntry);
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
@@ -224,10 +221,6 @@ void GameList::OnTextChanged(const QString& new_text) {
 
 void GameList::OnFilterCloseClicked() {
     main_window->filterBarSetChecked(false);
-}
-
-void GameList::OnUpdateThemedIcons() {
-    item_model->OnUpdateThemedIcons();
 }
 
 void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
@@ -710,9 +703,6 @@ bool GameList::eventFilter(QObject* obj, QEvent* event) {
 }
 
 GameListPlaceholder::GameListPlaceholder(MainWindow* parent) : QWidget{parent} {
-    connect(parent, &MainWindow::UpdateThemedIcons, this,
-            &GameListPlaceholder::onUpdateThemedIcons);
-
     layout = new QVBoxLayout;
     image = new QLabel;
     text = new QLabel;
@@ -732,10 +722,6 @@ GameListPlaceholder::GameListPlaceholder(MainWindow* parent) : QWidget{parent} {
 }
 
 GameListPlaceholder::~GameListPlaceholder() = default;
-
-void GameListPlaceholder::onUpdateThemedIcons() {
-    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(200));
-}
 
 void GameListPlaceholder::mouseDoubleClickEvent(QMouseEvent* event) {
     emit GameListPlaceholder::AddDirectory();
