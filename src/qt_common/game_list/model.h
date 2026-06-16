@@ -76,6 +76,7 @@ public:
 signals:
     void ShowList(bool show);
     void PopulatingCompleted(const QStringList& watch_list);
+    void PopulatingStarted();
     void SaveConfig();
 
 private:
@@ -83,6 +84,7 @@ private:
 
     void AddFavorite(u64 program_id);
     void RemoveFavorite(u64 program_id);
+    void Repopulate();
 
     bool m_flat = false;
 

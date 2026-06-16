@@ -89,6 +89,8 @@ public:
 public slots:
     void RefreshGameDirectory();
     void RefreshExternalContent();
+    void UpdateIconSizes();
+    void OnPopulate();
 
 signals:
     void BootGame(const QString& game_path, StartGameType type);

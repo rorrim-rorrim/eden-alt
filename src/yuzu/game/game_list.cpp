@@ -87,6 +87,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvid
 
     connect(item_model, &GameListModel::ShowList, this, &GameList::ShowList);
     connect(item_model, &GameListModel::SaveConfig, this, &GameList::SaveConfig);
+    connect(item_model, &GameListModel::PopulatingStarted, this, &GameList::OnPopulate);
 
     connect(tree_view, &GameTree::FilterResultReady, search_field,
             [this](int visible, int total) { search_field->setFilterResult(visible, total); });
@@ -137,15 +138,17 @@ void GameList::LoadCompatibilityList() {
     item_model->LoadCompatibilityList();
 }
 
-void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
+void GameList::OnPopulate() {
     m_currentView->setEnabled(false);
 
-    tree_view->UpdateColumnVisibility(item_model);
-
-    if (!m_isTreeMode) {
+    if (m_isTreeMode) {
         grid_view->UpdateIconSize();
+    } else {
+        tree_view->UpdateColumnVisibility(item_model);
     }
+}
 
+void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     item_model->PopulateAsync(game_dirs);
 }
 
@@ -300,21 +303,16 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
 }
 
 void GameList::RefreshGameDirectory() {
-    item_model->ResetExternalWatcher();
-
-    if (!UISettings::values.game_dirs.empty()) {
-        LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
-        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-        PopulateAsync(UISettings::values.game_dirs);
-    }
+    item_model->RefreshGameDirectory();
 }
 
 void GameList::RefreshExternalContent() {
-    if (!UISettings::values.game_dirs.empty()) {
-        LOG_INFO(Frontend, "External content directory changed. Clearing metadata cache.");
-        QtCommon::Game::ResetMetadata(false);
-        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-        PopulateAsync(UISettings::values.game_dirs);
+    item_model->RefreshExternalContent();
+}
+
+void GameList::UpdateIconSizes() {
+    if (!m_isTreeMode) {
+        grid_view->UpdateIconSize();
     }
 }
 

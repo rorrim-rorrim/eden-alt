@@ -1545,6 +1545,8 @@ void MainWindow::ConnectMenuEvents() {
             if (checked) {
                 UISettings::values.game_icon_size.SetValue(size);
                 CheckIconSize();
+
+                game_list->UpdateIconSizes();
                 game_list->RefreshGameDirectory();
             }
         });
@@ -3363,6 +3365,7 @@ void MainWindow::ToggleShowGameName() {
 
     CheckIconSize();
 
+    game_list->UpdateIconSizes();
     game_list->RefreshGameDirectory();
 }
 
@@ -3868,6 +3871,7 @@ void MainWindow::OnGameListRefresh() {
     // Resets metadata cache and reloads
     QtCommon::Game::ResetMetadata(false);
     game_list->RefreshGameDirectory();
+    game_list->RefreshExternalContent();
     SetFirmwareVersion();
 }
 

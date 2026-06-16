@@ -36,6 +36,8 @@ GameListModel::GameListModel(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
     connect(external_watcher, &QFileSystemWatcher::directoryChanged, this,
             &GameListModel::RefreshExternalContent);
 
+    ResetExternalWatcher();
+
     insertColumns(0, COLUMN_COUNT);
     RetranslateUI();
 
@@ -45,6 +47,8 @@ GameListModel::GameListModel(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
 GameListModel::~GameListModel() = default;
 
 void GameListModel::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
+    emit PopulatingStarted();
+
     current_worker.reset();
     removeRows(0, rowCount());
 
@@ -197,13 +201,16 @@ void GameListModel::LoadCompatibilityList() {
     }
 }
 
+void GameListModel::Repopulate() {
+    QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
+    PopulateAsync(UISettings::values.game_dirs);
+}
+
 void GameListModel::RefreshGameDirectory() {
     ResetExternalWatcher();
-
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the games directory. Reloading game list.");
-        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-        PopulateAsync(UISettings::values.game_dirs);
+        Repopulate();
     }
 }
 
@@ -211,8 +218,7 @@ void GameListModel::RefreshExternalContent() {
     if (!UISettings::values.game_dirs.empty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "External content directory changed. Clearing metadata cache.");
         QtCommon::Game::ResetMetadata(false);
-        QtCommon::system->GetFileSystemController().CreateFactories(*QtCommon::vfs);
-        PopulateAsync(UISettings::values.game_dirs);
+        Repopulate();
     }
 }
 

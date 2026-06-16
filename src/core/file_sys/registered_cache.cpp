@@ -503,6 +503,8 @@ NcaID PlaceholderCache::Generate() {
 
 VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& open_dir,
                                                        std::string_view path) const {
+    if (open_dir == nullptr) return nullptr;
+
     const auto file = open_dir->GetFileRelative(path);
     if (file != nullptr) {
         return file;
@@ -1454,6 +1456,7 @@ std::vector<ContentProviderEntry> ExternalContentProvider::ListEntriesFilter(
 std::vector<ExternalUpdateEntry> ExternalContentProvider::ListUpdateVersions(u64 title_id) const {
     std::vector<ExternalUpdateEntry> out;
 
+    LOG_INFO(Loader, "multi_version_entires.count={}", multi_version_entries.size());
     for (const auto& entry : multi_version_entries) {
         if (entry.title_id == title_id) {
             out.push_back(entry);
