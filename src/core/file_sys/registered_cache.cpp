@@ -503,9 +503,6 @@ NcaID PlaceholderCache::Generate() {
 
 VirtualFile RegisteredCache::OpenFileOrDirectoryConcat(const VirtualDir& open_dir,
                                                        std::string_view path) const {
-    if (open_dir == nullptr) {
-        return nullptr;
-    }
     const auto file = open_dir->GetFileRelative(path);
     if (file != nullptr) {
         return file;
