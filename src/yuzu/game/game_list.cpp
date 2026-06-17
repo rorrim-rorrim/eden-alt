@@ -255,13 +255,13 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
     auto* watcher = item_model->GetWatcher();
     auto current_watch_list = watcher->directories();
 
-    constexpr int LIMIT_WATCH_DIRECTORIES = 5000;
+    constexpr qsizetype LIMIT_WATCH_DIRECTORIES = 5000;
     constexpr int SLICE_SIZE = 25;
 
     QStringList to_remove, to_add;
 
     const auto slice = [&](const QStringList &list, std::function<void(const QStringList&)> callback) {
-        const int len = (std::min)(int(list.size()), LIMIT_WATCH_DIRECTORIES);
+        const int len = (std::min)(list.size(), LIMIT_WATCH_DIRECTORIES);
         for (int i = 0; i < len; i += SLICE_SIZE) {
             auto chunk = list.mid(i, SLICE_SIZE);
             if (!chunk.isEmpty()) {
