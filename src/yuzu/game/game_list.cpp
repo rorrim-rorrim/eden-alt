@@ -26,17 +26,17 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/game_list/game_list_p.h"
+#include "qt_common/game_list/model.h"
 #include "qt_common/qt_common.h"
 #include "qt_common/util/game.h"
 #include "yuzu/compatibility_list.h"
-#include "yuzu/game/game_list.h"
-#include "qt_common/game_list/game_list_p.h"
 #include "yuzu/game/game_grid.h"
+#include "yuzu/game/game_list.h"
 #include "yuzu/game/game_tree.h"
-#include "qt_common/game_list/model.h"
+#include "yuzu/game/search_field.h"
 #include "yuzu/main_window.h"
 #include "yuzu/util/controller_navigation.h"
-#include "yuzu/game/search_field.h"
 
 GameList::GameList(FileSys::VirtualFilesystem vfs_, FileSys::ManualContentProvider* provider_,
                    PlayTime::PlayTimeManager& play_time_manager_, Core::System& system_,
@@ -196,8 +196,10 @@ void GameList::ResetViewMode() {
 
     auto scroller = QScroller::scroller(view);
     QScrollerProperties props;
-    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
-    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy, QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::HorizontalOvershootPolicy,
+                          QScrollerProperties::OvershootAlwaysOff);
+    props.setScrollMetric(QScrollerProperties::VerticalOvershootPolicy,
+                          QScrollerProperties::OvershootAlwaysOff);
     scroller->setScrollerProperties(props);
 
     if (m_isTreeMode != newTreeMode) {
@@ -260,7 +262,7 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
 
     QStringList to_remove, to_add;
 
-    const auto slice = [&](const QStringList &list, std::function<void(const QStringList&)> callback) {
+    const auto slice = [&](const QStringList& list, std::function<void(const QStringList&)> callback) {
         const int len = (std::min)(list.size(), LIMIT_WATCH_DIRECTORIES);
         for (int i = 0; i < len; i += SLICE_SIZE) {
             auto chunk = list.mid(i, SLICE_SIZE);
@@ -278,7 +280,7 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
         }
     }
 
-    slice(to_remove, [watcher](const QStringList &chunk) { watcher->removePaths(chunk); });
+    slice(to_remove, [watcher](const QStringList& chunk) { watcher->removePaths(chunk); });
 
     // add any paths not in the old watch list
     for (const auto& path : std::as_const(watch_list)) {
@@ -287,7 +289,7 @@ void GameList::OnPopulatingCompleted(const QStringList& watch_list) {
         }
     }
 
-    slice(to_add, [watcher](const QStringList &chunk) { watcher->addPaths(chunk); });
+    slice(to_add, [watcher](const QStringList& chunk) { watcher->addPaths(chunk); });
 
     m_currentView->setEnabled(true);
 
@@ -474,9 +476,8 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     });
     connect(start_game, &QAction::triggered, this,
             [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Normal); });
-    connect(start_game_global, &QAction::triggered, this, [this, path]() {
-        emit BootGame(QString::fromStdString(path), StartGameType::Global);
-    });
+    connect(start_game_global, &QAction::triggered, this,
+            [this, path]() { emit BootGame(QString::fromStdString(path), StartGameType::Global); });
     connect(open_mod_location, &QAction::triggered, this, [this, program_id, path]() {
         emit OpenFolderRequested(program_id, GameListOpenTarget::ModData, path);
     });
@@ -615,7 +616,8 @@ void GameList::AddFavoritesPopup(QMenu& context_menu) {
 
     connect(clear, &QAction::triggered, this, [this] {
         UISettings::values.favorited_ids.clear();
-        item_model->invisibleRootItem()->child(0)->removeRows(0, item_model->invisibleRootItem()->child(0)->rowCount());
+        item_model->invisibleRootItem()->child(0)->removeRows(
+            0, item_model->invisibleRootItem()->child(0)->rowCount());
         tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(), true);
     });
 }

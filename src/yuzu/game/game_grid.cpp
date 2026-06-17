@@ -4,11 +4,11 @@
 #include <QScroller>
 #include <QScrollerProperties>
 
-#include "yuzu/game/common.h"
 #include "qt_common/config/uisettings.h"
+#include "qt_common/game_list/model.h"
+#include "yuzu/game/common.h"
 #include "yuzu/game/game_card.h"
 #include "yuzu/game/game_grid.h"
-#include "qt_common/game_list/model.h"
 
 GameGrid::GameGrid(QWidget* parent) : QListView{parent} {
     m_gameCard = new GameCard(this);

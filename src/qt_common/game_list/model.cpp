@@ -19,8 +19,8 @@
 #include "qt_common/util/game.h"
 
 #include "qt_common/game_list/game_list_p.h"
-#include "qt_common/game_list/worker.h"
 #include "qt_common/game_list/model.h"
+#include "qt_common/game_list/worker.h"
 
 GameListModel::GameListModel(std::shared_ptr<FileSys::VfsFilesystem> vfs_,
                              FileSys::ManualContentProvider* provider_,

@@ -48,7 +48,7 @@ static QPixmap GetDefaultIcon(u32 size) {
     return icon;
 }
 
-static QPixmap ThemeIcon(const char *name) {
+static QPixmap ThemeIcon(const char* name) {
     const int size = UISettings::values.folder_icon_size.GetValue();
 
     return QIcon::fromTheme(QLatin1String(name))
@@ -304,7 +304,7 @@ public:
         UISettings::GameDir* game_dir = &directory;
         setData(QVariant(UISettings::values.game_dirs.indexOf(directory)), GameDirRole);
 
-        const char *icon_name = nullptr;
+        const char* icon_name = nullptr;
 
         switch (dir_type) {
         case GameListItemType::SdmcDir:
@@ -321,8 +321,7 @@ public:
             break;
         case GameListItemType::CustomDir: {
             const QString path = QString::fromStdString(game_dir->path);
-            icon_name =
-                QFileInfo::exists(path) ? "folder" : "bad_folder";
+            icon_name = QFileInfo::exists(path) ? "folder" : "bad_folder";
             setData(path, Qt::DisplayRole);
             break;
         }
@@ -331,7 +330,8 @@ public:
         }
 
         if (icon_name != nullptr)
-            setData(ThemeIcon(icon_name), Qt::DecorationRole);    }
+            setData(ThemeIcon(icon_name), Qt::DecorationRole);
+    }
 
     int type() const override {
         return static_cast<int>(dir_type);
@@ -364,7 +364,6 @@ public:
     bool operator<(const QStandardItem& other) const override {
         return false;
     }
-
 };
 
 class GameListFavorites : public GameListItem {

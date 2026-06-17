@@ -9,8 +9,8 @@
 #include "qt_common/config/uisettings.h"
 #include "qt_common/game_list/game_list_p.h"
 #include "qt_common/game_list/model.h"
-#include "yuzu/game/game_tree.h"
 #include "yuzu/game/common.h"
+#include "yuzu/game/game_tree.h"
 
 GameTree::GameTree(QWidget* parent) : QTreeView{parent} {
     setAlternatingRowColors(true);

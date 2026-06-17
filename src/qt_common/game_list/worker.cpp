@@ -32,11 +32,11 @@
 #include "qt_common/config/uisettings.h"
 #include "qt_common/qt_common.h"
 
-#include "yuzu/compatibility_list.h"
 #include "qt_common/game_list/game_list_p.h"
+#include "yuzu/compatibility_list.h"
 
-#include "qt_common/game_list/worker.h"
 #include "qt_common/game_list/model.h"
+#include "qt_common/game_list/worker.h"
 
 namespace {
 
@@ -391,7 +391,9 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                 std::vector<u64> program_ids;
                 loader->ReadProgramIds(program_ids);
 
-                const auto addEntry = [this, physical_name, parent_dir](std::unique_ptr<Loader::AppLoader> &app_loader, const u64 id) {
+                const auto addEntry = [this, physical_name,
+                                       parent_dir](std::unique_ptr<Loader::AppLoader>& app_loader,
+                                                   const u64 id) {
                     std::vector<u8> icon;
                     [[maybe_unused]] const auto res1 = app_loader->ReadIcon(icon);
 
@@ -405,8 +407,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                         physical_name, name, Common::FS::GetSize(physical_name), icon, *app_loader,
                         id, compatibility_list, play_time_manager, patch);
 
-                    RecordEvent(
-                        [=](GameListModel* model) { model->AddEntry(entry, parent_dir); });
+                    RecordEvent([=](GameListModel* model) { model->AddEntry(entry, parent_dir); });
                 };
 
                 if (res2 == Loader::ResultStatus::Success && program_ids.size() > 1 &&
@@ -456,7 +457,7 @@ void GameListWorker::run() {
             break;
         }
 
-        GameListDir *game_list_dir;
+        GameListDir* game_list_dir;
         bool scan = false;
 
         if (game_dir.path == std::string("SDMC")) {

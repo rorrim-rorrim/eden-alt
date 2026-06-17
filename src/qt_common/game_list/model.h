@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include <memory>
 #include <QFileSystemWatcher>
 #include <QStandardItemModel>
 #include <QStringList>
 #include <QVector>
-#include <memory>
 
 #include "common/common_types.h"
 #include "frontend_common/play_time_manager.h"

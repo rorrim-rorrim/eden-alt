@@ -17,7 +17,8 @@ inline bool ContainsAllWords(const QString& haystack, const QString& userinput) 
 }
 
 inline bool FilterMatches(const QString& filter, const QStandardItem* item) {
-    if (filter.isEmpty()) return true;
+    if (filter.isEmpty())
+        return true;
 
     const auto program_id = item->data(GameListItemPath::ProgramIdRole).toULongLong();
 
