@@ -6,15 +6,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <limits>
-#include <map>
 #include <optional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <typeindex>
-#include <typeinfo>
-#include <fmt/core.h>
+#include <fmt/ranges.h>
 #include "common/common_types.h"
 #include "common/settings_common.h"
 #include "common/settings_enums.h"
@@ -149,7 +147,7 @@ public:
      * Converts the value of the setting to a std::string. Respects the global state if the setting
      * has one.
      *
-     * @returns The current setting as a std::string
+     * @returns The current setting as a std::stringf
      */
     [[nodiscard]] std::string ToString() const override {
         return ToString(this->GetValue());
