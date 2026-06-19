@@ -128,7 +128,8 @@ function(AddDependentPackages)
         message(FATAL_ERROR "Partial dependency installation detected "
             "for the following packages:\n${package_names}\n"
             "You can solve this in one of two ways:\n"
-            "1. Install the following packages to your system if available:"
+            "1. Install or upgrade the following packages "
+            "to your system if available:"
             "\n\t${bundled_names}\n"
             "2. Set the following variables to ON:"
             "\n\t${system_names}\n"
@@ -247,9 +248,9 @@ function(AddJsonPackage)
 
     set(multiValueArgs OPTIONS)
 
-    set(options MODULE)
+    set(optionArgs MODULE)
 
-    cmake_parse_arguments(JSON "${options}" "${oneValueArgs}" "${multiValueArgs}"
+    cmake_parse_arguments(JSON "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}"
         "${ARGN}")
 
     list(LENGTH ARGN argnLength)
@@ -278,11 +279,11 @@ function(AddJsonPackage)
 
     parse_object(${object})
 
-    if(ci)
-        if (JSON_MODULE)
-            set(EXTRA_ARGS MODULE)
-        endif()
+    if (JSON_MODULE)
+        set(EXTRA_ARGS MODULE)
+    endif()
 
+    if(ci)
         AddCIPackage(
             VERSION ${version}
             NAME ${name}
@@ -313,23 +314,24 @@ function(AddJsonPackage)
             FORCE_BUNDLED_PACKAGE "${JSON_FORCE_BUNDLED_PACKAGE}"
             SOURCE_SUBDIR "${source_subdir}"
 
-            GIT_VERSION ${git_version}
-            GIT_HOST ${git_host}
+            GIT_VERSION "${git_version}"
+            GIT_HOST "${git_host}"
 
-            ARTIFACT ${artifact}
-            TAG ${tag})
+            ARTIFACT "${artifact}"
+            TAG "${tag}"
+            ${EXTRA_ARGS})
     endif()
 
     # pass stuff to parent scope
     Propagate(${package}_ADDED)
     Propagate(${package}_SOURCE_DIR)
     Propagate(${package}_BINARY_DIR)
+    Propagate(CMAKE_PREFIX_PATH)
 endfunction()
 
 function(AddPackage)
     cpm_set_policies()
-
-    # TODO(crueter): git clone?
+    set(EXTRA_ARGS "")
 
     #[[
         URL configurations, descending order of precedence:
@@ -374,7 +376,9 @@ function(AddPackage)
 
     set(multiValueArgs OPTIONS PATCHES)
 
-    cmake_parse_arguments(PKG_ARGS "" "${oneValueArgs}" "${multiValueArgs}"
+    set(optionArgs MODULE)
+
+    cmake_parse_arguments(PKG_ARGS "${optionArgs}" "${oneValueArgs}" "${multiValueArgs}"
         "${ARGN}")
 
     if(NOT DEFINED PKG_ARGS_NAME)
@@ -558,6 +562,12 @@ function(AddPackage)
             VERSION ${PKG_ARGS_VERSION})
     endif()
 
+    if (PKG_ARGS_MODULE)
+        set(PKG_ARGS_DOWNLOAD_ONLY ON)
+    elseif (NOT DEFINED PKG_ARGS_DOWNLOAD_ONLY)
+        set(PKG_ARGS_DOWNLOAD_ONLY OFF)
+    endif()
+
     CPMAddPackage(
         NAME ${PKG_ARGS_NAME}
         URL ${pkg_url}
@@ -607,13 +617,14 @@ function(AddPackage)
     endif()
 
     # pass stuff to parent scope
-    set(${PKG_ARGS_NAME}_ADDED "${${PKG_ARGS_NAME}_ADDED}"
-        PARENT_SCOPE)
-    set(${PKG_ARGS_NAME}_SOURCE_DIR "${${PKG_ARGS_NAME}_SOURCE_DIR}"
-        PARENT_SCOPE)
-    set(${PKG_ARGS_NAME}_BINARY_DIR "${${PKG_ARGS_NAME}_BINARY_DIR}"
-        PARENT_SCOPE)
+    Propagate(${PKG_ARGS_NAME}_ADDED)
+    Propagate(${PKG_ARGS_NAME}_SOURCE_DIR)
+    Propagate(${PKG_ARGS_NAME}_BINARY_DIR)
 
+    if (PKG_ARGS_MODULE)
+        list(PREPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
+        Propagate(CMAKE_PREFIX_PATH)
+    endif()
 endfunction()
 
 # TODO(crueter): we could do an AddMultiArchPackage, multiplatformpackage?
@@ -706,6 +717,10 @@ function(AddCIPackage)
         set(ARTIFACT
             "${ARTIFACT_NAME}-${pkgname}-${ARTIFACT_VERSION}.${ARTIFACT_EXT}")
 
+        if (PKG_ARGS_MODULE)
+            set(EXTRA_ARGS MODULE)
+        endif()
+
         AddPackage(
             NAME ${ARTIFACT_PACKAGE}
             REPO ${ARTIFACT_REPO}
@@ -716,16 +731,11 @@ function(AddCIPackage)
             KEY "${pkgname}-${ARTIFACT_VERSION}"
             HASH_SUFFIX sha512sum
             FORCE_BUNDLED_PACKAGE ON
-            DOWNLOAD_ONLY ${PKG_ARGS_MODULE})
+            ${EXTRA_ARGS})
 
         set(${ARTIFACT_PACKAGE}_ADDED TRUE PARENT_SCOPE)
-        set(${ARTIFACT_PACKAGE}_SOURCE_DIR
-            "${${ARTIFACT_PACKAGE}_SOURCE_DIR}" PARENT_SCOPE)
-
-        if (PKG_ARGS_MODULE)
-            list(PREPEND CMAKE_PREFIX_PATH "${${ARTIFACT_PACKAGE}_SOURCE_DIR}")
-            Propagate(CMAKE_PREFIX_PATH)
-        endif()
+        Propagate(${ARTIFACT_PACKAGE}_SOURCE_DIR)
+        Propagate(CMAKE_PREFIX_PATH)
     else()
         find_package(${ARTIFACT_PACKAGE} ${ARTIFACT_MIN_VERSION} REQUIRED)
     endif()
