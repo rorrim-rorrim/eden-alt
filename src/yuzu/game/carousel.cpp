@@ -91,7 +91,7 @@ void GameCarousel::UpdateIconSize() {
         setUpdatesEnabled(false);
 
         setGridSize(grid_size);
-        m_gameCard->setSize(grid_size, content_size, 8, 0);
+        m_gameCard->setSize(grid_size, content_size, 0, 0);
 
         setUpdatesEnabled(true);
     }

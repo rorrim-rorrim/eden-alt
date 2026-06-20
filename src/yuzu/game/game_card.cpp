@@ -109,11 +109,11 @@ QRect GameCard::getCardRect(const QStyleOptionViewItem& option, const QModelInde
         card_height = option.rect.height() - cardMargin - 1;
     } else {
         // carousel mode
-        card_left = option.rect.left() + cardMargin + 4;
+        card_left = option.rect.left() + cardMargin;
 
         // the delegate itself takes up the full height, but the card itself
         // gets centered
-        const int content_height = m_contentSize.height();
+        const int content_height = m_contentSize.height() - cardMargin;
         const int cell_height = option.rect.height();
 
         card_height = std::min(content_height, cell_height - cardMargin * 2);
