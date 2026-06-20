@@ -49,7 +49,7 @@ void GameCard::paint(QPainter* painter, const QStyleOptionViewItem& option,
         scaled.scale(icon_size, icon_size, Qt::KeepAspectRatio);
 
         iconRect = {cardRect.left() + (cardRect.width() - scaled.width()) / 2,
-                    cardRect.top() + cardMargin, scaled.width(), scaled.height()};
+                    cardRect.top() + cardMargin - 1, scaled.width(), scaled.height()};
 
         painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
 
@@ -109,14 +109,14 @@ QRect GameCard::getCardRect(const QStyleOptionViewItem& option, const QModelInde
         card_height = option.rect.height() - cardMargin - 1;
     } else {
         // carousel mode
-        card_left = option.rect.left() + cardMargin;
+        card_left = option.rect.left() + cardMargin + 4;
 
         // the delegate itself takes up the full height, but the card itself
         // gets centered
         const int content_height = m_contentSize.height() - cardMargin;
         const int cell_height = option.rect.height();
 
-        card_height = std::min(content_height, cell_height - cardMargin * 2);
+        card_height = std::min(content_height, cell_height - cardMargin * 2) - 1;
         card_top = option.rect.top() + (cell_height - card_height) / 2;
     }
 
