@@ -9,8 +9,8 @@
     },
     "openssl-cmake": {
         "repo": "jimmy-park/openssl-cmake",
-        "hash": "2cc185c924fd70e7d886257ca0caa42b3b8f7f712f2052b4f94dde74759e27022de76178460e18c9bdfc57c366583999e198fbb6052d4e7d91c099d15a0ca63e",
-        "git_version": "3.6.2",
+        "hash": "bc73a6c035f299711bb90e20b16fa3521e8ffdab32d8d17f9e7f5cde1ff5def37ec6f9e03de25c3466d18885815c0874331f56e592b8a2f7deeb484c69c5c621",
+        "git_version": "4.0.1",
         "tag": "%VERSION%",
         "bundled": true,
         "options": [
@@ -28,8 +28,8 @@
         "package": "OpenSSL",
         "min_version": "3",
         "version": "3",
-        "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
-        "git_version": "3.6.2",
+        "hash": "2405891660b67e4cc01c7868e100f2766e1c6290120213ae62f775ef3d9610c3527bdc43d4c831260417450c74353b0693ae3e24cca3e99b02e4daa548b93904",
+        "git_version": "4.0.1",
         "tag": "openssl-%VERSION%",
         "patches": [
             "0001-add-bundled-cert.patch"
@@ -40,8 +40,8 @@
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
         "artifact": "%TAG%-cmake.tar.xz",
-        "hash": "6ae6e94664fe7f2fb01976b59b276ac5df8085c7503fa829d810fbfe495960cfec44fa2c36e2cb23480bc19c956ed199d4952b02639a00a6c07625d4e7130c2d",
-        "git_version": "1.90.0",
+        "hash": "935b3d516e996f6d25948ba8a54c1b7f70f7f0e3f517e36481fdf0196c2c5cfc2841f86e891f3df9517746b7fb605db47cdded1b8ff78d9482ddaa621db43a34",
+        "git_version": "1.91.0",
         "version": "1.57",
         "find_args": "CONFIG OPTIONAL_COMPONENTS headers context system fiber filesystem",
         "patches": [
@@ -51,9 +51,9 @@
     "fmt": {
         "repo": "fmtlib/fmt",
         "tag": "%VERSION%",
-        "hash": "f0da82c545b01692e9fd30fdfb613dbb8dd9716983dcd0ff19ac2a8d36f74beb5540ef38072fdecc1e34191b3682a8542ecbf3a61ef287dbba0a2679d4e023f2",
+        "hash": "5ac2ba0f54a484999ed5407d82b77aad170cea49a267decd2c0eedadf3b14413e2a83fcc8e9ca9c16640595e019b8636e160f72314d8be50653324e82ac745eb",
         "version": "8",
-        "git_version": "12.1.0"
+        "git_version": "12.2.0"
     },
     "lz4": {
         "name": "lz4",
@@ -126,9 +126,9 @@
         "package": "VVL",
         "repo": "KhronosGroup/Vulkan-ValidationLayers",
         "tag": "vulkan-sdk-%VERSION%",
-        "git_version": "1.4.341.0",
+        "git_version": "1.4.350.1",
         "artifact": "android-binaries-%VERSION%.zip",
-        "hash": "8812ae84cbe49e6a3418ade9c458d3be6d74a3dffd319d4502007b564d580998056e8190414368ec11b27bc83993c7a0dad713c31bcc3d9553b51243efee3753"
+        "hash": "1888eaaa4f0ccd7f3d1f0c6485ae5508f39e7b402ea8486d8243756d63073def569ddee75ea40b403cbfcb2ead515c410d2ff16ae48d8a4d6b4fbacbd78e24e4"
     },
     "quazip": {
         "package": "QuaZip-Qt6",

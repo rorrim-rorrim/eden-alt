@@ -3,9 +3,9 @@
         "package": "VulkanMemoryAllocator",
         "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
         "tag": "v%VERSION%",
-        "hash": "deb5902ef8db0e329fbd5f3f4385eb0e26bdd9f14f3a2334823fb3fe18f36bc5d235d620d6e5f6fe3551ec3ea7038638899db8778c09f6d5c278f5ff95c3344b",
+        "hash": "563acbcd8912d10d92c23715eba7acf0e7c1683af36021f415b36f359c2cce065f3906e395c32282a8410ec5c8179fbcb6412935c6629a49357475d4b4410e2a",
         "find_args": "CONFIG",
-        "git_version": "3.3.0"
+        "git_version": "3.4.0"
     },
     "sirit": {
         "repo": "eden-emulator/sirit",
@@ -28,8 +28,8 @@
     "httplib": {
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "hash": "159ed94965018f2a371d45a3bfc1961e5fb1549e501ded70a6b4532d7fe99d0579c18b5195aff6e35f96f399b426cea2650ec9fb75ef80d4c9edeccb51f2e6c9",
-        "git_version": "0.46.0",
+        "hash": "bc9474b0069b84b33f96790d48cee5b52eb1b9555ea6321ce878679c4469f1c56b87b34e74786e47d09cad5a00539cdd6726058bd0ffb2087255f02d7bdabe51",
+        "git_version": "0.48.0",
         "find_args": "MODULE GLOBAL",
         "patches": [
             "0001-mingw.patch"
@@ -56,8 +56,8 @@
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
-        "git_version": "7.35.2"
+        "hash": "14a0a8e3a768e6256e220b5edfd783de5e89f36736ef62674c8532f2564df03719311db923a08d2c930491632f2f83e486c8264e9997b6394ef59d32cae3070b",
+        "git_version": "7.37.4"
     },
     "oaknut": {
         "repo": "eden-emulator/oaknut",
@@ -139,9 +139,9 @@
         "package": "Catch2",
         "repo": "catchorg/Catch2",
         "tag": "v%VERSION%",
-        "hash": "7eea385d79d88a5690cde131fe7ccda97d5c54ea09d6f515000d7bf07c828809d61c1ac99912c1ee507cf933f61c1c47ecdcc45df7850ffa82714034b0fccf35",
+        "hash": "2e32d3d41e4ef84d927eaaaff0a75eba8fd1e47a5ddeb6007b73934f9d1ac747bf9818d02d2cdfb6343830b5091ba4f3d66efc281fc376a4f0716753dd7c9a97",
         "version": "3.0.1",
-        "git_version": "3.13.0",
+        "git_version": "3.15.1",
         "patches": [
             "0001-solaris-isnan-fix.patch"
         ]
@@ -157,16 +157,16 @@
         "package": "SimpleIni",
         "repo": "brofield/simpleini",
         "tag": "v%VERSION%",
-        "hash": "b937c18a7b6277d77ca7ebfb216af4984810f77af4c32d101b7685369a4bd5eb61406223f82698e167e6311a728d07415ab59639fdf19eff71ad6dc2abfda989",
+        "hash": "a62c5748efe2473aae5bddab96ba9114d981a72f5b0d1a44d563daa085d5c231ed8c447794691d9bd67e1e0c6bfb44e4a8736be75fee59967d0c67ce3a59bb6e",
         "find_args": "MODULE",
-        "git_version": "4.25"
+        "git_version": "4.26"
     },
     "sdl3": {
         "package": "SDL3",
         "repo": "libsdl-org/SDL",
         "tag": "release-%VERSION%",
-        "hash": "df5a323af7ac366661a3c0e887969c72584d232f3cc211419d59b0487b620b6b2859d4549c9e8df002ee489290062e466fcfddf7edc0872a37b1f2845e81c0f3",
-        "git_version": "3.4.8",
+        "hash": "10a9c1fa4d6891c7387fa694b786a168f86b6e5447c6c522f85b739e33720e106ee879dfa9e6e537d5521b983cfbd4908927c555c4d3412735129a4231e16fe6",
+        "git_version": "3.4.10",
         "version": "3.2.10"
     },
     "moltenvk": {
@@ -194,9 +194,9 @@
     "libusb": {
         "repo": "libusb/libusb",
         "tag": "v%VERSION%",
-        "hash": "98c5f7940ff06b25c9aa65aa98e23de4c79a4c1067595f4c73cc145af23a1c286639e1ba11185cd91bab702081f307b973f08a4c9746576dc8d01b3620a3aeb5",
+        "hash": "3251c9f41e900efa13caf981483f46886c8434bf4c30f3fd3073921b06be9977cebcf4a18f7bc46db86e33d7f19752296377be9050abfb8d887ffeb377864647",
         "find_args": "MODULE",
-        "git_version": "1.0.29",
+        "git_version": "1.0.30",
         "patches": [
             "0001-netbsd-gettime.patch"
         ]
@@ -229,15 +229,15 @@
         "repo": "KhronosGroup/Vulkan-Headers",
         "package": "VulkanHeaders",
         "version": "1.4.317",
-        "hash": "d2846ea228415772645eea4b52a9efd33e6a563043dd3de059e798be6391a8f0ca089f455ae420ff22574939ed0f48ed7c6ff3d5a9987d5231dbf3b3f89b484b",
-        "git_version": "1.4.345",
+        "hash": "9f92c0a5fee856be4104e72180d1914ed819b77f680f8add13282c88239e3d4bf8891a738920b1e38b2f00b121c77120834a87b8c9aae6bf60c11a01b2a58492",
+        "git_version": "1.4.354",
         "tag": "v%VERSION%"
     },
     "vulkan-utility-libraries": {
         "repo": "KhronosGroup/Vulkan-Utility-Libraries",
         "package": "VulkanUtilityLibraries",
-        "hash": "114f6b237a6dcba923ccc576befb5dea3f1c9b3a30de7dc741f234a831d1c2d52d8a224afb37dd57dffca67ac0df461eaaab6a5ab5e503b393f91c166680c3e1",
-        "git_version": "1.4.345",
+        "hash": "17a282a5eb72f905254eb62e2a4a4d6cfc3acca79f8323365e55cb9be903f75d752b6112bd016a6bec22690dcef91554cbcb2656130eccfc094ece05db0a445f",
+        "git_version": "1.4.354",
         "tag": "v%VERSION%"
     },
     "frozen": {
