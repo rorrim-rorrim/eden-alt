@@ -113,7 +113,7 @@ ComputePipeline::ComputePipeline(const Device& device_, Scheduler& scheduler, vk
 void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
                                 Tegra::MemoryManager& gpu_memory, Scheduler& scheduler,
                                 BufferCache& buffer_cache, TextureCache& texture_cache) {
-    guest_descriptor_queue.Acquire();
+    guest_descriptor_queue.Acquire(scheduler);
 
     buffer_cache.SetComputeUniformBufferState(info.constant_buffer_mask, &uniform_buffer_sizes);
     buffer_cache.UnbindComputeStorageBuffers();

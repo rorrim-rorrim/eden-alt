@@ -473,7 +473,7 @@ bool GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     buffer_cache.UpdateGraphicsBuffers(is_indexed);
     buffer_cache.BindHostGeometryBuffers(is_indexed);
 
-    guest_descriptor_queue.Acquire();
+    guest_descriptor_queue.Acquire(scheduler);
 
     RescalingPushConstant rescaling;
     RenderAreaPushConstant render_area;
