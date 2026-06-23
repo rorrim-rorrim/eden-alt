@@ -60,8 +60,7 @@ public:
     void Reset() override {
         ASSERT(references == 0);
         VideoCommon::BankBase::Reset();
-        const auto& dev = device.GetLogical();
-        dev.ResetQueryPool(*query_pool, 0, BANK_SIZE);
+        device.GetLogical().ResetQueryPool(*query_pool, 0, BANK_SIZE);
         host_results.fill(0ULL);
         next_bank = 0;
     }
@@ -156,10 +155,11 @@ public:
 
         ReserveHostQuery();
 
-        scheduler.Record([query_pool = current_query_pool, query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
+        scheduler.RequestOutsideRenderPassOperationContext();
+        scheduler.Record([device_ = &device, query_pool = current_query_pool, query_index = current_bank_slot](vk::CommandBuffer cmdbuf) {
             const bool use_precise = Settings::IsGPULevelHigh();
-            cmdbuf.BeginQuery(query_pool, static_cast<u32>(query_index),
-                              use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
+            device_->GetLogical().ResetQueryPool(query_pool, u32(query_index), 1);
+            cmdbuf.BeginQuery(query_pool, u32(query_index), use_precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
         });
 
         has_started = true;
