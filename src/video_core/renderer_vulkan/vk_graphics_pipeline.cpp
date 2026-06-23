@@ -907,10 +907,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
 
     // EDS3 - Enables (composite: per-feature)
     if (key.state.extended_dynamic_state_3_enables) {
-        if (device.SupportsDynamicState3DepthClampEnable()) {
+        if (key.state.dynamic_state3_depth_clamp_enable) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT);
         }
-        if (device.SupportsDynamicState3LogicOpEnable()) {
+        if (key.state.dynamic_state3_logic_op_enable) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT);
         }
         if (device.SupportsDynamicState3LineRasterizationMode()) {
@@ -919,7 +919,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         if (device.SupportsDynamicState3ConservativeRasterizationMode()) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT);
         }
-        if (device.SupportsDynamicState3LineStippleEnable()) {
+        if (key.state.dynamic_state3_line_stipple_enable) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT);
         }
         if (device.SupportsDynamicState3AlphaToCoverageEnable()) {
