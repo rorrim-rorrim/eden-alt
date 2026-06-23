@@ -18,7 +18,8 @@ namespace Vulkan {
 UpdateDescriptorQueue::UpdateDescriptorQueue(const Device& device_)
     : device{device_}
 {
-    payload_start = payload_cursor = payload.data();
+    payload_start = payload.data();
+    payload_cursor = payload.data();
 }
 
 UpdateDescriptorQueue::~UpdateDescriptorQueue() = default;
@@ -32,8 +33,12 @@ void UpdateDescriptorQueue::TickFrame() {
 }
 
 void UpdateDescriptorQueue::Acquire(Scheduler& scheduler) {
-    if (std::distance(payload_start, payload_cursor) + MIN_ENTRIES > ptrdiff_t(FRAME_PAYLOAD_SIZE)) {
-        LOG_WARNING(Render_Vulkan, "Payload overflow {}, waiting for worker thread", std::distance(payload_start, payload_cursor));
+    // Minimum number of entries required.
+    // This is the maximum number of entries a single draw call might use.
+    static constexpr size_t MIN_ENTRIES = 0x400;
+
+    if (std::distance(payload_start, payload_cursor) + MIN_ENTRIES >= FRAME_PAYLOAD_SIZE) {
+        LOG_WARNING(Render_Vulkan, "Payload overflow, waiting for worker thread");
         scheduler.WaitWorker();
         payload_cursor = payload_start;
     }

@@ -27,13 +27,10 @@ union DescriptorUpdateEntry {
 };
 
 class UpdateDescriptorQueue final {
-    // Minimum number of entries required. This is the maximum number of entries a single draw call might use.
-    static constexpr size_t MIN_ENTRIES = 0x400;
     // This should be plenty for the vast majority of cases. Most desktop platforms only
     // provide up to 3 swapchain images.
     static constexpr size_t FRAMES_IN_FLIGHT = 8;
-    // Mario Jamboree on minigames uses up to 0x21xxx entries at a time
-    static constexpr size_t FRAME_PAYLOAD_SIZE = 0x24000;
+    static constexpr size_t FRAME_PAYLOAD_SIZE = 0x20000;
     static constexpr size_t PAYLOAD_SIZE = FRAME_PAYLOAD_SIZE * FRAMES_IN_FLIGHT;
 
 public:
