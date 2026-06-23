@@ -19,19 +19,19 @@ namespace Common {
 template <typename T>
     requires std::is_integral_v<T>
 [[nodiscard]] constexpr std::size_t BitSize() {
-    return sizeof(T) * CHAR_BIT;
+    return std::size_t(sizeof(T) * CHAR_BIT);
 }
 
 template<typename T>
     requires std::is_integral_v<T>
 [[nodiscard]] constexpr u32 MostSignificantBit(const T value) {
-    return (sizeof(T) * CHAR_BIT - 1) - std::countl_zero(value);
+    return u32(sizeof(T) * CHAR_BIT - 1 - std::countl_zero(value));
 }
 
 template<typename T>
     requires std::is_integral_v<T>
 [[nodiscard]] constexpr T Log2Floor(const T value) {
-    return MostSignificantBit<T>(value);
+    return T(MostSignificantBit<T>(value));
 }
 
 template<typename T>
