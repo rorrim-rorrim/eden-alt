@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -31,14 +31,14 @@ public:
     static constexpr size_t MaxTableSize = 1024;
 
 public:
-    explicit KHandleTable(KernelCore& kernel) {}
+    explicit KHandleTable(KernelCore& kernel) : m_kernel(kernel) {}
 
-    Result Initialize(KernelCore& kernel, s32 size) {
+    Result Initialize(s32 size) {
         // Check that the table size is valid.
         R_UNLESS(size <= static_cast<s32>(MaxTableSize), ResultOutOfMemory);
 
         // Lock.
-        KScopedDisableDispatch dd{kernel};
+        KScopedDisableDispatch dd{m_kernel};
         KScopedSpinLock lk(m_lock);
 
         // Initialize all fields.
@@ -68,72 +68,76 @@ public:
         return m_max_count;
     }
 
-    void Finalize(KernelCore& kernel);
-    bool Remove(KernelCore& kernel, Handle handle);
+    void Finalize();
+    bool Remove(Handle handle);
 
     template <typename T = KAutoObject>
-    KScopedAutoObject<T> GetObjectWithoutPseudoHandle(KernelCore& kernel, Handle handle) const {
+    KScopedAutoObject<T> GetObjectWithoutPseudoHandle(Handle handle) const {
         // Lock and look up in table.
-        KScopedDisableDispatch dd{kernel};
+        KScopedDisableDispatch dd{m_kernel};
         KScopedSpinLock lk(m_lock);
 
         if constexpr (std::is_same_v<T, KAutoObject>) {
-            return {kernel, this->GetObjectImpl(handle)};
+            return this->GetObjectImpl(handle);
         } else {
             if (auto* obj = this->GetObjectImpl(handle); obj != nullptr) [[likely]] {
-                return {kernel, obj->DynamicCast<T*>()};
+                return obj->DynamicCast<T*>();
             } else {
-                return {kernel, nullptr};
+                return nullptr;
             }
         }
     }
 
     template <typename T = KAutoObject>
-    KScopedAutoObject<T> GetObject(KernelCore& kernel, Handle handle) const {
+    KScopedAutoObject<T> GetObject(Handle handle) const {
         // Handle pseudo-handles.
         if constexpr (std::derived_from<KProcess, T>) {
             if (handle == Svc::PseudoHandle::CurrentProcess) {
-                auto* const cur_process = GetCurrentProcessPointer(kernel);
+                auto* const cur_process = GetCurrentProcessPointer(m_kernel);
                 ASSERT(cur_process != nullptr);
-                return {kernel, cur_process};
+                return cur_process;
             }
         } else if constexpr (std::derived_from<KThread, T>) {
             if (handle == Svc::PseudoHandle::CurrentThread) {
-                auto* const cur_thread = GetCurrentThreadPointer(kernel);
+                auto* const cur_thread = GetCurrentThreadPointer(m_kernel);
                 ASSERT(cur_thread != nullptr);
-                return {kernel, cur_thread};
+                return cur_thread;
             }
         }
-        return this->template GetObjectWithoutPseudoHandle<T>(kernel, handle);
+
+        return this->template GetObjectWithoutPseudoHandle<T>(handle);
     }
 
-    KScopedAutoObject<KAutoObject> GetObjectForIpcWithoutPseudoHandle(KernelCore& kernel, Handle handle) const {
+    KScopedAutoObject<KAutoObject> GetObjectForIpcWithoutPseudoHandle(Handle handle) const {
         // Lock and look up in table.
-        KScopedDisableDispatch dd{kernel};
-        KScopedSpinLock lk(m_lock);
-        return {kernel, this->GetObjectImpl(handle)};
-    }
-    KScopedAutoObject<KAutoObject> GetObjectForIpc(KernelCore& kernel, Handle handle, KThread* cur_thread) const;
-    KScopedAutoObject<KAutoObject> GetObjectByIndex(KernelCore& kernel, Handle* out_handle, size_t index) const {
-        KScopedDisableDispatch dd{kernel};
+        KScopedDisableDispatch dd{m_kernel};
         KScopedSpinLock lk(m_lock);
 
-        return {kernel, this->GetObjectByIndexImpl(out_handle, index)};
+        return this->GetObjectImpl(handle);
     }
 
-    Result Reserve(KernelCore& kernel, Handle* out_handle);
-    void Unreserve(KernelCore& kernel, Handle handle);
+    KScopedAutoObject<KAutoObject> GetObjectForIpc(Handle handle, KThread* cur_thread) const;
 
-    Result Add(KernelCore& kernel, Handle* out_handle, KAutoObject* obj);
-    void Register(KernelCore& kernel, Handle handle, KAutoObject* obj);
+    KScopedAutoObject<KAutoObject> GetObjectByIndex(Handle* out_handle, size_t index) const {
+        KScopedDisableDispatch dd{m_kernel};
+        KScopedSpinLock lk(m_lock);
+
+        return this->GetObjectByIndexImpl(out_handle, index);
+    }
+
+    Result Reserve(Handle* out_handle);
+    void Unreserve(Handle handle);
+
+    Result Add(Handle* out_handle, KAutoObject* obj);
+    void Register(Handle handle, KAutoObject* obj);
 
     template <typename T>
-    bool GetMultipleObjects(KernelCore& kernel, T** out, const Handle* handles, size_t num_handles) const {
+    bool GetMultipleObjects(T** out, const Handle* handles, size_t num_handles) const {
         // Try to convert and open all the handles.
         size_t num_opened;
         {
             // Lock the table.
-            KScopedDisableDispatch dd{kernel};
+            KScopedDisableDispatch dd{m_kernel};
             KScopedSpinLock lk(m_lock);
             for (num_opened = 0; num_opened < num_handles; num_opened++) {
                 // Get the current handle.
@@ -146,14 +150,14 @@ public:
                 }
 
                 // Cast the current object to the desired type.
-                T* cur_thread = cur_object->DynamicCast<T*>();
-                if (cur_thread == nullptr) [[unlikely]] {
+                T* cur_t = cur_object->DynamicCast<T*>();
+                if (cur_t == nullptr) [[unlikely]] {
                     break;
                 }
 
                 // Open a reference to the current object.
-                cur_thread->Open(kernel);
-                out[num_opened] = cur_thread;
+                cur_t->Open();
+                out[num_opened] = cur_t;
             }
         }
 
@@ -164,7 +168,7 @@ public:
 
         // If we didn't convert entry object, close the ones we opened.
         for (size_t i = 0; i < num_opened; i++) {
-            out[i]->Close(kernel);
+            out[i]->Close();
         }
 
         return false;
@@ -173,9 +177,13 @@ public:
 private:
     s32 AllocateEntry() {
         ASSERT(m_count < m_table_size);
+
         const auto index = m_free_head_index;
+
         m_free_head_index = m_entry_infos[index].GetNextFreeIndex();
+
         m_max_count = (std::max)(m_max_count, ++m_count);
+
         return index;
     }
 
@@ -294,6 +302,7 @@ private:
     };
 
 private:
+    KernelCore& m_kernel;
     std::array<EntryInfo, MaxTableSize> m_entry_infos{};
     std::array<KAutoObject*, MaxTableSize> m_objects{};
     mutable KSpinLock m_lock;

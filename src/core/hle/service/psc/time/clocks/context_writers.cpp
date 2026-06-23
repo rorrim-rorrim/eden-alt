@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -9,10 +6,10 @@
 
 namespace Service::PSC::Time {
 
-void ContextWriter::SignalAllNodes(Kernel::KernelCore& kernel) {
+void ContextWriter::SignalAllNodes() {
     std::scoped_lock l{m_mutex};
     for (auto& operation : m_operation_events) {
-        operation.m_event->Signal(kernel);
+        operation.m_event->Signal();
     }
 }
 
@@ -36,7 +33,7 @@ Result LocalSystemClockContextWriter::Write(const SystemClockContext& context) {
 
     m_shared_memory.SetLocalSystemContext(context);
 
-    SignalAllNodes(m_system.Kernel());
+    SignalAllNodes();
 
     R_SUCCEED();
 }
@@ -60,7 +57,7 @@ Result NetworkSystemClockContextWriter::Write(const SystemClockContext& context)
 
     m_shared_memory.SetNetworkSystemContext(context);
 
-    SignalAllNodes(m_system.Kernel());
+    SignalAllNodes();
 
     R_SUCCEED();
 }
@@ -78,7 +75,7 @@ Result EphemeralNetworkSystemClockContextWriter::Write(const SystemClockContext&
         m_in_use = true;
     }
 
-    SignalAllNodes(m_system.Kernel());
+    SignalAllNodes();
 
     R_SUCCEED();
 }

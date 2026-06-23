@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,14 +12,14 @@ namespace Kernel {
 
 KWorkerTask::KWorkerTask(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 
-void KWorkerTask::DoWorkerTask(KernelCore& kernel) {
+void KWorkerTask::DoWorkerTask() {
     if (auto* const thread = this->DynamicCast<KThread*>(); thread != nullptr) {
-        return thread->DoWorkerTaskImpl(kernel);
+        return thread->DoWorkerTaskImpl();
     } else {
         auto* const process = this->DynamicCast<KProcess*>();
         ASSERT(process != nullptr);
 
-        return process->DoWorkerTaskImpl(kernel);
+        return process->DoWorkerTaskImpl();
     }
 }
 
@@ -35,9 +32,9 @@ void KWorkerTaskManager::AddTask(KernelCore& kernel, WorkerType type, KWorkerTas
 
 void KWorkerTaskManager::AddTask(KernelCore& kernel, KWorkerTask* task) {
     KScopedSchedulerLock sl(kernel);
-    m_waiting_thread.QueueWork([&kernel, task]() {
+    m_waiting_thread.QueueWork([task]() {
         // Do the task.
-        task->DoWorkerTask(kernel);
+        task->DoWorkerTask();
     });
 }
 

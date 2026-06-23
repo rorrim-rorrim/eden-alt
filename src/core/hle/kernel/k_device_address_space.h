@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -23,13 +20,13 @@ public:
     explicit KDeviceAddressSpace(KernelCore& kernel);
     ~KDeviceAddressSpace();
 
-    Result Initialize(KernelCore& kernel, u64 address, u64 size);
-    void Finalize(KernelCore& kernel) override;
+    Result Initialize(u64 address, u64 size);
+    void Finalize() override;
 
     bool IsInitialized() const override {
         return m_is_initialized;
     }
-    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
     Result Attach(Svc::DeviceName device_name);
     Result Detach(Svc::DeviceName device_name);
@@ -47,7 +44,7 @@ public:
     Result Unmap(KProcessPageTable* page_table, KProcessAddress process_address, size_t size,
                  u64 device_address);
 
-    static void Initialize(KernelCore& kernel);
+    static void Initialize();
 
 private:
     Result Map(KProcessPageTable* page_table, KProcessAddress process_address, size_t size,

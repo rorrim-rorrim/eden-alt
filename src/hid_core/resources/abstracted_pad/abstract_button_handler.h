@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -9,10 +6,6 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
-
-namespace Kernel {
-class KernelCore;
-}
 
 namespace Service::HID {
 struct NpadSharedMemoryEntry;
@@ -24,7 +17,7 @@ class NpadAbstractPropertiesHandler;
 /// Handles Npad request from HID interfaces
 class NpadAbstractButtonHandler final {
 public:
-    explicit NpadAbstractButtonHandler(Kernel::KernelCore& kernel_);
+    explicit NpadAbstractButtonHandler();
     ~NpadAbstractButtonHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -77,7 +70,6 @@ private:
 
     u64 gc_sampling_number{};
     GcTrigger gc_trigger_state{};
-    Kernel::KernelCore& kernel;
 };
 
 } // namespace Service::HID

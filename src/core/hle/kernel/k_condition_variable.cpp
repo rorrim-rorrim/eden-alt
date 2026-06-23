@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -66,15 +66,14 @@ bool UpdateLockAtomic(KernelCore& kernel, u32* out, KProcessAddress address, u32
 class ThreadQueueImplForKConditionVariableWaitForAddress final : public KThreadQueue {
 public:
     explicit ThreadQueueImplForKConditionVariableWaitForAddress(KernelCore& kernel)
-        : KThreadQueue(kernel)
-    {}
+        : KThreadQueue(kernel) {}
 
-    virtual void CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.
-        waiting_thread->GetLockOwner(kernel)->RemoveWaiter(kernel, waiting_thread);
+        waiting_thread->GetLockOwner()->RemoveWaiter(waiting_thread);
 
         // Invoke the base cancel wait handler.
-        KThreadQueue::CancelWait(kernel, waiting_thread, wait_result, cancel_timer_task);
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
 };
 
@@ -83,15 +82,14 @@ private:
     KConditionVariable::ThreadTree* m_tree;
 
 public:
-    explicit ThreadQueueImplForKConditionVariableWaitConditionVariable(KernelCore& kernel, KConditionVariable::ThreadTree* t)
-        : KThreadQueue(kernel)
-        , m_tree(t)
-    {}
+    explicit ThreadQueueImplForKConditionVariableWaitConditionVariable(
+        KernelCore& kernel, KConditionVariable::ThreadTree* t)
+        : KThreadQueue(kernel), m_tree(t) {}
 
-    void CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.
-        if (KThread* owner = waiting_thread->GetLockOwner(kernel); owner != nullptr) {
-            owner->RemoveWaiter(kernel, waiting_thread);
+        if (KThread* owner = waiting_thread->GetLockOwner(); owner != nullptr) {
+            owner->RemoveWaiter(waiting_thread);
         }
 
         // If the thread is waiting on a condvar, remove it from the tree.
@@ -101,15 +99,14 @@ public:
         }
 
         // Invoke the base cancel wait handler.
-        KThreadQueue::CancelWait(kernel, waiting_thread, wait_result, cancel_timer_task);
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
 };
 
 } // namespace
 
 KConditionVariable::KConditionVariable(Core::System& system)
-    : m_system{system}
-{}
+    : m_system{system}, m_kernel{system.Kernel()} {}
 
 KConditionVariable::~KConditionVariable() = default;
 
@@ -122,7 +119,8 @@ Result KConditionVariable::SignalToAddress(KernelCore& kernel, KProcessAddress a
 
         // Remove waiter thread.
         bool has_waiters{};
-        KThread* const next_owner_thread = owner_thread->RemoveUserWaiterByKey(kernel, std::addressof(has_waiters), addr);
+        KThread* const next_owner_thread =
+            owner_thread->RemoveUserWaiterByKey(std::addressof(has_waiters), addr);
 
         // Determine the next tag.
         u32 next_value{};
@@ -146,14 +144,15 @@ Result KConditionVariable::SignalToAddress(KernelCore& kernel, KProcessAddress a
 
         // If necessary, signal the next owner thread.
         if (next_owner_thread != nullptr) {
-            next_owner_thread->EndWait(kernel, result);
+            next_owner_thread->EndWait(result);
         }
 
         R_RETURN(result);
     }
 }
 
-Result KConditionVariable::WaitForAddress(KernelCore& kernel, Handle handle, KProcessAddress addr, u32 value) {
+Result KConditionVariable::WaitForAddress(KernelCore& kernel, Handle handle, KProcessAddress addr,
+                                          u32 value) {
     KThread* cur_thread = GetCurrentThreadPointer(kernel);
     ThreadQueueImplForKConditionVariableWaitForAddress wait_queue(kernel);
 
@@ -174,30 +173,30 @@ Result KConditionVariable::WaitForAddress(KernelCore& kernel, Handle handle, KPr
 
         // Get the lock owner thread.
         owner_thread = GetCurrentProcess(kernel)
-            .GetHandleTable()
-            .GetObjectWithoutPseudoHandle<KThread>(kernel, handle)
-            .ReleasePointerUnsafe();
+                           .GetHandleTable()
+                           .GetObjectWithoutPseudoHandle<KThread>(handle)
+                           .ReleasePointerUnsafe();
         R_UNLESS(owner_thread != nullptr, ResultInvalidHandle);
 
         // Update the lock.
         cur_thread->SetUserAddressKey(addr, value);
-        owner_thread->AddWaiter(kernel, cur_thread);
+        owner_thread->AddWaiter(cur_thread);
 
         // Begin waiting.
-        cur_thread->BeginWait(kernel, std::addressof(wait_queue));
+        cur_thread->BeginWait(std::addressof(wait_queue));
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
     }
 
     // Close our reference to the owner thread, now that the wait is over.
-    owner_thread->Close(kernel);
+    owner_thread->Close();
 
     // Get the wait result.
     R_RETURN(cur_thread->GetWaitResult());
 }
 
-void KConditionVariable::SignalImpl(KernelCore& kernel, KThread* thread) {
+void KConditionVariable::SignalImpl(KThread* thread) {
     // Check pre-conditions.
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
     // Update the tag.
     KProcessAddress address = thread->GetAddressKey();
@@ -212,33 +211,35 @@ void KConditionVariable::SignalImpl(KernelCore& kernel, KThread* thread) {
         // TODO(bunnei): We should call CanAccessAtomic(..) here.
         can_access = true;
         if (can_access) {
-            UpdateLockAtomic(kernel, std::addressof(prev_tag), address, own_tag, Svc::HandleWaitMask);
+            UpdateLockAtomic(m_kernel, std::addressof(prev_tag), address, own_tag,
+                             Svc::HandleWaitMask);
         }
     }
 
     if (can_access) {
         if (prev_tag == Svc::InvalidHandle) {
             // If nobody held the lock previously, we're all good.
-            thread->EndWait(kernel, ResultSuccess);
+            thread->EndWait(ResultSuccess);
         } else {
             // Get the previous owner.
-            KThread* owner_thread = GetCurrentProcess(kernel)
-                .GetHandleTable()
-                .GetObjectWithoutPseudoHandle<KThread>(kernel, Handle(prev_tag & ~Svc::HandleWaitMask))
-                .ReleasePointerUnsafe();
+            KThread* owner_thread = GetCurrentProcess(m_kernel)
+                                        .GetHandleTable()
+                                        .GetObjectWithoutPseudoHandle<KThread>(
+                                            static_cast<Handle>(prev_tag & ~Svc::HandleWaitMask))
+                                        .ReleasePointerUnsafe();
 
             if (owner_thread) {
                 // Add the thread as a waiter on the owner.
-                owner_thread->AddWaiter(kernel, thread);
-                owner_thread->Close(kernel);
+                owner_thread->AddWaiter(thread);
+                owner_thread->Close();
             } else {
                 // The lock was tagged with a thread that doesn't exist.
-                thread->EndWait(kernel, ResultInvalidState);
+                thread->EndWait(ResultInvalidState);
             }
         }
     } else {
         // If the address wasn't accessible, note so.
-        thread->EndWait(kernel, ResultInvalidCurrentMemory);
+        thread->EndWait(ResultInvalidCurrentMemory);
     }
 }
 
@@ -246,16 +247,17 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
     // Perform signaling.
     s32 num_waiters{};
     {
-        KScopedSchedulerLock sl(m_system.Kernel());
+        KScopedSchedulerLock sl(m_kernel);
 
         auto it = m_tree.nfind_key({cv_key, -1});
-        while ((it != m_tree.end()) && (count <= 0 || num_waiters < count) && (it->GetConditionVariableKey() == cv_key)) {
+        while ((it != m_tree.end()) && (count <= 0 || num_waiters < count) &&
+               (it->GetConditionVariableKey() == cv_key)) {
             KThread* target_thread = std::addressof(*it);
 
             it = m_tree.erase(it);
             target_thread->ClearConditionVariable();
 
-            this->SignalImpl(m_system.Kernel(), target_thread);
+            this->SignalImpl(target_thread);
 
             ++num_waiters;
         }
@@ -263,20 +265,20 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
         // If we have no waiters, clear the has waiter flag.
         if (it == m_tree.end() || it->GetConditionVariableKey() != cv_key) {
             constexpr u32 HasNoWaiterFlag = 0;
-            WriteToUser(m_system.Kernel(), cv_key, HasNoWaiterFlag);
+            WriteToUser(m_kernel, cv_key, HasNoWaiterFlag);
         }
     }
 }
 
 Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 timeout) {
     // Prepare to wait.
-    KThread* cur_thread = GetCurrentThreadPointer(m_system.Kernel());
+    KThread* cur_thread = GetCurrentThreadPointer(m_kernel);
     KHardwareTimer* timer{};
-    ThreadQueueImplForKConditionVariableWaitConditionVariable wait_queue(m_system.Kernel(),
+    ThreadQueueImplForKConditionVariableWaitConditionVariable wait_queue(m_kernel,
                                                                          std::addressof(m_tree));
 
     {
-        KScopedSchedulerLockAndSleep slp(m_system.Kernel(), std::addressof(timer), cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp(m_kernel, std::addressof(timer), cur_thread, timeout);
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -289,7 +291,7 @@ Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 ti
             // Remove waiter thread.
             bool has_waiters{};
             KThread* next_owner_thread =
-                cur_thread->RemoveUserWaiterByKey(m_system.Kernel(), std::addressof(has_waiters), addr);
+                cur_thread->RemoveUserWaiterByKey(std::addressof(has_waiters), addr);
 
             // Update for the next owner thread.
             u32 next_value{};
@@ -301,18 +303,18 @@ Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 ti
                 }
 
                 // Wake up the next owner.
-                next_owner_thread->EndWait(m_system.Kernel(), ResultSuccess);
+                next_owner_thread->EndWait(ResultSuccess);
             }
 
             // Write to the cv key.
             {
                 constexpr u32 HasWaiterFlag = 1;
-                WriteToUser(m_system.Kernel(), key, HasWaiterFlag);
+                WriteToUser(m_kernel, key, HasWaiterFlag);
                 std::atomic_thread_fence(std::memory_order_seq_cst);
             }
 
             // Write the value to userspace.
-            if (!WriteToUser(m_system.Kernel(), addr, next_value)) {
+            if (!WriteToUser(m_kernel, addr, next_value)) {
                 slp.CancelSleep();
                 R_THROW(ResultInvalidCurrentMemory);
             }
@@ -327,7 +329,7 @@ Result KConditionVariable::Wait(KProcessAddress addr, u64 key, u32 value, s64 ti
 
         // Begin waiting.
         wait_queue.SetHardwareTimer(timer);
-        cur_thread->BeginWait(m_system.Kernel(), std::addressof(wait_queue));
+        cur_thread->BeginWait(std::addressof(wait_queue));
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
     }
 

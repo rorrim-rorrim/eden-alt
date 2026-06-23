@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -142,12 +139,12 @@ public:
     };
 
     explicit KPageGroup(KernelCore& kernel, KBlockInfoManager* m)
-        : m_manager{m} {}
+        : m_kernel{kernel}, m_manager{m} {}
     ~KPageGroup() {
         this->Finalize();
     }
 
-    void CloseAndReset(KernelCore& kernel);
+    void CloseAndReset();
     void Finalize();
 
     Iterator begin() const {
@@ -161,9 +158,9 @@ public:
     }
 
     Result AddBlock(KPhysicalAddress addr, size_t num_pages);
-    void Open(KernelCore& kernel) const;
-    void OpenFirst(KernelCore& kernel) const;
-    void Close(KernelCore& kernel) const;
+    void Open() const;
+    void OpenFirst() const;
+    void Close() const;
 
     size_t GetNumPages() const;
 
@@ -178,6 +175,7 @@ public:
     }
 
 private:
+    KernelCore& m_kernel;
     KBlockInfo* m_first_block{};
     KBlockInfo* m_last_block{};
     KBlockInfoManager* m_manager{};
@@ -185,24 +183,21 @@ private:
 
 class KScopedPageGroup {
 public:
-    explicit KScopedPageGroup(KernelCore& kernel, const KPageGroup* gp, bool not_first = true)
-        : m_kernel{kernel}
-        , m_pg{gp}
-    {
+    explicit KScopedPageGroup(const KPageGroup* gp, bool not_first = true) : m_pg(gp) {
         if (m_pg) {
             if (not_first) {
-                m_pg->Open(kernel);
+                m_pg->Open();
             } else {
-                m_pg->OpenFirst(kernel);
+                m_pg->OpenFirst();
             }
         }
     }
-    explicit KScopedPageGroup(KernelCore& kernel, const KPageGroup& gp, bool not_first = true)
-        : KScopedPageGroup(kernel, std::addressof(gp), not_first) {}
-
+    explicit KScopedPageGroup(const KPageGroup& gp, bool not_first = true)
+        : KScopedPageGroup(std::addressof(gp), not_first) {}
     ~KScopedPageGroup() {
-        if (m_pg)
-            m_pg->Close(m_kernel);
+        if (m_pg) {
+            m_pg->Close();
+        }
     }
 
     void CancelClose() {
@@ -210,7 +205,6 @@ public:
     }
 
 private:
-    KernelCore& m_kernel;
     const KPageGroup* m_pg{};
 };
 

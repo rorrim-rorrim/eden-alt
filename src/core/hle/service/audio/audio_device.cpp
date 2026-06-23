@@ -42,7 +42,7 @@ IAudioDevice::IAudioDevice(Core::System& system_, u64 applet_resource_user_id, u
     };
     RegisterHandlers(functions);
 
-    event->Signal(system.Kernel());
+    event->Signal();
 }
 
 IAudioDevice::~IAudioDevice() {
@@ -128,7 +128,7 @@ Result IAudioDevice::GetActiveAudioDeviceNameAuto(
 
 Result IAudioDevice::QueryAudioDeviceSystemEvent(OutCopyHandle<Kernel::KReadableEvent> out_event) {
     LOG_DEBUG(Service_Audio, "(STUBBED) called");
-    event->Signal(system.Kernel());
+    event->Signal();
     *out_event = &event->GetReadableEvent();
     R_SUCCEED();
 }

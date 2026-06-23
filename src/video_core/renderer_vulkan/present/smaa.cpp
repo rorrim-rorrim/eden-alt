@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
@@ -27,24 +27,22 @@
 namespace Vulkan {
 
 SMAA::SMAA(const Device& device, MemoryAllocator& allocator, size_t image_count, VkExtent2D extent)
-    : m_allocator(allocator)
-    , m_extent(extent)
-    , m_image_count(u32(image_count))
-{
-    CreateImages(device);
-    CreateRenderPasses(device);
-    CreateSampler(device);
-    CreateShaders(device);
-    CreateDescriptorPool(device);
-    CreateDescriptorSetLayouts(device);
-    CreateDescriptorSets(device);
-    CreatePipelineLayouts(device);
-    CreatePipelines(device);
+    : m_device(device), m_allocator(allocator), m_extent(extent),
+      m_image_count(static_cast<u32>(image_count)) {
+    CreateImages();
+    CreateRenderPasses();
+    CreateSampler();
+    CreateShaders();
+    CreateDescriptorPool();
+    CreateDescriptorSetLayouts();
+    CreateDescriptorSets();
+    CreatePipelineLayouts();
+    CreatePipelines();
 }
 
 SMAA::~SMAA() = default;
 
-void SMAA::CreateImages(const Device& device) {
+void SMAA::CreateImages() {
     static constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
     static constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
 
@@ -52,9 +50,9 @@ void SMAA::CreateImages(const Device& device) {
     m_static_images[Search] = CreateWrappedImage(m_allocator, search_extent, VK_FORMAT_R8_UNORM);
 
     m_static_image_views[Area] =
-        CreateWrappedImageView(device, m_static_images[Area], VK_FORMAT_R8G8_UNORM);
+        CreateWrappedImageView(m_device, m_static_images[Area], VK_FORMAT_R8G8_UNORM);
     m_static_image_views[Search] =
-        CreateWrappedImageView(device, m_static_images[Search], VK_FORMAT_R8_UNORM);
+        CreateWrappedImageView(m_device, m_static_images[Search], VK_FORMAT_R8_UNORM);
 
     for (u32 i = 0; i < m_image_count; i++) {
         Images& images = m_dynamic_images.emplace_back();
@@ -66,39 +64,39 @@ void SMAA::CreateImages(const Device& device) {
             CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
 
         images.image_views[Blend] =
-            CreateWrappedImageView(device, images.images[Blend], VK_FORMAT_R16G16B16A16_SFLOAT);
+            CreateWrappedImageView(m_device, images.images[Blend], VK_FORMAT_R16G16B16A16_SFLOAT);
         images.image_views[Edges] =
-            CreateWrappedImageView(device, images.images[Edges], VK_FORMAT_R16G16_SFLOAT);
+            CreateWrappedImageView(m_device, images.images[Edges], VK_FORMAT_R16G16_SFLOAT);
         images.image_views[Output] =
-            CreateWrappedImageView(device, images.images[Output], VK_FORMAT_R16G16B16A16_SFLOAT);
+            CreateWrappedImageView(m_device, images.images[Output], VK_FORMAT_R16G16B16A16_SFLOAT);
     }
 }
 
-void SMAA::CreateRenderPasses(const Device& device) {
-    m_renderpasses[EdgeDetection] = CreateWrappedRenderPass(device, VK_FORMAT_R16G16_SFLOAT);
+void SMAA::CreateRenderPasses() {
+    m_renderpasses[EdgeDetection] = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16_SFLOAT);
     m_renderpasses[BlendingWeightCalculation] =
-        CreateWrappedRenderPass(device, VK_FORMAT_R16G16B16A16_SFLOAT);
+        CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
     m_renderpasses[NeighborhoodBlending] =
-        CreateWrappedRenderPass(device, VK_FORMAT_R16G16B16A16_SFLOAT);
+        CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
 
     for (auto& images : m_dynamic_images) {
         images.framebuffers[EdgeDetection] = CreateWrappedFramebuffer(
-            device, m_renderpasses[EdgeDetection], images.image_views[Edges], m_extent);
+            m_device, m_renderpasses[EdgeDetection], images.image_views[Edges], m_extent);
 
         images.framebuffers[BlendingWeightCalculation] =
-            CreateWrappedFramebuffer(device, m_renderpasses[BlendingWeightCalculation],
+            CreateWrappedFramebuffer(m_device, m_renderpasses[BlendingWeightCalculation],
                                      images.image_views[Blend], m_extent);
 
         images.framebuffers[NeighborhoodBlending] = CreateWrappedFramebuffer(
-            device, m_renderpasses[NeighborhoodBlending], images.image_views[Output], m_extent);
+            m_device, m_renderpasses[NeighborhoodBlending], images.image_views[Output], m_extent);
     }
 }
 
-void SMAA::CreateSampler(const Device& device) {
-    m_sampler = CreateWrappedSampler(device);
+void SMAA::CreateSampler() {
+    m_sampler = CreateWrappedSampler(m_device);
 }
 
-void SMAA::CreateShaders(const Device& device) {
+void SMAA::CreateShaders() {
     // These match the order of the SMAAStage enum
     static constexpr std::array vert_shader_sources{
         ARRAY_TO_SPAN(SMAA_EDGE_DETECTION_VERT_SPV),
@@ -112,33 +110,33 @@ void SMAA::CreateShaders(const Device& device) {
     };
 
     for (size_t i = 0; i < MaxSMAAStage; i++) {
-        m_vertex_shaders[i] = CreateWrappedShaderModule(device, vert_shader_sources[i]);
-        m_fragment_shaders[i] = CreateWrappedShaderModule(device, frag_shader_sources[i]);
+        m_vertex_shaders[i] = CreateWrappedShaderModule(m_device, vert_shader_sources[i]);
+        m_fragment_shaders[i] = CreateWrappedShaderModule(m_device, frag_shader_sources[i]);
     }
 }
 
-void SMAA::CreateDescriptorPool(const Device& device) {
+void SMAA::CreateDescriptorPool() {
     // Edge detection: 1 descriptor
     // Blending weight calculation: 3 descriptors
     // Neighborhood blending: 2 descriptors
 
     // 6 descriptors, 3 descriptor sets per image
-    m_descriptor_pool = CreateWrappedDescriptorPool(device, 6 * m_image_count, 3 * m_image_count);
+    m_descriptor_pool = CreateWrappedDescriptorPool(m_device, 6 * m_image_count, 3 * m_image_count);
 }
 
-void SMAA::CreateDescriptorSetLayouts(const Device& device) {
+void SMAA::CreateDescriptorSetLayouts() {
     m_descriptor_set_layouts[EdgeDetection] =
-        CreateWrappedDescriptorSetLayout(device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
     m_descriptor_set_layouts[BlendingWeightCalculation] =
-        CreateWrappedDescriptorSetLayout(device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
     m_descriptor_set_layouts[NeighborhoodBlending] =
-        CreateWrappedDescriptorSetLayout(device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 }
 
-void SMAA::CreateDescriptorSets(const Device& device) {
+void SMAA::CreateDescriptorSets() {
     std::vector<VkDescriptorSetLayout> layouts(m_descriptor_set_layouts.size());
     std::ranges::transform(m_descriptor_set_layouts, layouts.begin(),
                            [](auto& layout) { return *layout; });
@@ -148,21 +146,21 @@ void SMAA::CreateDescriptorSets(const Device& device) {
     }
 }
 
-void SMAA::CreatePipelineLayouts(const Device& device) {
+void SMAA::CreatePipelineLayouts() {
     for (size_t i = 0; i < MaxSMAAStage; i++) {
-        m_pipeline_layouts[i] = CreateWrappedPipelineLayout(device, m_descriptor_set_layouts[i]);
+        m_pipeline_layouts[i] = CreateWrappedPipelineLayout(m_device, m_descriptor_set_layouts[i]);
     }
 }
 
-void SMAA::CreatePipelines(const Device& device) {
+void SMAA::CreatePipelines() {
     for (size_t i = 0; i < MaxSMAAStage; i++) {
         m_pipelines[i] =
-            CreateWrappedPipeline(device, m_renderpasses[i], m_pipeline_layouts[i],
+            CreateWrappedPipeline(m_device, m_renderpasses[i], m_pipeline_layouts[i],
                                   std::tie(m_vertex_shaders[i], m_fragment_shaders[i]));
     }
 }
 
-void SMAA::UpdateDescriptorSets(const Device& device, VkImageView image_view, size_t image_index) {
+void SMAA::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
     Images& images = m_dynamic_images[image_index];
     std::vector<VkDescriptorImageInfo> image_infos;
     std::vector<VkWriteDescriptorSet> updates;
@@ -186,10 +184,10 @@ void SMAA::UpdateDescriptorSets(const Device& device, VkImageView image_view, si
     updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, *images.image_views[Blend],
                                                images.descriptor_sets[NeighborhoodBlending], 1));
 
-    device.GetLogical().UpdateDescriptorSets(updates, {});
+    m_device.GetLogical().UpdateDescriptorSets(updates, {});
 }
 
-void SMAA::UploadImages(const Device& device, Scheduler& scheduler) {
+void SMAA::UploadImages(Scheduler& scheduler) {
     if (m_images_ready) {
         return;
     }
@@ -197,9 +195,9 @@ void SMAA::UploadImages(const Device& device, Scheduler& scheduler) {
     static constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
     static constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
 
-    UploadImage(device, m_allocator, scheduler, m_static_images[Area], area_extent,
+    UploadImage(m_device, m_allocator, scheduler, m_static_images[Area], area_extent,
                 VK_FORMAT_R8G8_UNORM, ARRAY_TO_SPAN(areaTexBytes));
-    UploadImage(device, m_allocator, scheduler, m_static_images[Search], search_extent,
+    UploadImage(m_device, m_allocator, scheduler, m_static_images[Search], search_extent,
                 VK_FORMAT_R8_UNORM, ARRAY_TO_SPAN(searchTexBytes));
 
     scheduler.Record([&](vk::CommandBuffer cmdbuf) {
@@ -214,7 +212,8 @@ void SMAA::UploadImages(const Device& device, Scheduler& scheduler) {
     m_images_ready = true;
 }
 
-void SMAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, VkImage* inout_image, VkImageView* inout_image_view) {
+void SMAA::Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+                VkImageView* inout_image_view) {
     Images& images = m_dynamic_images[image_index];
 
     VkImage input_image = *inout_image;
@@ -233,8 +232,8 @@ void SMAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, 
         *images.framebuffers[BlendingWeightCalculation];
     VkFramebuffer neighborhood_blending_framebuffer = *images.framebuffers[NeighborhoodBlending];
 
-    UploadImages(device, scheduler);
-    UpdateDescriptorSets(device, *inout_image_view, image_index);
+    UploadImages(scheduler);
+    UpdateDescriptorSets(*inout_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {

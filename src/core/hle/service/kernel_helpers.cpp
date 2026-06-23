@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,15 +14,15 @@
 namespace Service::KernelHelpers {
 
 ServiceContext::ServiceContext(Core::System& system_, std::string name_)
-    : kernel(system_.Kernel())
-{
+    : kernel(system_.Kernel()) {
     if (process = Kernel::GetCurrentProcessPointer(kernel); process != nullptr) {
         return;
     }
 
     // Create the process.
     process = Kernel::KProcess::Create(kernel);
-    ASSERT(R_SUCCEEDED(process->Initialize(kernel, Kernel::Svc::CreateProcessParameter{}, kernel.GetSystemResourceLimit(), false)));
+    ASSERT(R_SUCCEEDED(process->Initialize(Kernel::Svc::CreateProcessParameter{},
+                                           kernel.GetSystemResourceLimit(), false)));
 
     // Register the process.
     Kernel::KProcess::Register(kernel, process);
@@ -34,14 +31,14 @@ ServiceContext::ServiceContext(Core::System& system_, std::string name_)
 
 ServiceContext::~ServiceContext() {
     if (process_created) {
-        process->Close(kernel);
+        process->Close();
         process = nullptr;
     }
 }
 
 Kernel::KEvent* ServiceContext::CreateEvent(std::string&& name) {
     // Reserve a new event from the process resource limit
-    Kernel::KScopedResourceReservation event_reservation(kernel, process,
+    Kernel::KScopedResourceReservation event_reservation(process,
                                                          Kernel::LimitableResource::EventCountMax);
     if (!event_reservation.Succeeded()) {
         LOG_CRITICAL(Service, "Resource limit reached!");
@@ -56,7 +53,7 @@ Kernel::KEvent* ServiceContext::CreateEvent(std::string&& name) {
     }
 
     // Initialize the event.
-    event->Initialize(kernel, process);
+    event->Initialize(process);
 
     // Commit the thread reservation.
     event_reservation.Commit();
@@ -68,10 +65,11 @@ Kernel::KEvent* ServiceContext::CreateEvent(std::string&& name) {
 }
 
 void ServiceContext::CloseEvent(Kernel::KEvent* event) {
-    if (event) {
-        event->GetReadableEvent().Close(kernel);
-        event->Close(kernel);
+    if (!event) {
+        return;
     }
+    event->GetReadableEvent().Close();
+    event->Close();
 }
 
 } // namespace Service::KernelHelpers

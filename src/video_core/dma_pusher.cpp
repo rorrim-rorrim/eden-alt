@@ -12,32 +12,37 @@
 #include "video_core/guest_memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/texture_cache/util.h"
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 
 namespace Tegra {
 
 constexpr u32 MacroRegistersStart = 0xE00;
 [[maybe_unused]] constexpr u32 ComputeInline = 0x6D;
 
-DmaPusher::DmaPusher(Core::System& system_, MemoryManager& memory_manager_, Control::ChannelState& channel_state_)
-    : system{system_}
-    , memory_manager{memory_manager_}
-    , channel_state{channel_state_}
-    , signal_sync{false}
-    , synced{false}
-{}
+DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
+                     Control::ChannelState& channel_state_)
+    : gpu{gpu_}, system{system_}, memory_manager{memory_manager_}, puller{gpu_, memory_manager_,
+                                                                          *this, channel_state_}, signal_sync{false}, synced{true} {}
 
 DmaPusher::~DmaPusher() = default;
 
 void DmaPusher::DispatchCalls() {
+
     dma_pushbuffer_subindex = 0;
+
     dma_state.is_last_call = true;
+
     while (system.IsPoweredOn()) {
         if (!Step()) {
             break;
         }
     }
-    system.GPU().FlushCommands();
-    system.GPU().OnCommandListEnd();
+    gpu.FlushCommands();
+    gpu.OnCommandListEnd();
 }
 
 bool DmaPusher::Step() {
@@ -166,9 +171,9 @@ void DmaPusher::SetState(const CommandHeader& command_header) {
     dma_state.method_count = command_header.method_count;
 }
 
-void DmaPusher::CallMethod(u32 argument) {
+void DmaPusher::CallMethod(u32 argument) const {
     if (dma_state.method < non_puller_methods) {
-        puller.CallPullerMethod(*this, Engines::Puller::MethodCall{
+        puller.CallPullerMethod(Engines::Puller::MethodCall{
             dma_state.method,
             argument,
             dma_state.subchannel,
@@ -176,29 +181,30 @@ void DmaPusher::CallMethod(u32 argument) {
         });
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        if (!subchannel->execution_mask[dma_state.method]) {
-            subchannel->method_sink.emplace_back(dma_state.method, argument);
-        } else {
-            subchannel->ConsumeSink(system);
+        if (subchannel->execution_mask[dma_state.method]) {
+            subchannel->ConsumeSink();
             subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-            subchannel->CallMethod(system, dma_state.method, argument, dma_state.is_last_call);
+            subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
+        } else {
+            subchannel->method_sink.emplace_back(dma_state.method, argument);
         }
     }
 }
 
-void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) {
+void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) const {
     if (dma_state.method < non_puller_methods) {
-        puller.CallMultiMethod(*this, dma_state.method, dma_state.subchannel, base_start, num_methods, dma_state.method_count);
+        puller.CallMultiMethod(dma_state.method, dma_state.subchannel, base_start, num_methods, dma_state.method_count);
     } else {
         auto subchannel = subchannels[dma_state.subchannel];
-        subchannel->ConsumeSink(system);
+        subchannel->ConsumeSink();
         subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
-        subchannel->CallMultiMethod(system, dma_state.method, base_start, num_methods, dma_state.method_count);
+        subchannel->CallMultiMethod(dma_state.method, base_start, num_methods, dma_state.method_count);
     }
 }
 
 void DmaPusher::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
     rasterizer = rasterizer_;
+    puller.BindRasterizer(rasterizer);
 }
 
 } // namespace Tegra

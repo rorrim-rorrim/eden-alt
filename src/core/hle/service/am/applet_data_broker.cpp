@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,23 +11,22 @@
 namespace Service::AM {
 
 AppletStorageChannel::AppletStorageChannel(KernelHelpers::ServiceContext& context)
-    : m_event(context)
-{}
+    : m_event(context) {}
 AppletStorageChannel::~AppletStorageChannel() = default;
 
-void AppletStorageChannel::Push(Kernel::KernelCore& kernel, std::shared_ptr<IStorage> storage) {
+void AppletStorageChannel::Push(std::shared_ptr<IStorage> storage) {
     std::scoped_lock lk{m_lock};
 
     m_data.emplace_back(std::move(storage));
-    m_event.Signal(kernel);
+    m_event.Signal();
 }
 
-Result AppletStorageChannel::Pop(Kernel::KernelCore& kernel, std::shared_ptr<IStorage>* out_storage) {
+Result AppletStorageChannel::Pop(std::shared_ptr<IStorage>* out_storage) {
     std::scoped_lock lk{m_lock};
 
     SCOPE_EXIT {
         if (m_data.empty()) {
-            m_event.Clear(kernel);
+            m_event.Clear();
         }
     };
 

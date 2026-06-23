@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -40,7 +37,7 @@ IAudioIn::IAudioIn(Core::System& system_, Manager& manager, size_t session_id,
 
     RegisterHandlers(functions);
 
-    process->Open(system.Kernel());
+    process->Open();
 
     if (impl->GetSystem()
             .Initialize(device_name, in_params, handle, applet_resource_user_id)
@@ -52,7 +49,7 @@ IAudioIn::IAudioIn(Core::System& system_, Manager& manager, size_t session_id,
 IAudioIn::~IAudioIn() {
     impl->Free();
     service_context.CloseEvent(event);
-    process->Close(system.Kernel());
+    process->Close();
 }
 
 Result IAudioIn::GetAudioInState(Out<u32> out_state) {

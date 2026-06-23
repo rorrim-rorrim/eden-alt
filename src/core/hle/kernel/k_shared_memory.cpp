@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,7 +15,7 @@ namespace Kernel {
 KSharedMemory::KSharedMemory(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
 KSharedMemory::~KSharedMemory() = default;
 
-Result KSharedMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_memory, KProcess* owner_process,
+Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* owner_process,
                                  Svc::MemoryPermission owner_permission,
                                  Svc::MemoryPermission user_permission, std::size_t size) {
     // Set members.
@@ -31,10 +28,11 @@ Result KSharedMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_
     const size_t num_pages = Common::DivideUp(size, PageSize);
 
     // Get the resource limit.
-    KResourceLimit* reslimit = kernel.GetSystemResourceLimit();
+    KResourceLimit* reslimit = m_kernel.GetSystemResourceLimit();
 
     // Reserve memory for ourselves.
-    KScopedResourceReservation memory_reservation(kernel, reslimit, LimitableResource::PhysicalMemoryMax, size);
+    KScopedResourceReservation memory_reservation(reslimit, LimitableResource::PhysicalMemoryMax,
+                                                  size);
     R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate the memory.
@@ -42,11 +40,12 @@ Result KSharedMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_
     //! HACK: Open continuous mapping from sysmodule pool.
     auto option = KMemoryManager::EncodeOption(KMemoryManager::Pool::Secure,
                                                KMemoryManager::Direction::FromBack);
-    m_physical_address = kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, option);
+    m_physical_address = m_kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, option);
     R_UNLESS(m_physical_address != 0, ResultOutOfMemory);
 
     //! Insert the result into our page group.
-    m_page_group.emplace(kernel, std::addressof(kernel.GetSystemSystemResource().GetBlockInfoManager()));
+    m_page_group.emplace(m_kernel,
+                         std::addressof(m_kernel.GetSystemSystemResource().GetBlockInfoManager()));
     m_page_group->AddBlock(m_physical_address, num_pages);
 
     // Commit our reservation.
@@ -54,7 +53,7 @@ Result KSharedMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_
 
     // Set our resource limit.
     m_resource_limit = reslimit;
-    m_resource_limit->Open(kernel);
+    m_resource_limit->Open();
 
     // Mark initialized.
     m_is_initialized = true;
@@ -67,14 +66,14 @@ Result KSharedMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_
     R_SUCCEED();
 }
 
-void KSharedMemory::Finalize(KernelCore& kernel) {
+void KSharedMemory::Finalize() {
     // Close and finalize the page group.
-    m_page_group->Close(kernel);
+    m_page_group->Close();
     m_page_group->Finalize();
 
     // Release the memory reservation.
-    m_resource_limit->Release(kernel, LimitableResource::PhysicalMemoryMax, m_size);
-    m_resource_limit->Close(kernel);
+    m_resource_limit->Release(LimitableResource::PhysicalMemoryMax, m_size);
+    m_resource_limit->Close();
 }
 
 Result KSharedMemory::Map(KProcess& target_process, KProcessAddress address, std::size_t map_size,

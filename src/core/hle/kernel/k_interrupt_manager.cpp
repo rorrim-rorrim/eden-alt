@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,19 +18,19 @@ void HandleInterrupt(KernelCore& kernel, s32 core_id) {
 
     if (auto* process = GetCurrentProcessPointer(kernel); process) {
         // If the user disable count is set, we may need to pin the current thread.
-        if (current_thread.GetUserDisableCount(kernel) && !process->GetPinnedThread(core_id)) {
+        if (current_thread.GetUserDisableCount() && !process->GetPinnedThread(core_id)) {
             KScopedSchedulerLock sl{kernel};
 
             // Pin the current thread.
-            process->PinCurrentThread(kernel);
+            process->PinCurrentThread();
 
             // Set the interrupt flag for the thread.
-            GetCurrentThread(kernel).SetInterruptFlag(kernel);
+            GetCurrentThread(kernel).SetInterruptFlag();
         }
     }
 
     // Request interrupt scheduling.
-    kernel.CurrentScheduler()->RequestScheduleOnInterrupt(kernel);
+    kernel.CurrentScheduler()->RequestScheduleOnInterrupt();
 }
 
 void SendInterProcessorInterrupt(KernelCore& kernel, u64 core_mask) {

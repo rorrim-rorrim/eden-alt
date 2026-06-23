@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -10,10 +7,6 @@
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
 
-namespace Kernel {
-class KernelCore;
-}
-
 namespace Service::HID {
 class NpadAbstractedPadHolder;
 class NpadAbstractPropertiesHandler;
@@ -21,7 +14,7 @@ class PalmaResource;
 
 class NpadAbstractPalmaHandler final {
 public:
-    explicit NpadAbstractPalmaHandler(Kernel::KernelCore& kernel_);
+    explicit NpadAbstractPalmaHandler();
     ~NpadAbstractPalmaHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -39,7 +32,6 @@ private:
     PalmaResource* palma_resource{nullptr};
 
     s32 ref_counter{};
-    Kernel::KernelCore& kernel;
 };
 
 } // namespace Service::HID

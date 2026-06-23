@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -60,7 +57,7 @@ Result StandardUserSystemClockCore::GetTimePoint(SteadyClockTimePoint& out_time_
 
 void StandardUserSystemClockCore::SetTimePointAndSignal(SteadyClockTimePoint& time_point) {
     m_time_point = time_point;
-    m_event->Signal(m_system.Kernel());
+    m_event->Signal();
 }
 
 } // namespace Service::PSC::Time

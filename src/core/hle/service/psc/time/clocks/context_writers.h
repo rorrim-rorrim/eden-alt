@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -14,9 +11,6 @@
 #include "core/hle/service/psc/time/common.h"
 #include "core/hle/service/psc/time/shared_memory.h"
 
-namespace Kernel {
-class KernelCore;
-}
 namespace Core {
 class System;
 }
@@ -31,7 +25,7 @@ public:
     virtual ~ContextWriter() = default;
 
     virtual Result Write(const SystemClockContext& context) = 0;
-    void SignalAllNodes(Kernel::KernelCore& kernel);
+    void SignalAllNodes();
     void Link(OperationEvent& operation_event);
 
 private:

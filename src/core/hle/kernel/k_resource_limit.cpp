@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
@@ -16,15 +16,12 @@ namespace Kernel {
 constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
 
 KResourceLimit::KResourceLimit(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel}
-    , m_lock{kernel}
-    , m_cond_var{kernel}
-{}
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, m_lock{m_kernel}, m_cond_var{m_kernel} {}
 KResourceLimit::~KResourceLimit() = default;
 
 void KResourceLimit::Initialize() {}
 
-void KResourceLimit::Finalize(KernelCore& kernel) {}
+void KResourceLimit::Finalize() {}
 
 s64 KResourceLimit::GetLimitValue(LimitableResource which) const {
     const auto index = static_cast<std::size_t>(which);
@@ -90,11 +87,11 @@ Result KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
     R_SUCCEED();
 }
 
-bool KResourceLimit::Reserve(KernelCore& kernel, LimitableResource which, s64 value) {
-    return Reserve(kernel, which, value, kernel.HardwareTimer().GetTick() + DefaultTimeout);
+bool KResourceLimit::Reserve(LimitableResource which, s64 value) {
+    return Reserve(which, value, m_kernel.HardwareTimer().GetTick() + DefaultTimeout);
 }
 
-bool KResourceLimit::Reserve(KernelCore& kernel, LimitableResource which, s64 value, s64 timeout) {
+bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
     ASSERT(value >= 0);
     const auto index = static_cast<std::size_t>(which);
     KScopedLightLock lk(m_lock);
@@ -122,7 +119,7 @@ bool KResourceLimit::Reserve(KernelCore& kernel, LimitableResource which, s64 va
         }
 
         if (m_current_hints[index] + value <= m_limit_values[index] &&
-            (timeout < 0 || kernel.HardwareTimer().GetTick() < timeout)) {
+            (timeout < 0 || m_kernel.HardwareTimer().GetTick() < timeout)) {
             m_waiter_count++;
             m_cond_var.Wait(std::addressof(m_lock), timeout, false);
             m_waiter_count--;
@@ -134,11 +131,11 @@ bool KResourceLimit::Reserve(KernelCore& kernel, LimitableResource which, s64 va
     return false;
 }
 
-void KResourceLimit::Release(KernelCore& kernel, LimitableResource which, s64 value) {
-    Release(kernel, which, value, value);
+void KResourceLimit::Release(LimitableResource which, s64 value) {
+    Release(which, value, value);
 }
 
-void KResourceLimit::Release(KernelCore& kernel, LimitableResource which, s64 value, s64 hint) {
+void KResourceLimit::Release(LimitableResource which, s64 value, s64 hint) {
     ASSERT(value >= 0);
     ASSERT(hint >= 0);
 

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -33,7 +30,7 @@ TimeWorker::TimeWorker(Core::System& system, StandardSteadyClockResource& steady
         "Time::SteadyClockEvent",
         [this](s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            m_timer_steady_clock->Signal(m_system.Kernel());
+            m_timer_steady_clock->Signal();
             return std::nullopt;
         });
 
@@ -41,19 +38,19 @@ TimeWorker::TimeWorker(Core::System& system, StandardSteadyClockResource& steady
         "Time::SteadyClockEvent",
         [this](s64 time,
                std::chrono::nanoseconds ns_late) -> std::optional<std::chrono::nanoseconds> {
-            m_timer_file_system->Signal(m_system.Kernel());
+            m_timer_file_system->Signal();
             return std::nullopt;
         });
 }
 
 TimeWorker::~TimeWorker() {
-    m_local_clock_event->Signal(m_system.Kernel());
-    m_network_clock_event->Signal(m_system.Kernel());
-    m_ephemeral_clock_event->Signal(m_system.Kernel());
+    m_local_clock_event->Signal();
+    m_network_clock_event->Signal();
+    m_ephemeral_clock_event->Signal();
     std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
     m_thread.request_stop();
-    m_event->Signal(m_system.Kernel());
+    m_event->Signal();
     m_thread.join();
 
     m_ctx.CloseEvent(m_event);
@@ -170,19 +167,19 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
             return;
 
         case EventType::PowerStateChange:
-            m_alarm_worker.GetEvent().Clear(m_system.Kernel());
+            m_alarm_worker.GetEvent().Clear();
             if (m_pm_state_change_handler.m_priority <= 1) {
                 m_alarm_worker.OnPowerStateChanged();
             }
             break;
 
         case EventType::SignalAlarms:
-            m_alarm_worker.GetTimerEvent().Clear(m_system.Kernel());
+            m_alarm_worker.GetTimerEvent().Clear();
             m_time_m->CheckAndSignalAlarms();
             break;
 
         case EventType::UpdateLocalSystemClock: {
-            m_local_clock_event->Clear(m_system.Kernel());
+            m_local_clock_event->Clear();
 
             Service::PSC::Time::SystemClockContext context{};
             R_ASSERT(m_local_clock->GetSystemClockContext(&context));
@@ -193,7 +190,7 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
         }
 
         case EventType::UpdateNetworkSystemClock: {
-            m_network_clock_event->Clear(m_system.Kernel());
+            m_network_clock_event->Clear();
 
             Service::PSC::Time::SystemClockContext context{};
             R_ASSERT(m_network_clock->GetSystemClockContext(&context));
@@ -221,7 +218,7 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
         }
 
         case EventType::UpdateEphemeralSystemClock: {
-            m_ephemeral_clock_event->Clear(m_system.Kernel());
+            m_ephemeral_clock_event->Clear();
 
             Service::PSC::Time::SystemClockContext context{};
             auto res = m_ephemeral_clock->GetSystemClockContext(&context);
@@ -250,20 +247,20 @@ void TimeWorker::ThreadFunc(std::stop_token stop_token) {
         }
 
         case EventType::UpdateSteadyClock:
-            m_timer_steady_clock->Clear(m_system.Kernel());
+            m_timer_steady_clock->Clear();
 
             m_steady_clock_resource.UpdateTime();
             m_time_m->SetStandardSteadyClockBaseTime(m_steady_clock_resource.GetTime());
             break;
 
         case EventType::UpdateFileTimestamp:
-            m_timer_file_system->Clear(m_system.Kernel());
+            m_timer_file_system->Clear();
 
             m_file_timestamp_worker.SetFilesystemPosixTime();
             break;
 
         case EventType::AutoCorrect: {
-            m_standard_user_auto_correct_clock_event->Clear(m_system.Kernel());
+            m_standard_user_auto_correct_clock_event->Clear();
 
             bool automatic_correction{};
             R_ASSERT(m_time_sm->IsStandardUserSystemClockAutomaticCorrectionEnabled(

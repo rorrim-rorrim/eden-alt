@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,10 +7,8 @@
 
 namespace Service::PSC::Time {
 Alarm::Alarm(Core::System& system, KernelHelpers::ServiceContext& ctx, AlarmType type)
-    : m_ctx{ctx}
-    , m_event{ctx.CreateEvent("Psc:Alarm:Event")}
-{
-    m_event->Clear(system.Kernel());
+    : m_ctx{ctx}, m_event{ctx.CreateEvent("Psc:Alarm:Event")} {
+    m_event->Clear();
 
     switch (type) {
     case WakeupAlarm:
@@ -42,7 +37,7 @@ Alarms::~Alarms() {
     m_ctx.CloseEvent(m_event);
 }
 
-Result Alarms::Enable(Kernel::KernelCore& kernel, Alarm& alarm, s64 time) {
+Result Alarms::Enable(Alarm& alarm, s64 time) {
     R_UNLESS(m_steady_clock.IsInitialized(), ResultClockUninitialized);
 
     std::scoped_lock l{m_mutex};
@@ -54,21 +49,21 @@ Result Alarms::Enable(Kernel::KernelCore& kernel, Alarm& alarm, s64 time) {
     time_ns = Common::AlignUp(time_ns, one_second_ns);
     alarm.SetAlertTime(time_ns);
 
-    Insert(kernel, alarm);
-    R_RETURN(UpdateClosestAndSignal(kernel));
+    Insert(alarm);
+    R_RETURN(UpdateClosestAndSignal());
 }
 
-void Alarms::Disable(Kernel::KernelCore& kernel, Alarm& alarm) {
+void Alarms::Disable(Alarm& alarm) {
     std::scoped_lock l{m_mutex};
     if (!alarm.IsLinked()) {
         return;
     }
 
-    Erase(kernel, alarm);
-    UpdateClosestAndSignal(kernel);
+    Erase(alarm);
+    UpdateClosestAndSignal();
 }
 
-void Alarms::CheckAndSignal(Kernel::KernelCore& kernel) {
+void Alarms::CheckAndSignal() {
     std::scoped_lock l{m_mutex};
     if (m_alarms.empty()) {
         return;
@@ -77,9 +72,9 @@ void Alarms::CheckAndSignal(Kernel::KernelCore& kernel) {
     bool alarm_signalled{false};
     for (auto& alarm : m_alarms) {
         if (m_steady_clock.GetRawTime() >= alarm.GetAlertTime()) {
-            alarm.Signal(kernel);
+            alarm.Signal();
             alarm.Lock();
-            Erase(kernel, alarm);
+            Erase(alarm);
 
             m_power_state_request_manager.UpdatePendingPowerStateRequestPriority(
                 alarm.GetPriority());
@@ -92,7 +87,7 @@ void Alarms::CheckAndSignal(Kernel::KernelCore& kernel) {
     }
 
     m_power_state_request_manager.SignalPowerStateRequestAvailability();
-    UpdateClosestAndSignal(kernel);
+    UpdateClosestAndSignal();
 }
 
 bool Alarms::GetClosestAlarm(Alarm** out_alarm) {
@@ -102,7 +97,7 @@ bool Alarms::GetClosestAlarm(Alarm** out_alarm) {
     return alarm != nullptr;
 }
 
-void Alarms::Insert(Kernel::KernelCore& kernel, Alarm& alarm) {
+void Alarms::Insert(Alarm& alarm) {
     // Alarms are sorted by alert time, then priority
     auto it{m_alarms.begin()};
     while (it != m_alarms.end()) {
@@ -118,15 +113,15 @@ void Alarms::Insert(Kernel::KernelCore& kernel, Alarm& alarm) {
     m_alarms.push_back(alarm);
 }
 
-void Alarms::Erase(Kernel::KernelCore& kernel, Alarm& alarm) {
+void Alarms::Erase(Alarm& alarm) {
     m_alarms.erase(m_alarms.iterator_to(alarm));
 }
 
-Result Alarms::UpdateClosestAndSignal(Kernel::KernelCore& kernel) {
+Result Alarms::UpdateClosestAndSignal() {
     m_closest_alarm = m_alarms.empty() ? nullptr : std::addressof(m_alarms.front());
     R_SUCCEED_IF(m_closest_alarm == nullptr);
 
-    m_event->Signal(kernel);
+    m_event->Signal();
 
     R_SUCCEED();
 }
@@ -188,7 +183,7 @@ void ISteadyClockAlarm::Enable(HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto time{rp.Pop<s64>()};
 
-    auto res = m_alarms.Enable(system.Kernel(), m_alarm, time);
+    auto res = m_alarms.Enable(m_alarm, time);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(res);
@@ -197,7 +192,7 @@ void ISteadyClockAlarm::Enable(HLERequestContext& ctx) {
 void ISteadyClockAlarm::Disable(HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called.");
 
-    m_alarms.Disable(system.Kernel(), m_alarm);
+    m_alarms.Disable(m_alarm);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);

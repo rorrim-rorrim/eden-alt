@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -11,11 +8,10 @@
 
 namespace AudioCore {
 
-AudioCore::AudioCore(Core::System& system) {
-    audio_manager.emplace();
+AudioCore::AudioCore(Core::System& system) : audio_manager{std::make_unique<AudioManager>()} {
     CreateSinks();
     // Must be created after the sinks
-    adsp.emplace(system, *output_sink);
+    adsp = std::make_unique<ADSP::ADSP>(system, *output_sink);
 }
 
 AudioCore ::~AudioCore() {

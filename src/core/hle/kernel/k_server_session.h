@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -39,7 +36,7 @@ public:
     explicit KServerSession(KernelCore& kernel);
     ~KServerSession() override;
 
-    void Destroy(KernelCore& kernel) override;
+    void Destroy() override;
 
     void Initialize(KSession* p) {
         m_parent = p;
@@ -49,29 +46,29 @@ public:
         return m_parent;
     }
 
-    bool IsSignaled(KernelCore& kernel) const override;
-    void OnClientClosed(KernelCore& kernel);
+    bool IsSignaled() const override;
+    void OnClientClosed();
 
-    Result OnRequest(KernelCore& kernel, KSessionRequest* request);
-    Result SendReply(KernelCore& kernel, uintptr_t server_message, uintptr_t server_buffer_size,
+    Result OnRequest(KSessionRequest* request);
+    Result SendReply(uintptr_t server_message, uintptr_t server_buffer_size,
                      KPhysicalAddress server_message_paddr, bool is_hle = false);
-    Result ReceiveRequest(KernelCore& kernel, uintptr_t server_message, uintptr_t server_buffer_size,
+    Result ReceiveRequest(uintptr_t server_message, uintptr_t server_buffer_size,
                           KPhysicalAddress server_message_paddr,
                           std::shared_ptr<Service::HLERequestContext>* out_context = nullptr,
                           std::weak_ptr<Service::SessionRequestManager> manager = {});
 
-    Result SendReplyHLE(KernelCore& kernel) {
-        R_RETURN(this->SendReply(kernel, 0, 0, 0, true));
+    Result SendReplyHLE() {
+        R_RETURN(this->SendReply(0, 0, 0, true));
     }
 
-    Result ReceiveRequestHLE(KernelCore& kernel, std::shared_ptr<Service::HLERequestContext>* out_context,
+    Result ReceiveRequestHLE(std::shared_ptr<Service::HLERequestContext>* out_context,
                              std::weak_ptr<Service::SessionRequestManager> manager) {
-        R_RETURN(this->ReceiveRequest(kernel, 0, 0, 0, out_context, manager));
+        R_RETURN(this->ReceiveRequest(0, 0, 0, out_context, manager));
     }
 
 private:
     /// Frees up waiting client sessions when this server session is about to die
-    void CleanupRequests(KernelCore& kernel);
+    void CleanupRequests();
 
     /// KSession that owns this KServerSession
     KSession* m_parent{};

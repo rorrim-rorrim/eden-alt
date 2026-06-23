@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -43,7 +40,8 @@ void Manager::ReleaseSessionId(const size_t session_id) {
 Result Manager::LinkToManager() {
     std::scoped_lock l{mutex};
     if (!linked_to_manager) {
-        system.AudioCore().GetAudioManager().SetOutManager(std::bind(&Manager::BufferReleaseAndRegister, this));
+        AudioManager& manager{system.AudioCore().GetAudioManager()};
+        manager.SetOutManager(std::bind(&Manager::BufferReleaseAndRegister, this));
         linked_to_manager = true;
     }
 

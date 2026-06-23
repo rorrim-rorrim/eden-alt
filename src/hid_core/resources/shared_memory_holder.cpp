@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -12,10 +9,17 @@
 #include "hid_core/resources/shared_memory_holder.h"
 
 namespace Service::HID {
+SharedMemoryHolder::SharedMemoryHolder() {}
+
+SharedMemoryHolder::~SharedMemoryHolder() {
+    Finalize();
+}
 
 Result SharedMemoryHolder::Initialize(Core::System& system) {
     shared_memory = Kernel::KSharedMemory::Create(system.Kernel());
-    const Result result = shared_memory->Initialize(system.Kernel(), system.DeviceMemory(), nullptr, Kernel::Svc::MemoryPermission::None, Kernel::Svc::MemoryPermission::Read, sizeof(SharedMemoryFormat));
+    const Result result = shared_memory->Initialize(
+        system.DeviceMemory(), nullptr, Kernel::Svc::MemoryPermission::None,
+        Kernel::Svc::MemoryPermission::Read, sizeof(SharedMemoryFormat));
     if (result.IsError()) {
         return result;
     }
@@ -27,9 +31,9 @@ Result SharedMemoryHolder::Initialize(Core::System& system) {
     return ResultSuccess;
 }
 
-void SharedMemoryHolder::Finalize(Core::System& system) {
+void SharedMemoryHolder::Finalize() {
     if (address != nullptr) {
-        shared_memory->Close(system.Kernel());
+        shared_memory->Close();
     }
     is_created = false;
     is_mapped = false;

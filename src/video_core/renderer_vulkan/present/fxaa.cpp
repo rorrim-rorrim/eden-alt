@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,60 +14,61 @@
 namespace Vulkan {
 
 FXAA::FXAA(const Device& device, MemoryAllocator& allocator, size_t image_count, VkExtent2D extent)
-    : m_extent(extent)
-    , m_image_count(u32(image_count))
-{
-    CreateImages(device, allocator);
-    CreateRenderPasses(device);
-    CreateSampler(device);
-    CreateShaders(device);
-    CreateDescriptorPool(device);
-    CreateDescriptorSetLayouts(device);
-    CreateDescriptorSets(device);
-    CreatePipelineLayouts(device);
-    CreatePipelines(device);
+    : m_device(device), m_allocator(allocator), m_extent(extent),
+      m_image_count(static_cast<u32>(image_count)) {
+    CreateImages();
+    CreateRenderPasses();
+    CreateSampler();
+    CreateShaders();
+    CreateDescriptorPool();
+    CreateDescriptorSetLayouts();
+    CreateDescriptorSets();
+    CreatePipelineLayouts();
+    CreatePipelines();
 }
 
 FXAA::~FXAA() = default;
 
-void FXAA::CreateImages(const Device& device, MemoryAllocator& allocator) {
+void FXAA::CreateImages() {
     for (u32 i = 0; i < m_image_count; i++) {
         Image& image = m_dynamic_images.emplace_back();
-        image.image = CreateWrappedImage(allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
-        image.image_view = CreateWrappedImageView(device, image.image, VK_FORMAT_R16G16B16A16_SFLOAT);
+
+        image.image = CreateWrappedImage(m_allocator, m_extent, VK_FORMAT_R16G16B16A16_SFLOAT);
+        image.image_view =
+            CreateWrappedImageView(m_device, image.image, VK_FORMAT_R16G16B16A16_SFLOAT);
     }
 }
 
-void FXAA::CreateRenderPasses(const Device& device) {
-    m_renderpass = CreateWrappedRenderPass(device, VK_FORMAT_R16G16B16A16_SFLOAT);
+void FXAA::CreateRenderPasses() {
+    m_renderpass = CreateWrappedRenderPass(m_device, VK_FORMAT_R16G16B16A16_SFLOAT);
 
     for (auto& image : m_dynamic_images) {
         image.framebuffer =
-            CreateWrappedFramebuffer(device, m_renderpass, image.image_view, m_extent);
+            CreateWrappedFramebuffer(m_device, m_renderpass, image.image_view, m_extent);
     }
 }
 
-void FXAA::CreateSampler(const Device& device) {
-    m_sampler = CreateWrappedSampler(device);
+void FXAA::CreateSampler() {
+    m_sampler = CreateWrappedSampler(m_device);
 }
 
-void FXAA::CreateShaders(const Device& device) {
-    m_vertex_shader = CreateWrappedShaderModule(device, FXAA_VERT_SPV);
-    m_fragment_shader = CreateWrappedShaderModule(device, FXAA_FRAG_SPV);
+void FXAA::CreateShaders() {
+    m_vertex_shader = CreateWrappedShaderModule(m_device, FXAA_VERT_SPV);
+    m_fragment_shader = CreateWrappedShaderModule(m_device, FXAA_FRAG_SPV);
 }
 
-void FXAA::CreateDescriptorPool(const Device& device) {
+void FXAA::CreateDescriptorPool() {
     // 2 descriptors, 1 descriptor set per image
-    m_descriptor_pool = CreateWrappedDescriptorPool(device, 2 * m_image_count, m_image_count);
+    m_descriptor_pool = CreateWrappedDescriptorPool(m_device, 2 * m_image_count, m_image_count);
 }
 
-void FXAA::CreateDescriptorSetLayouts(const Device& device) {
+void FXAA::CreateDescriptorSetLayouts() {
     m_descriptor_set_layout =
-        CreateWrappedDescriptorSetLayout(device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        CreateWrappedDescriptorSetLayout(m_device, {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                                                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
 }
 
-void FXAA::CreateDescriptorSets(const Device& device) {
+void FXAA::CreateDescriptorSets() {
     VkDescriptorSetLayout layout = *m_descriptor_set_layout;
 
     for (auto& images : m_dynamic_images) {
@@ -78,28 +76,30 @@ void FXAA::CreateDescriptorSets(const Device& device) {
     }
 }
 
-void FXAA::CreatePipelineLayouts(const Device& device) {
-    m_pipeline_layout = CreateWrappedPipelineLayout(device, m_descriptor_set_layout);
+void FXAA::CreatePipelineLayouts() {
+    m_pipeline_layout = CreateWrappedPipelineLayout(m_device, m_descriptor_set_layout);
 }
 
-void FXAA::CreatePipelines(const Device& device) {
-    m_pipeline = CreateWrappedPipeline(device, m_renderpass, m_pipeline_layout,
+void FXAA::CreatePipelines() {
+    m_pipeline = CreateWrappedPipeline(m_device, m_renderpass, m_pipeline_layout,
                                        std::tie(m_vertex_shader, m_fragment_shader));
 }
 
-void FXAA::UpdateDescriptorSets(const Device& device, VkImageView image_view, size_t image_index) {
+void FXAA::UpdateDescriptorSets(VkImageView image_view, size_t image_index) {
     Image& image = m_dynamic_images[image_index];
     std::vector<VkDescriptorImageInfo> image_infos;
     std::vector<VkWriteDescriptorSet> updates;
     image_infos.reserve(2);
 
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, image.descriptor_sets[0], 0));
-    updates.push_back(CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, image.descriptor_sets[0], 1));
+    updates.push_back(
+        CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, image.descriptor_sets[0], 0));
+    updates.push_back(
+        CreateWriteDescriptorSet(image_infos, *m_sampler, image_view, image.descriptor_sets[0], 1));
 
-    device.GetLogical().UpdateDescriptorSets(updates, {});
+    m_device.GetLogical().UpdateDescriptorSets(updates, {});
 }
 
-void FXAA::UploadImages(const Device& device, Scheduler& scheduler) {
+void FXAA::UploadImages(Scheduler& scheduler) {
     if (m_images_ready) {
         return;
     }
@@ -114,7 +114,8 @@ void FXAA::UploadImages(const Device& device, Scheduler& scheduler) {
     m_images_ready = true;
 }
 
-void FXAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, VkImage* inout_image, VkImageView* inout_image_view) {
+void FXAA::Draw(Scheduler& scheduler, size_t image_index, VkImage* inout_image,
+                VkImageView* inout_image_view) {
     const Image& image{m_dynamic_images[image_index]};
     const VkImage input_image{*inout_image};
     const VkImage output_image{*image.image};
@@ -125,8 +126,8 @@ void FXAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, 
     const VkPipelineLayout layout{*m_pipeline_layout};
     const VkExtent2D extent{m_extent};
 
-    UploadImages(device, scheduler);
-    UpdateDescriptorSets(device, *inout_image_view, image_index);
+    UploadImages(scheduler);
+    UpdateDescriptorSets(*inout_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([=](vk::CommandBuffer cmdbuf) {

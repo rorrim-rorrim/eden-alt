@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -47,10 +44,11 @@ public:
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     /// Write the value to the register identified by method.
-    void CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) override;
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) override;
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
     enum class Origin : u32 {
         Center = 0,
@@ -313,7 +311,7 @@ private:
     /// registers.
     void Blit();
 
-    void ConsumeSinkImpl(Core::System& system) override;
+    void ConsumeSinkImpl() override;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

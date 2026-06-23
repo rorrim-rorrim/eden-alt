@@ -81,10 +81,7 @@ namespace Core {
 
 class DebuggerImpl : public DebuggerBackend {
 public:
-    explicit DebuggerImpl(Core::System& system_, u16 port)
-        : system{system_}
-        , debug_process{system_.Kernel()}
-    {
+    explicit DebuggerImpl(Core::System& system_, u16 port) : system{system_} {
         InitializeServer(port);
     }
 
@@ -124,7 +121,7 @@ public:
     }
 
     void SetActiveThread(Kernel::KThread* thread) override {
-        state->active_thread = {system.Kernel(), thread};
+        state->active_thread = thread;
     }
 
     Kernel::KThread* GetActiveThread() override {
@@ -171,7 +168,14 @@ private:
         frontend = std::make_unique<GDBStub>(*this, system, debug_process.GetPointerUnsafe());
 
         // Set the new state. This will tear down any existing state.
-        state.emplace(std::move(peer), io_context, system.Kernel());
+        state = ConnectionState{
+            .client_socket{std::move(peer)},
+            .signal_pipe{io_context},
+            .info{},
+            .active_thread{},
+            .client_data{},
+            .pipe_data{},
+        };
 
         // Set up the client signals for new data.
         AsyncReceiveInto(state->signal_pipe, state->pipe_data, [&](auto d) { PipeData(d); });
@@ -200,7 +204,7 @@ private:
             PauseEmulation();
 
             // Notify the client.
-            state->active_thread = {system.Kernel(), state->info.thread};
+            state->active_thread = state->info.thread;
             UpdateActiveThread();
 
             if (state->info.type == SignalType::Watchpoint) {
@@ -254,7 +258,7 @@ private:
                 auto* gdb = static_cast<GDBStub*>(frontend.get());
                 MarkResumed([this, threads = std::move(gdb->resume_threads)] {
                     state->active_thread->SetStepState(Kernel::StepState::StepPending);
-                    state->active_thread->Resume(system.Kernel(), Kernel::SuspendType::Debug);
+                    state->active_thread->Resume(Kernel::SuspendType::Debug);
                     ResumeThreads(threads, state->active_thread.GetPointerUnsafe());
                 });
                 break;
@@ -277,7 +281,7 @@ private:
 
         // Put all threads to sleep on next scheduler round.
         for (auto& thread : ThreadList()) {
-            thread.RequestSuspend(system.Kernel(), Kernel::SuspendType::Debug);
+            thread.RequestSuspend(Kernel::SuspendType::Debug);
         }
     }
 
@@ -292,7 +296,7 @@ private:
             }
 
             thread.SetStepState(Kernel::StepState::NotStepping);
-            thread.Resume(system.Kernel(), Kernel::SuspendType::Debug);
+            thread.Resume(Kernel::SuspendType::Debug);
         }
     }
 
@@ -308,7 +312,7 @@ private:
             }
 
             thread->SetStepState(Kernel::StepState::NotStepping);
-            thread->Resume(system.Kernel(), Kernel::SuspendType::Debug);
+            thread->Resume(Kernel::SuspendType::Debug);
         }
     }
 
@@ -328,7 +332,7 @@ private:
                 return;
             }
         }
-        state->active_thread = {system.Kernel(), std::addressof(threads.front())};
+        state->active_thread = std::addressof(threads.front());
     }
 
 private:
@@ -350,20 +354,13 @@ private:
     std::mutex connection_lock;
 
     struct ConnectionState {
+        boost::asio::ip::tcp::socket client_socket;
 #ifdef USE_BOOST_v1
-        using async_pipe = boost::process::v1::async_pipe;
+        boost::process::v1::async_pipe signal_pipe;
 #else
-        using async_pipe = boost::process::async_pipe;
+        boost::process::async_pipe signal_pipe;
 #endif
 
-        ConnectionState(boost::asio::ip::tcp::socket&& client_socket_, async_pipe signal_pipe_, Kernel::KernelCore& kernel)
-            : client_socket{std::move(client_socket_)}
-            , signal_pipe{signal_pipe_}
-            , active_thread{kernel, nullptr}
-        {}
-
-        boost::asio::ip::tcp::socket client_socket;
-        async_pipe signal_pipe;
         SignalInfo info;
         Kernel::KScopedAutoObject<Kernel::KThread> active_thread;
         std::array<u8, 4096> client_data;

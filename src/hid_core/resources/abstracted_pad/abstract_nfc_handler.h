@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -11,9 +8,7 @@
 #include "hid_core/hid_types.h"
 
 namespace Kernel {
-class KernelCore;
 class KReadableEvent;
-class KEvent;
 }
 
 enum class NpadNfcState : u32 {
@@ -29,7 +24,7 @@ class NpadAbstractPropertiesHandler;
 /// Handles Npad request from HID interfaces
 class NpadAbstractNfcHandler final {
 public:
-    explicit NpadAbstractNfcHandler(Kernel::KernelCore& kernel_);
+    explicit NpadAbstractNfcHandler();
     ~NpadAbstractNfcHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -58,6 +53,5 @@ private:
     Kernel::KEvent* input_event{nullptr};
     u64 xcd_handle{};
     NpadNfcState sensor_state{NpadNfcState::Unavailable};
-    Kernel::KernelCore& kernel;
 };
 } // namespace Service::HID

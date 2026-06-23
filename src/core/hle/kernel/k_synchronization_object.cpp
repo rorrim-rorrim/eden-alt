@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -21,10 +18,12 @@ namespace {
 
 class ThreadQueueImplForKSynchronizationObjectWait final : public KThreadQueueWithoutEndWait {
 public:
-    ThreadQueueImplForKSynchronizationObjectWait(KernelCore& kernel, KSynchronizationObject** o, KSynchronizationObject::ThreadListNode* n, s32 c)
+    ThreadQueueImplForKSynchronizationObjectWait(KernelCore& kernel, KSynchronizationObject** o,
+                                                 KSynchronizationObject::ThreadListNode* n, s32 c)
         : KThreadQueueWithoutEndWait(kernel), m_objects(o), m_nodes(n), m_count(c) {}
 
-    void NotifyAvailable(KernelCore& kernel, KThread* waiting_thread, KSynchronizationObject* signaled_object, Result wait_result) override {
+    void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
+                         Result wait_result) override {
         // Determine the sync index, and unlink all nodes.
         s32 sync_index = -1;
         for (auto i = 0; i < m_count; ++i) {
@@ -44,10 +43,10 @@ public:
         waiting_thread->ClearCancellable();
 
         // Invoke the base end wait handler.
-        KThreadQueue::EndWait(kernel, waiting_thread, wait_result);
+        KThreadQueue::EndWait(waiting_thread, wait_result);
     }
 
-    void CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // Remove all nodes from our list.
         for (auto i = 0; i < m_count; ++i) {
             m_objects[i]->UnlinkNode(std::addressof(m_nodes[i]));
@@ -57,7 +56,7 @@ public:
         waiting_thread->ClearCancellable();
 
         // Invoke the base cancel wait handler.
-        KThreadQueue::CancelWait(kernel, waiting_thread, wait_result, cancel_timer_task);
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
 
 private:
@@ -68,9 +67,9 @@ private:
 
 } // namespace
 
-void KSynchronizationObject::Finalize(KernelCore& kernel) {
+void KSynchronizationObject::Finalize() {
     this->OnFinalizeSynchronizationObject();
-    KAutoObject::Finalize(kernel);
+    KAutoObject::Finalize();
 }
 
 Result KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
@@ -99,7 +98,7 @@ Result KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
         for (auto i = 0; i < num_objects; ++i) {
             ASSERT(objects[i] != nullptr);
 
-            if (objects[i]->IsSignaled(kernel)) {
+            if (objects[i]->IsSignaled()) {
                 *out_index = i;
                 slp.CancelSleep();
                 R_THROW(ResultSuccess);
@@ -135,7 +134,7 @@ Result KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
 
         // Wait for an object to be signaled.
         wait_queue.SetHardwareTimer(timer);
-        thread->BeginWait(kernel, std::addressof(wait_queue));
+        thread->BeginWait(std::addressof(wait_queue));
         thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Synchronization);
     }
 
@@ -150,26 +149,26 @@ KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : KAutoObject
 
 KSynchronizationObject::~KSynchronizationObject() = default;
 
-void KSynchronizationObject::NotifyAvailable(KernelCore& kernel, Result result) {
-    KScopedSchedulerLock sl(kernel);
+void KSynchronizationObject::NotifyAvailable(Result result) {
+    KScopedSchedulerLock sl(m_kernel);
 
     // If we're not signaled, we've nothing to notify.
-    if (!this->IsSignaled(kernel)) {
+    if (!this->IsSignaled()) {
         return;
     }
 
     // Iterate over each thread.
     for (auto* cur_node = m_thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
-        cur_node->thread->NotifyAvailable(kernel, this, result);
+        cur_node->thread->NotifyAvailable(this, result);
     }
 }
 
-std::vector<KThread*> KSynchronizationObject::GetWaitingThreadsForDebugging(KernelCore& kernel) const {
+std::vector<KThread*> KSynchronizationObject::GetWaitingThreadsForDebugging() const {
     std::vector<KThread*> threads;
 
     // If debugging, dump the list of waiters.
     {
-        KScopedSchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(m_kernel);
         for (auto* cur_node = m_thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
             threads.emplace_back(cur_node->thread);
         }

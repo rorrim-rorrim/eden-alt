@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2014 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -29,7 +26,7 @@ public:
     explicit KSharedMemory(KernelCore& kernel);
     ~KSharedMemory() override;
 
-    Result Initialize(KernelCore& kernel, Core::DeviceMemory& device_memory_, KProcess* owner_process_,
+    Result Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
                       Svc::MemoryPermission owner_permission_,
                       Svc::MemoryPermission user_permission_, std::size_t size_);
 
@@ -69,12 +66,12 @@ public:
         return m_device_memory->GetPointer<u8>(m_physical_address + offset);
     }
 
-    void Finalize(KernelCore& kernel) override;
+    void Finalize() override;
 
     bool IsInitialized() const override {
         return m_is_initialized;
     }
-    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
 private:
     Core::DeviceMemory* m_device_memory{};

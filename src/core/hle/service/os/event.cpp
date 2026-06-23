@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,27 +7,25 @@
 
 namespace Service {
 
-Event::Event(KernelHelpers::ServiceContext& ctx_)
-    : ctx{ctx_}
-{
+Event::Event(KernelHelpers::ServiceContext& ctx) {
     m_event = ctx.CreateEvent("Event");
 }
 
 Event::~Event() {
-    m_event->GetReadableEvent().Close(ctx.kernel);
-    m_event->Close(ctx.kernel);
+    m_event->GetReadableEvent().Close();
+    m_event->Close();
 }
 
-void Event::Signal(Kernel::KernelCore& kernel) noexcept {
-    m_event->Signal(kernel);
+void Event::Signal() {
+    m_event->Signal();
 }
 
-void Event::Clear(Kernel::KernelCore& kernel) noexcept {
-    m_event->Clear(kernel);
+void Event::Clear() {
+    m_event->Clear();
 }
 
-Kernel::KReadableEvent* Event::GetHandle() noexcept {
-    return std::addressof(m_event->GetReadableEvent());
+Kernel::KReadableEvent* Event::GetHandle() {
+    return &m_event->GetReadableEvent();
 }
 
 } // namespace Service

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 // SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
@@ -22,11 +19,17 @@ public:
         WaitSyncpt32 = 0x50,
     };
 
-    /// Writes the method into the state, Invoke Execute() if encountered
-    void ProcessMethod(Host1x& host1x, Method method, u32 argument);
-    /// For Host1x, execute is waiting on a syncpoint previously written into the state
-    void Execute(Host1x& host1x, u32 data);
+    explicit Control(Host1x& host1x);
+    ~Control();
 
+    /// Writes the method into the state, Invoke Execute() if encountered
+    void ProcessMethod(Method method, u32 argument);
+
+private:
+    /// For Host1x, execute is waiting on a syncpoint previously written into the state
+    void Execute(u32 data);
+
+    Host1x& host1x;
     u32 syncpoint_value{};
 };
 

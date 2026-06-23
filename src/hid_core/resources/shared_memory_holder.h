@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -22,13 +19,17 @@ struct SharedMemoryFormat;
 // This is nn::hid::detail::SharedMemoryHolder
 class SharedMemoryHolder {
 public:
+    SharedMemoryHolder();
+    ~SharedMemoryHolder();
+
     Result Initialize(Core::System& system);
-    void Finalize(Core::System& system);
+    void Finalize();
 
     bool IsMapped();
     SharedMemoryFormat* GetAddress();
     Kernel::KSharedMemory* GetHandle();
 
+private:
     bool is_owner{};
     bool is_created{};
     bool is_mapped{};

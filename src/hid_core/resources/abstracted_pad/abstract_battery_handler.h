@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -10,10 +7,6 @@
 #include "core/hle/result.h"
 #include "hid_core/hid_types.h"
 
-namespace Kernel {
-class KernelCore;
-}
-
 namespace Service::HID {
 struct AppletResourceHolder;
 class NpadAbstractedPadHolder;
@@ -22,7 +15,7 @@ class NpadAbstractPropertiesHandler;
 /// Handles Npad request from HID interfaces
 class NpadAbstractBatteryHandler final {
 public:
-    explicit NpadAbstractBatteryHandler(Kernel::KernelCore& kernel_);
+    explicit NpadAbstractBatteryHandler();
     ~NpadAbstractBatteryHandler();
 
     void SetAbstractPadHolder(NpadAbstractedPadHolder* holder);
@@ -51,7 +44,6 @@ private:
     Core::HID::NpadPowerInfo left_battery{};
     Core::HID::NpadPowerInfo right_battery{};
     bool has_new_battery_data{};
-    Kernel::KernelCore& kernel;
 };
 
 } // namespace Service::HID

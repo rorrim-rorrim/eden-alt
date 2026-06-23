@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -17,15 +14,16 @@ KTransferMemory::KTransferMemory(KernelCore& kernel)
 
 KTransferMemory::~KTransferMemory() = default;
 
-Result KTransferMemory::Initialize(KernelCore& kernel, KProcessAddress addr, std::size_t size, Svc::MemoryPermission own_perm) {
+Result KTransferMemory::Initialize(KProcessAddress addr, std::size_t size,
+                                   Svc::MemoryPermission own_perm) {
     // Set members.
-    m_owner = GetCurrentProcessPointer(kernel);
+    m_owner = GetCurrentProcessPointer(m_kernel);
 
     // Get the owner page table.
     auto& page_table = m_owner->GetPageTable();
 
     // Construct the page group, guarding to make sure our state is valid on exit.
-    m_page_group.emplace(kernel, page_table.GetBlockInfoManager());
+    m_page_group.emplace(m_kernel, page_table.GetBlockInfoManager());
     auto pg_guard = SCOPE_GUARD {
         m_page_group.reset();
     };
@@ -35,7 +33,7 @@ Result KTransferMemory::Initialize(KernelCore& kernel, KProcessAddress addr, std
                                            ConvertToKMemoryPermission(own_perm)));
 
     // Set remaining tracking members.
-    m_owner->Open(kernel);
+    m_owner->Open();
     m_owner_perm = own_perm;
     m_address = addr;
     m_is_initialized = true;
@@ -46,7 +44,7 @@ Result KTransferMemory::Initialize(KernelCore& kernel, KProcessAddress addr, std
     R_SUCCEED();
 }
 
-void KTransferMemory::Finalize(KernelCore& kernel) {
+void KTransferMemory::Finalize() {
     // Unlock.
     if (!m_is_mapped) {
         const size_t size = m_page_group->GetNumPages() * PageSize;
@@ -55,17 +53,17 @@ void KTransferMemory::Finalize(KernelCore& kernel) {
     }
 
     // Close the page group.
-    m_page_group->Close(kernel);
+    m_page_group->Close();
     m_page_group->Finalize();
 }
 
-void KTransferMemory::PostDestroy(KernelCore& kernel, uintptr_t arg) {
+void KTransferMemory::PostDestroy(uintptr_t arg) {
     KProcess* owner = reinterpret_cast<KProcess*>(arg);
-    owner->GetResourceLimit()->Release(kernel, LimitableResource::TransferMemoryCountMax, 1);
-    owner->Close(kernel);
+    owner->GetResourceLimit()->Release(LimitableResource::TransferMemoryCountMax, 1);
+    owner->Close();
 }
 
-Result KTransferMemory::Map(KernelCore& kernel, KProcessAddress address, size_t size, Svc::MemoryPermission map_perm) {
+Result KTransferMemory::Map(KProcessAddress address, size_t size, Svc::MemoryPermission map_perm) {
     // Validate the size.
     R_UNLESS(m_page_group->GetNumPages() == Common::DivideUp(size, PageSize), ResultInvalidSize);
 
@@ -82,7 +80,7 @@ Result KTransferMemory::Map(KernelCore& kernel, KProcessAddress address, size_t 
     const KMemoryState state = (m_owner_perm == Svc::MemoryPermission::None)
                                    ? KMemoryState::Transferred
                                    : KMemoryState::SharedTransferred;
-    R_TRY(GetCurrentProcess(kernel).GetPageTable().MapPageGroup(
+    R_TRY(GetCurrentProcess(m_kernel).GetPageTable().MapPageGroup(
         address, *m_page_group, state, KMemoryPermission::UserReadWrite));
 
     // Mark ourselves as mapped.
@@ -91,7 +89,7 @@ Result KTransferMemory::Map(KernelCore& kernel, KProcessAddress address, size_t 
     R_SUCCEED();
 }
 
-Result KTransferMemory::Unmap(KernelCore& kernel, KProcessAddress address, size_t size) {
+Result KTransferMemory::Unmap(KProcessAddress address, size_t size) {
     // Validate the size.
     R_UNLESS(m_page_group->GetNumPages() == Common::DivideUp(size, PageSize), ResultInvalidSize);
 
@@ -102,7 +100,7 @@ Result KTransferMemory::Unmap(KernelCore& kernel, KProcessAddress address, size_
     const KMemoryState state = (m_owner_perm == Svc::MemoryPermission::None)
                                    ? KMemoryState::Transferred
                                    : KMemoryState::SharedTransferred;
-    R_TRY(GetCurrentProcess(kernel).GetPageTable().UnmapPageGroup(address, *m_page_group, state));
+    R_TRY(GetCurrentProcess(m_kernel).GetPageTable().UnmapPageGroup(address, *m_page_group, state));
 
     // Mark ourselves as unmapped.
     ASSERT(m_is_mapped);

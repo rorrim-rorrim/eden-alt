@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -10,16 +7,17 @@
 
 namespace Kernel {
 
-void KThreadQueue::NotifyAvailable(KernelCore& kernel, KThread* waiting_thread, KSynchronizationObject* signaled_object, Result wait_result) {
+void KThreadQueue::NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
+                                   Result wait_result) {
     UNREACHABLE();
 }
 
-void KThreadQueue::EndWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result) {
+void KThreadQueue::EndWait(KThread* waiting_thread, Result wait_result) {
     // Set the thread's wait result.
     waiting_thread->SetWaitResult(wait_result);
 
     // Set the thread as runnable.
-    waiting_thread->SetState(kernel, ThreadState::Runnable);
+    waiting_thread->SetState(ThreadState::Runnable);
 
     // Clear the thread's wait queue.
     waiting_thread->ClearWaitQueue();
@@ -30,12 +28,12 @@ void KThreadQueue::EndWait(KernelCore& kernel, KThread* waiting_thread, Result w
     }
 }
 
-void KThreadQueue::CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) {
+void KThreadQueue::CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) {
     // Set the thread's wait result.
     waiting_thread->SetWaitResult(wait_result);
 
     // Set the thread as runnable.
-    waiting_thread->SetState(kernel, ThreadState::Runnable);
+    waiting_thread->SetState(ThreadState::Runnable);
 
     // Clear the thread's wait queue.
     waiting_thread->ClearWaitQueue();
@@ -46,7 +44,7 @@ void KThreadQueue::CancelWait(KernelCore& kernel, KThread* waiting_thread, Resul
     }
 }
 
-void KThreadQueueWithoutEndWait::EndWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result) {
+void KThreadQueueWithoutEndWait::EndWait(KThread* waiting_thread, Result wait_result) {
     UNREACHABLE();
 }
 

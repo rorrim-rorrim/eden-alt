@@ -17,15 +17,14 @@
 namespace Kernel {
 
 PhysicalCore::PhysicalCore(KernelCore& kernel, std::size_t core_index)
-    : m_core_index{core_index}
-{
+    : m_kernel{kernel}, m_core_index{core_index} {
     m_is_single_core = !kernel.IsMulticore();
 }
 PhysicalCore::~PhysicalCore() = default;
 
-void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
+void PhysicalCore::RunThread(Kernel::KThread* thread) {
     auto* process = thread->GetOwnerProcess();
-    auto& system = kernel.System();
+    auto& system = m_kernel.System();
     auto* interface = process->GetArmInterface(m_core_index);
 
     interface->Initialize();
@@ -73,14 +72,14 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
     while (true) {
         // If the thread is scheduled for termination, exit.
         if (thread->HasDpc() && thread->IsTerminationRequested()) {
-            thread->Exit(kernel);
+            thread->Exit();
         }
 
         // Notify the debugger and go to sleep if a step was performed
         // and this thread has been scheduled again.
         if (thread->GetStepState() == StepState::StepPerformed) {
             system.GetDebugger().NotifyThreadStopped(thread);
-            thread->RequestSuspend(kernel, SuspendType::Debug);
+            thread->RequestSuspend(SuspendType::Debug);
             return;
         }
 
@@ -136,7 +135,7 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
             } else {
                 interface->LogBacktrace(process);
             }
-            thread->RequestSuspend(kernel, SuspendType::Debug);
+            thread->RequestSuspend(SuspendType::Debug);
             return;
         }
 
@@ -145,7 +144,7 @@ void PhysicalCore::RunThread(KernelCore& kernel, Kernel::KThread* thread) {
             if (system.DebuggerEnabled()) {
                 system.GetDebugger().NotifyThreadWatchpoint(thread, *interface->HaltedWatchpoint());
             }
-            thread->RequestSuspend(kernel, SuspendType::Debug);
+            thread->RequestSuspend(SuspendType::Debug);
             return;
         }
 
@@ -209,8 +208,8 @@ void PhysicalCore::CloneFpuStatus(KThread* dst) const {
     dst->GetContext().fpsr = ctx.fpsr;
 }
 
-void PhysicalCore::LogBacktrace(KernelCore& kernel) {
-    auto* process = GetCurrentProcessPointer(kernel);
+void PhysicalCore::LogBacktrace() {
+    auto* process = GetCurrentProcessPointer(m_kernel);
     if (!process) {
         return;
     }

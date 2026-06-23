@@ -30,32 +30,34 @@ static void IncrementScheduledCount(Kernel::KThread* thread) {
     }
 }
 
-KScheduler::KScheduler(KernelCore& kernel) {
-    m_switch_fiber = std::make_shared<Common::Fiber>([this, &kernel] {
+KScheduler::KScheduler(KernelCore& kernel) : m_kernel{kernel} {
+    m_switch_fiber = std::make_shared<Common::Fiber>([this] {
         while (true) {
-            ScheduleImplFiber(kernel);
+            ScheduleImplFiber();
         }
     });
+
     m_state.needs_scheduling = true;
 }
 
 KScheduler::~KScheduler() = default;
 
-void KScheduler::SetInterruptTaskRunnable(KernelCore& kernel) {
+void KScheduler::SetInterruptTaskRunnable() {
     m_state.interrupt_task_runnable = true;
     m_state.needs_scheduling = true;
 }
 
-void KScheduler::RequestScheduleOnInterrupt(KernelCore& kernel) {
+void KScheduler::RequestScheduleOnInterrupt() {
     m_state.needs_scheduling = true;
-    if (CanSchedule(kernel)) {
-        ScheduleOnInterrupt(kernel);
+
+    if (CanSchedule(m_kernel)) {
+        ScheduleOnInterrupt();
     }
 }
 
 void KScheduler::DisableScheduling(KernelCore& kernel) {
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() >= 0);
-    GetCurrentThread(kernel).DisableDispatch(kernel);
+    GetCurrentThread(kernel).DisableDispatch();
 }
 
 void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling) {
@@ -69,12 +71,12 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
         return;
     }
 
-    scheduler->RescheduleOtherCores(kernel, cores_needing_scheduling);
+    scheduler->RescheduleOtherCores(cores_needing_scheduling);
 
     if (GetCurrentThread(kernel).GetDisableDispatchCount() > 1) {
-        GetCurrentThread(kernel).EnableDispatch(kernel);
+        GetCurrentThread(kernel).EnableDispatch();
     } else {
-        scheduler->RescheduleCurrentCore(kernel);
+        scheduler->RescheduleCurrentCore();
     }
 }
 
@@ -83,10 +85,10 @@ void KScheduler::RescheduleCurrentHLEThread(KernelCore& kernel) {
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
 
     // Ensure dummy threads that are waiting block.
-    GetCurrentThread(kernel).DummyThreadBeginWait(kernel);
+    GetCurrentThread(kernel).DummyThreadBeginWait();
 
     ASSERT(GetCurrentThread(kernel).GetState() != ThreadState::Waiting);
-    GetCurrentThread(kernel).EnableDispatch(kernel);
+    GetCurrentThread(kernel).EnableDispatch();
 }
 
 u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
@@ -97,55 +99,55 @@ u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
     }
 }
 
-void KScheduler::Schedule(KernelCore& kernel) {
-    ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
-    ASSERT(m_core_id == GetCurrentCoreId(kernel));
+void KScheduler::Schedule() {
+    ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() == 1);
+    ASSERT(m_core_id == GetCurrentCoreId(m_kernel));
 
-    ScheduleImpl(kernel);
+    ScheduleImpl();
 }
 
-void KScheduler::ScheduleOnInterrupt(KernelCore& kernel) {
-    GetCurrentThread(kernel).DisableDispatch(kernel);
-    Schedule(kernel);
-    GetCurrentThread(kernel).EnableDispatch(kernel);
+void KScheduler::ScheduleOnInterrupt() {
+    GetCurrentThread(m_kernel).DisableDispatch();
+    Schedule();
+    GetCurrentThread(m_kernel).EnableDispatch();
 }
 
-void KScheduler::PreemptSingleCore(KernelCore& kernel) {
-    GetCurrentThread(kernel).DisableDispatch(kernel);
+void KScheduler::PreemptSingleCore() {
+    GetCurrentThread(m_kernel).DisableDispatch();
 
-    auto* thread = GetCurrentThreadPointer(kernel);
-    auto& previous_scheduler = kernel.Scheduler(thread->GetCurrentCore());
-    previous_scheduler.Unload(kernel, thread);
+    auto* thread = GetCurrentThreadPointer(m_kernel);
+    auto& previous_scheduler = m_kernel.Scheduler(thread->GetCurrentCore());
+    previous_scheduler.Unload(thread);
 
     Common::Fiber::YieldTo(thread->GetHostContext(), *m_switch_fiber);
 
-    GetCurrentThread(kernel).EnableDispatch(kernel);
+    GetCurrentThread(m_kernel).EnableDispatch();
 }
 
-void KScheduler::RescheduleCurrentCore(KernelCore& kernel) {
-    ASSERT(!kernel.IsPhantomModeForSingleCore());
-    ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
+void KScheduler::RescheduleCurrentCore() {
+    ASSERT(!m_kernel.IsPhantomModeForSingleCore());
+    ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() == 1);
 
-    GetCurrentThread(kernel).EnableDispatch(kernel);
+    GetCurrentThread(m_kernel).EnableDispatch();
 
     if (m_state.needs_scheduling.load()) {
         // Disable interrupts, and then check again if rescheduling is needed.
         // KScopedInterruptDisable intr_disable;
 
-        kernel.CurrentScheduler()->RescheduleCurrentCoreImpl(kernel);
+        m_kernel.CurrentScheduler()->RescheduleCurrentCoreImpl();
     }
 }
 
-void KScheduler::RescheduleCurrentCoreImpl(KernelCore& kernel) {
+void KScheduler::RescheduleCurrentCoreImpl() {
     // Check that scheduling is needed.
     if (m_state.needs_scheduling.load()) [[likely]] {
-        GetCurrentThread(kernel).DisableDispatch(kernel);
-        Schedule(kernel);
-        GetCurrentThread(kernel).EnableDispatch(kernel);
+        GetCurrentThread(m_kernel).DisableDispatch();
+        Schedule();
+        GetCurrentThread(m_kernel).EnableDispatch();
     }
 }
 
-void KScheduler::Initialize(KernelCore& kernel, KThread* main_thread, KThread* idle_thread, s32 core_id) {
+void KScheduler::Initialize(KThread* main_thread, KThread* idle_thread, s32 core_id) {
     // Set core ID/idle thread/interrupt task manager.
     m_core_id = core_id;
     m_idle_thread = idle_thread;
@@ -154,39 +156,39 @@ void KScheduler::Initialize(KernelCore& kernel, KThread* main_thread, KThread* i
 
     // Insert the main thread into the priority queue.
     // {
-    //     KScopedSchedulerLock lk{kernel};
-    //     GetPriorityQueue(kernel).PushBack(GetCurrentThreadPointer(kernel));
-    //     SetSchedulerUpdateNeeded(kernel);
+    //     KScopedSchedulerLock lk{m_kernel};
+    //     GetPriorityQueue(m_kernel).PushBack(GetCurrentThreadPointer(m_kernel));
+    //     SetSchedulerUpdateNeeded(m_kernel);
     // }
 
     // Bind interrupt handler.
     // kernel.GetInterruptManager().BindHandler(
-    //     GetSchedulerInterruptHandler(kernel), KInterruptName::Scheduler, m_core_id,
+    //     GetSchedulerInterruptHandler(m_kernel), KInterruptName::Scheduler, m_core_id,
     //     KInterruptController::PriorityLevel::Scheduler, false, false);
 
     // Set the current thread.
     m_current_thread = main_thread;
 }
 
-void KScheduler::Activate(KernelCore& kernel) {
-    ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
+void KScheduler::Activate() {
+    ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() == 1);
 
     // m_state.should_count_idle = KTargetSystem::IsDebugMode();
     m_is_active = true;
-    RescheduleCurrentCore(kernel);
+    RescheduleCurrentCore();
 }
 
-void KScheduler::OnThreadStart(KernelCore& kernel) {
-    GetCurrentThread(kernel).EnableDispatch(kernel);
+void KScheduler::OnThreadStart() {
+    GetCurrentThread(m_kernel).EnableDispatch();
 }
 
-u64 KScheduler::UpdateHighestPriorityThread(KernelCore& kernel, KThread* highest_thread) {
+u64 KScheduler::UpdateHighestPriorityThread(KThread* highest_thread) {
     if (KThread* prev_highest_thread = m_state.highest_priority_thread;
         prev_highest_thread != highest_thread) [[likely]] {
         if (prev_highest_thread != nullptr) [[likely]] {
             IncrementScheduledCount(prev_highest_thread);
             prev_highest_thread->SetLastScheduledTick(
-                kernel.System().CoreTiming().GetClockTicks());
+                m_kernel.System().CoreTiming().GetClockTicks());
         }
         if (m_state.should_count_idle) {
             if (highest_thread != nullptr) [[likely]] {
@@ -243,7 +245,8 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
         }
 
         top_threads[core_id] = top_thread;
-        cores_needing_scheduling |= kernel.Scheduler(core_id).UpdateHighestPriorityThread(kernel, top_threads[core_id]);
+        cores_needing_scheduling |=
+            kernel.Scheduler(core_id).UpdateHighestPriorityThread(top_threads[core_id]);
     }
 
     // Idle cores are bad. We're going to try to migrate threads to each idle core in turn.
@@ -271,7 +274,8 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
                     suggested->SetActiveCore(core_id);
                     priority_queue.ChangeCore(suggested_core, suggested);
                     top_threads[core_id] = suggested;
-                    cores_needing_scheduling |= kernel.Scheduler(core_id).UpdateHighestPriorityThread(kernel, top_threads[core_id]);
+                    cores_needing_scheduling |=
+                        kernel.Scheduler(core_id).UpdateHighestPriorityThread(top_threads[core_id]);
                     break;
                 }
 
@@ -294,13 +298,17 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
                         // The candidate core can run some other thread! We'll migrate its current
                         // top thread to us.
                         top_threads[candidate_core] = next_on_candidate_core;
-                        cores_needing_scheduling |= kernel.Scheduler(candidate_core).UpdateHighestPriorityThread(kernel, top_threads[candidate_core]);
+                        cores_needing_scheduling |=
+                            kernel.Scheduler(candidate_core)
+                                .UpdateHighestPriorityThread(top_threads[candidate_core]);
 
                         // Perform the migration.
                         suggested->SetActiveCore(core_id);
                         priority_queue.ChangeCore(candidate_core, suggested);
                         top_threads[core_id] = suggested;
-                        cores_needing_scheduling |= kernel.Scheduler(core_id).UpdateHighestPriorityThread(kernel, top_threads[core_id]);
+                        cores_needing_scheduling |=
+                            kernel.Scheduler(core_id).UpdateHighestPriorityThread(
+                                top_threads[core_id]);
                         break;
                     }
                 }
@@ -311,21 +319,21 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
     }
 
     // HACK: any waiting dummy threads can wake up now.
-    kernel.GlobalSchedulerContext().WakeupWaitingDummyThreads(kernel);
+    kernel.GlobalSchedulerContext().WakeupWaitingDummyThreads();
 
     // HACK: if we are a dummy thread, and we need to go sleep, indicate
     // that for when the lock is released.
     KThread* const cur_thread = GetCurrentThreadPointer(kernel);
     if (cur_thread->IsDummyThread() && cur_thread->GetState() != ThreadState::Runnable) {
-        cur_thread->RequestDummyThreadWait(kernel);
+        cur_thread->RequestDummyThreadWait();
     }
 
     return cores_needing_scheduling;
 }
 
-void KScheduler::SwitchThread(KernelCore& kernel, KThread* next_thread) {
-    KProcess* const cur_process = GetCurrentProcessPointer(kernel);
-    KThread* const cur_thread = GetCurrentThreadPointer(kernel);
+void KScheduler::SwitchThread(KThread* next_thread) {
+    KProcess* const cur_process = GetCurrentProcessPointer(m_kernel);
+    KThread* const cur_thread = GetCurrentThreadPointer(m_kernel);
 
     // We never want to schedule a null thread, so use the idle thread if we don't have a next.
     if (next_thread == nullptr) {
@@ -347,7 +355,7 @@ void KScheduler::SwitchThread(KernelCore& kernel, KThread* next_thread) {
 
     // Update the CPU time tracking variables.
     const s64 prev_tick = m_last_context_switch_time;
-    const s64 cur_tick = kernel.System().CoreTiming().GetClockTicks();
+    const s64 cur_tick = m_kernel.System().CoreTiming().GetClockTicks();
     const s64 tick_diff = cur_tick - prev_tick;
     cur_thread->AddCpuTime(m_core_id, tick_diff);
     if (cur_process != nullptr) {
@@ -371,23 +379,23 @@ void KScheduler::SwitchThread(KernelCore& kernel, KThread* next_thread) {
     // }
 
     // Set the new thread.
-    SetCurrentThread(kernel, next_thread);
+    SetCurrentThread(m_kernel, next_thread);
     m_current_thread = next_thread;
 
     // Set the new Thread Local region.
     // cpu::SwitchThreadLocalRegion(GetInteger(next_thread->GetThreadLocalRegionAddress()));
 
     // Update the thread's cpu time differential in TLS, if relevant.
-    next_thread->UpdateTlsThreadCpuTime(kernel, cur_tick);
+    next_thread->UpdateTlsThreadCpuTime(cur_tick);
 }
 
-void KScheduler::ScheduleImpl(KernelCore& kernel) {
+void KScheduler::ScheduleImpl() {
     // First, clear the needs scheduling bool.
     m_state.needs_scheduling.store(false, std::memory_order_relaxed);
     std::atomic_thread_fence(std::memory_order_seq_cst);
 
     // Load the appropriate thread pointers for scheduling.
-    KThread* const cur_thread{GetCurrentThreadPointer(kernel)};
+    KThread* const cur_thread{GetCurrentThreadPointer(m_kernel)};
     KThread* highest_priority_thread{m_state.highest_priority_thread};
 
     // Check whether there are runnable interrupt tasks.
@@ -415,7 +423,7 @@ void KScheduler::ScheduleImpl(KernelCore& kernel) {
     // Returning from ScheduleImpl occurs after this thread has been scheduled again.
 }
 
-void KScheduler::ScheduleImplFiber(KernelCore& kernel) {
+void KScheduler::ScheduleImplFiber() {
     KThread* const cur_thread{m_switch_cur_thread};
     KThread* highest_priority_thread{m_switch_highest_priority_thread};
 
@@ -429,7 +437,7 @@ void KScheduler::ScheduleImplFiber(KernelCore& kernel) {
     m_switch_from_schedule = false;
 
     // Save the original thread context.
-    Unload(kernel, cur_thread);
+    Unload(cur_thread);
 
     // The current thread's context has been entirely taken care of.
     // Now we want to loop until we successfully switch the thread context.
@@ -460,7 +468,7 @@ void KScheduler::ScheduleImplFiber(KernelCore& kernel) {
 
         // It's time to switch the thread.
         // Switch to the highest priority thread.
-        SwitchThread(kernel, highest_priority_thread);
+        SwitchThread(highest_priority_thread);
 
         // Check if we need scheduling. If we do, then we can't complete the switch and should
         // retry.
@@ -485,14 +493,14 @@ void KScheduler::ScheduleImplFiber(KernelCore& kernel) {
     }
 
     // Reload the guest thread context.
-    Reload(kernel, highest_priority_thread);
+    Reload(highest_priority_thread);
 
     // Reload the host thread.
     Common::Fiber::YieldTo(m_switch_fiber, *highest_priority_thread->m_host_context);
 }
 
-void KScheduler::Unload(KernelCore& kernel, KThread* thread) {
-    kernel.PhysicalCore(m_core_id).SaveContext(thread);
+void KScheduler::Unload(KThread* thread) {
+    m_kernel.PhysicalCore(m_core_id).SaveContext(thread);
 
     // Check if the thread is terminated by checking the DPC flags.
     if ((thread->GetStackParameters().dpc_flags & static_cast<u32>(DpcFlag::Terminated)) == 0) {
@@ -501,8 +509,8 @@ void KScheduler::Unload(KernelCore& kernel, KThread* thread) {
     }
 }
 
-void KScheduler::Reload(KernelCore& kernel, KThread* thread) {
-    kernel.PhysicalCore(m_core_id).LoadContext(thread);
+void KScheduler::Reload(KThread* thread) {
+    m_kernel.PhysicalCore(m_core_id).LoadContext(thread);
 }
 
 void KScheduler::ClearPreviousThread(KernelCore& kernel, KThread* thread) {
@@ -869,9 +877,9 @@ void KScheduler::YieldToAnyThread(KernelCore& kernel) {
     }
 }
 
-void KScheduler::RescheduleOtherCores(KernelCore& kernel, u64 cores_needing_scheduling) {
+void KScheduler::RescheduleOtherCores(u64 cores_needing_scheduling) {
     if (const u64 core_mask = cores_needing_scheduling & ~(1ULL << m_core_id); core_mask != 0) {
-        RescheduleCores(kernel, core_mask);
+        RescheduleCores(m_kernel, core_mask);
     }
 }
 

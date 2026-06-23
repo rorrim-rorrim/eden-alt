@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -16,12 +13,12 @@ KSession::KSession(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer{kernel}, m_server{kernel}, m_client{kernel} {}
 KSession::~KSession() = default;
 
-void KSession::Initialize(KernelCore& kernel, KClientPort* client_port, uintptr_t name) {
+void KSession::Initialize(KClientPort* client_port, uintptr_t name) {
     // Increment reference count.
     // Because reference count is one on creation, this will result
     // in a reference count of two. Thus, when both server and client are closed
     // this object will be destroyed.
-    this->Open(kernel);
+    this->Open();
 
     // Create our sub sessions.
     KAutoObject::Create(std::addressof(m_server));
@@ -36,45 +33,45 @@ void KSession::Initialize(KernelCore& kernel, KClientPort* client_port, uintptr_
     m_name = name;
 
     // Set our owner process.
-    m_process = GetCurrentProcessPointer(kernel);
-    m_process->Open(kernel);
+    m_process = GetCurrentProcessPointer(m_kernel);
+    m_process->Open();
 
     // Set our port.
     m_port = client_port;
     if (m_port != nullptr) {
-        m_port->Open(kernel);
+        m_port->Open();
     }
 
     // Mark initialized.
     m_initialized = true;
 }
 
-void KSession::Finalize(KernelCore& kernel) {
+void KSession::Finalize() {
     if (m_port != nullptr) {
-        m_port->OnSessionFinalized(kernel);
-        m_port->Close(kernel);
+        m_port->OnSessionFinalized();
+        m_port->Close();
     }
 }
 
-void KSession::OnServerClosed(KernelCore& kernel) {
+void KSession::OnServerClosed() {
     if (this->GetState() == State::Normal) {
         this->SetState(State::ServerClosed);
         m_client.OnServerClosed();
     }
 }
 
-void KSession::OnClientClosed(KernelCore& kernel) {
+void KSession::OnClientClosed() {
     if (this->GetState() == State::Normal) {
-        this->SetState(State::ClientClosed);
-        m_server.OnClientClosed(kernel);
+        SetState(State::ClientClosed);
+        m_server.OnClientClosed();
     }
 }
 
-void KSession::PostDestroy(KernelCore& kernel, uintptr_t arg) {
+void KSession::PostDestroy(uintptr_t arg) {
     // Release the session count resource the owner process holds.
     KProcess* owner = reinterpret_cast<KProcess*>(arg);
-    owner->GetResourceLimit()->Release(kernel, LimitableResource::SessionCountMax, 1);
-    owner->Close(kernel);
+    owner->GetResourceLimit()->Release(LimitableResource::SessionCountMax, 1);
+    owner->Close();
 }
 
 } // namespace Kernel

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -20,7 +20,7 @@ Result CloseHandle(Core::System& system, Handle handle) {
     LOG_TRACE(Kernel_SVC, "Closing handle 0x{:08X}", handle);
 
     // Remove the handle.
-    R_UNLESS(GetCurrentProcess(system.Kernel()).GetHandleTable().Remove(system.Kernel(), handle),
+    R_UNLESS(GetCurrentProcess(system.Kernel()).GetHandleTable().Remove(handle),
              ResultInvalidHandle);
 
     R_SUCCEED();
@@ -35,17 +35,17 @@ Result ResetSignal(Core::System& system, Handle handle) {
 
     // Try to reset as readable event.
     {
-        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(system.Kernel(), handle);
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(handle);
         if (readable_event.IsNotNull()) {
-            R_RETURN(readable_event->Reset(system.Kernel()));
+            R_RETURN(readable_event->Reset());
         }
     }
 
     // Try to reset as process.
     {
-        KScopedAutoObject process = handle_table.GetObject<KProcess>(system.Kernel(), handle);
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
         if (process.IsNotNull()) {
-            R_RETURN(process->Reset(system.Kernel()));
+            R_RETURN(process->Reset());
         }
     }
 
@@ -62,30 +62,35 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
     R_UNLESS(0 <= num_handles && num_handles <= Svc::ArgumentHandleCountMax, ResultOutOfRange);
 
     // Get the synchronization context.
-    auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
-    auto objs = GetCurrentThread(system.Kernel()).GetSynchronizationObjectBuffer();
-    auto handles = GetCurrentThread(system.Kernel()).GetHandleBuffer();
+    auto& kernel = system.Kernel();
+    auto& handle_table = GetCurrentProcess(kernel).GetHandleTable();
+    auto objs = GetCurrentThread(kernel).GetSynchronizationObjectBuffer();
+    auto handles = GetCurrentThread(kernel).GetHandleBuffer();
 
     // Copy user handles.
     if (num_handles > 0) {
         // Get the handles.
-        R_UNLESS(GetCurrentMemory(system.Kernel()).ReadBlock(user_handles, handles.data(), sizeof(Handle) * num_handles), ResultInvalidPointer);
+        R_UNLESS(GetCurrentMemory(kernel).ReadBlock(user_handles, handles.data(),
+                                                    sizeof(Handle) * num_handles),
+                 ResultInvalidPointer);
 
         // Convert the handles to objects.
-        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(system.Kernel(), objs.data(), handles.data(), num_handles), ResultInvalidHandle);
+        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(
+                     objs.data(), handles.data(), num_handles),
+                 ResultInvalidHandle);
     }
 
     // Ensure handles are closed when we're done.
     SCOPE_EXIT {
         for (auto i = 0; i < num_handles; ++i) {
-            objs[i]->Close(system.Kernel());
+            objs[i]->Close();
         }
     };
 
     // Convert the timeout from nanoseconds to ticks.
     s64 timeout;
     if (timeout_ns > 0) {
-        u64 ticks = system.Kernel().HardwareTimer().GetTick();
+        u64 ticks = kernel.HardwareTimer().GetTick();
         ticks += timeout_ns;
         ticks += 2;
 
@@ -95,7 +100,7 @@ Result WaitSynchronization(Core::System& system, int32_t* out_index, u64 user_ha
     }
 
     // Wait on the objects.
-    Result res = KSynchronizationObject::Wait(system.Kernel(), out_index, objs.data(), num_handles, timeout);
+    Result res = KSynchronizationObject::Wait(kernel, out_index, objs.data(), num_handles, timeout);
 
     R_SUCCEED_IF(res == ResultSessionClosed);
     R_RETURN(res);
@@ -106,28 +111,31 @@ Result CancelSynchronization(Core::System& system, Handle handle) {
     LOG_TRACE(Kernel_SVC, "called handle={:#X}", handle);
 
     // Get the thread from its handle.
-    KScopedAutoObject thread = GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(system.Kernel(), handle);
+    KScopedAutoObject thread =
+        GetCurrentProcess(system.Kernel()).GetHandleTable().GetObject<KThread>(handle);
     R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Cancel the thread's wait.
-    thread->WaitCancel(system.Kernel());
+    thread->WaitCancel();
     R_SUCCEED();
 }
 
 void SynchronizePreemptionState(Core::System& system) {
+    auto& kernel = system.Kernel();
+
     // Lock the scheduler.
-    KScopedSchedulerLock sl{system.Kernel()};
+    KScopedSchedulerLock sl{kernel};
 
     // If the current thread is pinned, unpin it.
-    KProcess* cur_process = GetCurrentProcessPointer(system.Kernel());
-    const auto core_id = GetCurrentCoreId(system.Kernel());
+    KProcess* cur_process = GetCurrentProcessPointer(kernel);
+    const auto core_id = GetCurrentCoreId(kernel);
 
-    if (cur_process->GetPinnedThread(core_id) == GetCurrentThreadPointer(system.Kernel())) {
+    if (cur_process->GetPinnedThread(core_id) == GetCurrentThreadPointer(kernel)) {
         // Clear the current thread's interrupt flag.
-        GetCurrentThread(system.Kernel()).ClearInterruptFlag(system.Kernel());
+        GetCurrentThread(kernel).ClearInterruptFlag();
 
         // Unpin the current thread.
-        cur_process->UnpinCurrentThread(system.Kernel());
+        cur_process->UnpinCurrentThread();
     }
 }
 

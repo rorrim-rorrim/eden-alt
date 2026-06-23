@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -25,8 +22,8 @@ namespace Service {
 
 class Process {
 public:
-    inline explicit Process(Core::System& system) noexcept : m_system(system) {}
-    inline ~Process() { this->Finalize(); }
+    explicit Process(Core::System& system);
+    ~Process();
 
     bool Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_load_result);
     void Finalize();
@@ -53,8 +50,8 @@ public:
 private:
     Core::System& m_system;
     Kernel::KProcess* m_process{};
-    u64 m_main_thread_stack_size{};
     s32 m_main_thread_priority{};
+    u64 m_main_thread_stack_size{};
     bool m_process_started{};
 };
 

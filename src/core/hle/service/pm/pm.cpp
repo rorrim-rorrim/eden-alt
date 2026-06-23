@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -28,15 +25,19 @@ constexpr u64 NO_PROCESS_FOUND_PID{0};
 using ProcessList = std::list<Kernel::KScopedAutoObject<Kernel::KProcess>>;
 
 template <typename F>
-Kernel::KScopedAutoObject<Kernel::KProcess> SearchProcessList(Kernel::KernelCore& kernel, ProcessList& process_list, F&& predicate) {
-    auto const it = std::find_if(process_list.begin(), process_list.end(), predicate);
-    if (it == process_list.end())
-        return {kernel, nullptr};
-    return {kernel, it->GetPointerUnsafe()};
+Kernel::KScopedAutoObject<Kernel::KProcess> SearchProcessList(ProcessList& process_list,
+                                                              F&& predicate) {
+    const auto iter = std::find_if(process_list.begin(), process_list.end(), predicate);
+
+    if (iter == process_list.end()) {
+        return nullptr;
+    }
+
+    return iter->GetPointerUnsafe();
 }
 
-void GetApplicationPidGeneric(Kernel::KernelCore& kernel, HLERequestContext& ctx, ProcessList& process_list) {
-    auto process = SearchProcessList(kernel, process_list, [](auto& p) { return p->IsApplication(); });
+void GetApplicationPidGeneric(HLERequestContext& ctx, ProcessList& process_list) {
+    auto process = SearchProcessList(process_list, [](auto& p) { return p->IsApplication(); });
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -104,7 +105,7 @@ private:
         LOG_DEBUG(Service_PM, "called, program_id={:016X}", program_id);
 
         auto list = kernel.GetProcessList();
-        auto process = SearchProcessList(system.Kernel(),
+        auto process = SearchProcessList(
             list, [program_id](auto& p) { return p->GetProgramId() == program_id; });
 
         if (process.IsNull()) {
@@ -121,7 +122,7 @@ private:
     void GetApplicationProcessId(HLERequestContext& ctx) {
         LOG_DEBUG(Service_PM, "called");
         auto list = kernel.GetProcessList();
-        GetApplicationPidGeneric(system.Kernel(), ctx, list);
+        GetApplicationPidGeneric(ctx, list);
     }
 
     void AtmosphereGetProcessInfo(HLERequestContext& ctx) {
@@ -133,7 +134,7 @@ private:
         LOG_WARNING(Service_PM, "(Partial Implementation) called, pid={:016X}", pid);
 
         auto list = kernel.GetProcessList();
-        auto process = SearchProcessList(system.Kernel(), list, [pid](auto& p) { return p->GetProcessId() == pid; });
+        auto process = SearchProcessList(list, [pid](auto& p) { return p->GetProcessId() == pid; });
 
         if (process.IsNull()) {
             IPC::ResponseBuilder rb{ctx, 2};
@@ -187,7 +188,7 @@ private:
         LOG_DEBUG(Service_PM, "called, process_id={:016X}", process_id);
 
         auto list = kernel.GetProcessList();
-        auto process = SearchProcessList(system.Kernel(),
+        auto process = SearchProcessList(
             list, [process_id](auto& p) { return p->GetProcessId() == process_id; });
 
         if (process.IsNull()) {
@@ -208,7 +209,7 @@ private:
         LOG_DEBUG(Service_PM, "called, program_id={:016X}", program_id);
 
         auto list = system.Kernel().GetProcessList();
-        auto process = SearchProcessList(system.Kernel(),
+        auto process = SearchProcessList(
             list, [program_id](auto& p) { return p->GetProgramId() == program_id; });
 
         if (process.IsNull()) {
@@ -248,7 +249,7 @@ private:
     void GetApplicationProcessIdForShell(HLERequestContext& ctx) {
         LOG_DEBUG(Service_PM, "called");
         auto list = kernel.GetProcessList();
-        GetApplicationPidGeneric(system.Kernel(), ctx, list);
+        GetApplicationPidGeneric(ctx, list);
     }
 };
 

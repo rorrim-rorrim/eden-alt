@@ -106,14 +106,14 @@ void Break(Core::System& system, BreakReason reason, u64 info1, u64 info2) {
 
         handle_debug_buffer(info1, info2);
 
-        system.CurrentPhysicalCore().LogBacktrace(system.Kernel());
+        system.CurrentPhysicalCore().LogBacktrace();
     }
 
     const bool should_break = !notification_only;
     if (system.DebuggerEnabled() && should_break) {
         auto* thread = system.Kernel().GetCurrentEmuThread();
         system.GetDebugger().NotifyThreadStopped(thread);
-        thread->RequestSuspend(system.Kernel(), Kernel::SuspendType::Debug);
+        thread->RequestSuspend(Kernel::SuspendType::Debug);
     }
 }
 

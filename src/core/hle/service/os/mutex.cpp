@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,22 +10,22 @@ namespace Service {
 
 Mutex::Mutex(Core::System& system) : m_system(system) {
     m_event = Kernel::KEvent::Create(system.Kernel());
-    m_event->Initialize(system.Kernel(), nullptr);
+    m_event->Initialize(nullptr);
 
     // Register the event.
     Kernel::KEvent::Register(system.Kernel(), m_event);
 
-    ASSERT(R_SUCCEEDED(m_event->Signal(system.Kernel())));
+    ASSERT(R_SUCCEEDED(m_event->Signal()));
 }
 
 Mutex::~Mutex() {
-    m_event->GetReadableEvent().Close(m_system.Kernel());
-    m_event->Close(m_system.Kernel());
+    m_event->GetReadableEvent().Close();
+    m_event->Close();
 }
 
 void Mutex::lock() {
     // Infinitely retry until we successfully clear the event.
-    while (R_FAILED(m_event->GetReadableEvent().Reset(m_system.Kernel()))) {
+    while (R_FAILED(m_event->GetReadableEvent().Reset())) {
         s32 index;
         Kernel::KSynchronizationObject* obj = &m_event->GetReadableEvent();
 
@@ -43,7 +40,7 @@ void Mutex::lock() {
 
 void Mutex::unlock() {
     // Unlock.
-    ASSERT(R_SUCCEEDED(m_event->Signal(m_system.Kernel())));
+    ASSERT(R_SUCCEEDED(m_event->Signal()));
 }
 
 } // namespace Service

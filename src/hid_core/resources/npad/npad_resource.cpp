@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
@@ -13,9 +13,7 @@
 
 namespace Service::HID {
 
-NPadResource::NPadResource(Kernel::KernelCore& kernel_, KernelHelpers::ServiceContext& context)
-    : service_context{context}
-{}
+NPadResource::NPadResource(KernelHelpers::ServiceContext& context) : service_context{context} {}
 
 NPadResource::~NPadResource() = default;
 
@@ -507,7 +505,9 @@ Result NPadResource::IsAssigningSingleOnSlSrPressEnabled(bool& is_enabled, u64 a
     return ResultSuccess;
 }
 
-Result NPadResource::AcquireNpadStyleSetUpdateEventHandle(Kernel::KernelCore& kernel, u64 aruid, Kernel::KReadableEvent** out_event, Core::HID::NpadIdType npad_id) {
+Result NPadResource::AcquireNpadStyleSetUpdateEventHandle(u64 aruid,
+                                                          Kernel::KReadableEvent** out_event,
+                                                          Core::HID::NpadIdType npad_id) {
     const u64 aruid_index = GetIndexFromAruid(aruid);
     if (aruid_index >= AruidIndexMax) {
         return ResultNpadNotConnected;
@@ -526,25 +526,26 @@ Result NPadResource::AcquireNpadStyleSetUpdateEventHandle(Kernel::KernelCore& ke
     *out_event = &controller_state.style_set_update_event->GetReadableEvent();
 
     if (controller_state.is_styleset_update_event_initialized) {
-        controller_state.style_set_update_event->Signal(kernel);
+        controller_state.style_set_update_event->Signal();
     }
 
     return ResultSuccess;
 }
 
-Result NPadResource::SignalStyleSetUpdateEvent(Kernel::KernelCore& kernel, u64 aruid, Core::HID::NpadIdType npad_id) {
+Result NPadResource::SignalStyleSetUpdateEvent(u64 aruid, Core::HID::NpadIdType npad_id) {
     const u64 aruid_index = GetIndexFromAruid(aruid);
     if (aruid_index >= AruidIndexMax) {
         return ResultNpadNotConnected;
     }
-    auto& controller_state = state[aruid_index].controller_state[NpadIdTypeToIndex(npad_id)];
-    if (controller_state.is_styleset_update_event_initialized) {
-        controller_state.style_set_update_event->Signal(kernel);
+    auto controller = state[aruid_index].controller_state[NpadIdTypeToIndex(npad_id)];
+    if (controller.is_styleset_update_event_initialized) {
+        controller.style_set_update_event->Signal();
     }
     return ResultSuccess;
 }
 
-Result NPadResource::GetHomeProtectionEnabled(bool& is_enabled, u64 aruid, Core::HID::NpadIdType npad_id) const {
+Result NPadResource::GetHomeProtectionEnabled(bool& is_enabled, u64 aruid,
+                                              Core::HID::NpadIdType npad_id) const {
     const u64 aruid_index = GetIndexFromAruid(aruid);
     if (aruid_index >= AruidIndexMax) {
         return ResultNpadNotConnected;
@@ -554,7 +555,8 @@ Result NPadResource::GetHomeProtectionEnabled(bool& is_enabled, u64 aruid, Core:
     return ResultSuccess;
 }
 
-Result NPadResource::SetHomeProtectionEnabled(u64 aruid, Core::HID::NpadIdType npad_id, bool is_enabled) {
+Result NPadResource::SetHomeProtectionEnabled(u64 aruid, Core::HID::NpadIdType npad_id,
+                                              bool is_enabled) {
     const u64 aruid_index = GetIndexFromAruid(aruid);
     if (aruid_index >= AruidIndexMax) {
         return ResultNpadNotConnected;

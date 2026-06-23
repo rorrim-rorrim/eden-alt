@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -72,16 +69,16 @@ public:
     explicit KAutoObjectWithSlabHeap(KernelCore& kernel) : Base(kernel) {}
     virtual ~KAutoObjectWithSlabHeap() = default;
 
-    virtual void Destroy(KernelCore& kernel) override {
+    virtual void Destroy() override {
         const bool is_initialized = this->IsInitialized();
         uintptr_t arg = 0;
         if (is_initialized) {
             arg = this->GetPostDestroyArgument();
-            this->Finalize(kernel);
+            this->Finalize();
         }
-        Free(kernel, static_cast<Derived*>(this));
+        Free(Base::m_kernel, static_cast<Derived*>(this));
         if (is_initialized) {
-            Derived::PostDestroy(kernel, arg);
+            Derived::PostDestroy(arg);
         }
     }
 
@@ -92,8 +89,8 @@ public:
         return 0;
     }
 
-    size_t GetSlabIndex(KernelCore& kernel) const {
-        return SlabHeap<Derived>(kernel).GetObjectIndex(static_cast<const Derived*>(this));
+    size_t GetSlabIndex() const {
+        return SlabHeap<Derived>(Base::m_kernel).GetObjectIndex(static_cast<const Derived*>(this));
     }
 
 public:
@@ -147,17 +144,17 @@ public:
     KAutoObjectWithSlabHeapAndContainer(KernelCore& kernel) : Base(kernel) {}
     virtual ~KAutoObjectWithSlabHeapAndContainer() {}
 
-    virtual void Destroy(KernelCore& kernel) override {
+    virtual void Destroy() override {
         const bool is_initialized = this->IsInitialized();
         uintptr_t arg = 0;
         if (is_initialized) {
-            kernel.ObjectListContainer().Unregister(this);
+            Base::m_kernel.ObjectListContainer().Unregister(this);
             arg = this->GetPostDestroyArgument();
-            this->Finalize(kernel);
+            this->Finalize();
         }
-        Free(kernel, static_cast<Derived*>(this));
+        Free(Base::m_kernel, static_cast<Derived*>(this));
         if (is_initialized) {
-            Derived::PostDestroy(kernel, arg);
+            Derived::PostDestroy(arg);
         }
     }
 
@@ -168,8 +165,8 @@ public:
         return 0;
     }
 
-    size_t GetSlabIndex(KernelCore& kernel) const {
-        return SlabHeap<Derived>(kernel).GetObjectIndex(static_cast<const Derived*>(this));
+    size_t GetSlabIndex() const {
+        return SlabHeap<Derived>(Base::m_kernel).GetObjectIndex(static_cast<const Derived*>(this));
     }
 
 public:
@@ -180,8 +177,9 @@ public:
 
     static Derived* Create(KernelCore& kernel) {
         Derived* obj = Allocate(kernel);
-        if (obj != nullptr)
+        if (obj != nullptr) {
             KAutoObject::Create(obj);
+        }
         return obj;
     }
 

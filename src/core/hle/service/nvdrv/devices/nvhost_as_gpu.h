@@ -219,7 +219,7 @@ private:
 
         bool initialised{};
     } vm;
-    std::unique_ptr<Tegra::MemoryManager> gmmu;
+    std::shared_ptr<Tegra::MemoryManager> gmmu;
 };
 
 } // namespace Service::Nvidia::Devices

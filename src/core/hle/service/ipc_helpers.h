@@ -151,10 +151,11 @@ public:
         if (manager->IsDomain()) {
             context->AddDomainObject(std::move(iface));
         } else {
-            ASSERT(Kernel::GetCurrentProcess(kernel).GetResourceLimit()->Reserve(kernel, Kernel::LimitableResource::SessionCountMax, 1));
+            ASSERT(Kernel::GetCurrentProcess(kernel).GetResourceLimit()->Reserve(
+                Kernel::LimitableResource::SessionCountMax, 1));
 
             auto* session = Kernel::KSession::Create(kernel);
-            session->Initialize(kernel, nullptr, 0);
+            session->Initialize(nullptr, 0);
             Kernel::KSession::Register(kernel, session);
 
             auto next_manager = std::make_shared<Service::SessionRequestManager>(

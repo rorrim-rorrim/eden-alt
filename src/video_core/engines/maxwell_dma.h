@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -241,14 +238,15 @@ public:
 
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
-    explicit MaxwellDMA(MemoryManager& memory_manager_);
+    explicit MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_);
     ~MaxwellDMA() override;
 
     /// Write the value to the register identified by method.
-    void CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) override;
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) override;
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
 private:
     /// Performs the copy from the source buffer to the destination buffer as configured in the
@@ -263,7 +261,9 @@ private:
 
     void ReleaseSemaphore();
 
-    void ConsumeSinkImpl(Core::System& system) override;
+    void ConsumeSinkImpl() override;
+
+    Core::System& system;
 
     MemoryManager& memory_manager;
     VideoCore::RasterizerInterface* rasterizer = nullptr;

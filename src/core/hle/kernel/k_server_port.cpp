@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,18 +15,18 @@ namespace Kernel {
 KServerPort::KServerPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 KServerPort::~KServerPort() = default;
 
-void KServerPort::Initialize(KernelCore& kernel, KPort* parent) {
+void KServerPort::Initialize(KPort* parent) {
     // Set member variables.
     m_parent = parent;
 }
 
-bool KServerPort::IsLight(KernelCore& kernel) const {
+bool KServerPort::IsLight() const {
     return this->GetParent()->IsLight();
 }
 
-void KServerPort::CleanupSessions(KernelCore& kernel) {
+void KServerPort::CleanupSessions() {
     // Ensure our preconditions are met.
-    if (this->IsLight(kernel)) {
+    if (this->IsLight()) {
         ASSERT(m_session_list.empty());
     } else {
         ASSERT(m_light_session_list.empty());
@@ -40,7 +37,7 @@ void KServerPort::CleanupSessions(KernelCore& kernel) {
         // Get the last session in the list.
         KServerSession* session = nullptr;
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
             if (!m_session_list.empty()) {
                 session = std::addressof(m_session_list.front());
                 m_session_list.pop_front();
@@ -49,7 +46,7 @@ void KServerPort::CleanupSessions(KernelCore& kernel) {
 
         // Close the session.
         if (session != nullptr) {
-            session->Close(kernel);
+            session->Close();
         } else {
             break;
         }
@@ -60,7 +57,7 @@ void KServerPort::CleanupSessions(KernelCore& kernel) {
         // Get the last session in the list.
         KLightServerSession* session = nullptr;
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
             if (!m_light_session_list.empty()) {
                 session = std::addressof(m_light_session_list.front());
                 m_light_session_list.pop_front();
@@ -69,60 +66,60 @@ void KServerPort::CleanupSessions(KernelCore& kernel) {
 
         // Close the session.
         if (session != nullptr) {
-            session->Close(kernel);
+            session->Close();
         } else {
             break;
         }
     }
 }
 
-void KServerPort::Destroy(KernelCore& kernel) {
+void KServerPort::Destroy() {
     // Note with our parent that we're closed.
-    m_parent->OnServerClosed(kernel);
+    m_parent->OnServerClosed();
 
     // Perform necessary cleanup of our session lists.
-    this->CleanupSessions(kernel);
+    this->CleanupSessions();
 
     // Close our reference to our parent.
-    m_parent->Close(kernel);
+    m_parent->Close();
 }
 
-bool KServerPort::IsSignaled(KernelCore& kernel) const {
-    if (this->IsLight(kernel)) {
+bool KServerPort::IsSignaled() const {
+    if (this->IsLight()) {
         return !m_light_session_list.empty();
     } else {
         return !m_session_list.empty();
     }
 }
 
-void KServerPort::EnqueueSession(KernelCore& kernel, KServerSession* session) {
-    ASSERT(!this->IsLight(kernel));
+void KServerPort::EnqueueSession(KServerSession* session) {
+    ASSERT(!this->IsLight());
 
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Add the session to our queue.
     m_session_list.push_back(*session);
     if (m_session_list.size() == 1) {
-        this->NotifyAvailable(kernel);
+        this->NotifyAvailable();
     }
 }
 
-void KServerPort::EnqueueSession(KernelCore& kernel, KLightServerSession* session) {
-    ASSERT(this->IsLight(kernel));
+void KServerPort::EnqueueSession(KLightServerSession* session) {
+    ASSERT(this->IsLight());
 
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Add the session to our queue.
     m_light_session_list.push_back(*session);
     if (m_light_session_list.size() == 1) {
-        this->NotifyAvailable(kernel);
+        this->NotifyAvailable();
     }
 }
 
-KServerSession* KServerPort::AcceptSession(KernelCore& kernel) {
-    ASSERT(!this->IsLight(kernel));
+KServerSession* KServerPort::AcceptSession() {
+    ASSERT(!this->IsLight());
 
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Return the first session in the list.
     if (m_session_list.empty()) {
@@ -134,10 +131,10 @@ KServerSession* KServerPort::AcceptSession(KernelCore& kernel) {
     return session;
 }
 
-KLightServerSession* KServerPort::AcceptLightSession(KernelCore& kernel) {
-    ASSERT(this->IsLight(kernel));
+KLightServerSession* KServerPort::AcceptLightSession() {
+    ASSERT(this->IsLight());
 
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Return the first session in the list.
     if (m_light_session_list.empty()) {

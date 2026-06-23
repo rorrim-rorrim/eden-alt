@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -91,15 +91,17 @@ u64 StandardVmCallbacks::HidKeysDown() {
 }
 
 void StandardVmCallbacks::PauseProcess() {
-    if (!system.ApplicationProcess()->IsSuspended()) {
-        system.ApplicationProcess()->SetActivity(system.Kernel(), Kernel::Svc::ProcessActivity::Paused);
+    if (system.ApplicationProcess()->IsSuspended()) {
+        return;
     }
+    system.ApplicationProcess()->SetActivity(Kernel::Svc::ProcessActivity::Paused);
 }
 
 void StandardVmCallbacks::ResumeProcess() {
-    if (system.ApplicationProcess()->IsSuspended()) {
-        system.ApplicationProcess()->SetActivity(system.Kernel(), Kernel::Svc::ProcessActivity::Runnable);
+    if (!system.ApplicationProcess()->IsSuspended()) {
+        return;
     }
+    system.ApplicationProcess()->SetActivity(Kernel::Svc::ProcessActivity::Runnable);
 }
 
 void StandardVmCallbacks::DebugLog(u8 id, u64 value) {

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,15 +19,16 @@ namespace Kernel {
 KCodeMemory::KCodeMemory(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer{kernel}, m_lock(kernel) {}
 
-Result KCodeMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_memory, KProcessAddress addr, size_t size) {
+Result KCodeMemory::Initialize(Core::DeviceMemory& device_memory, KProcessAddress addr,
+                               size_t size) {
     // Set members.
-    m_owner = GetCurrentProcessPointer(kernel);
+    m_owner = GetCurrentProcessPointer(m_kernel);
 
     // Get the owner page table.
     auto& page_table = m_owner->GetPageTable();
 
     // Construct the page group.
-    m_page_group.emplace(kernel, page_table.GetBlockInfoManager());
+    m_page_group.emplace(m_kernel, page_table.GetBlockInfoManager());
 
     // Lock the memory.
     R_TRY(page_table.LockForCodeMemory(std::addressof(*m_page_group), addr, size))
@@ -41,7 +39,7 @@ Result KCodeMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_me
     }
 
     // Set remaining tracking members.
-    m_owner->Open(kernel);
+    m_owner->Open();
     m_address = addr;
     m_is_initialized = true;
     m_is_owner_mapped = false;
@@ -51,7 +49,7 @@ Result KCodeMemory::Initialize(KernelCore& kernel, Core::DeviceMemory& device_me
     R_SUCCEED();
 }
 
-void KCodeMemory::Finalize(KernelCore& kernel) {
+void KCodeMemory::Finalize() {
     // Unlock.
     if (!m_is_mapped && !m_is_owner_mapped) {
         const size_t size = m_page_group->GetNumPages() * PageSize;
@@ -59,14 +57,14 @@ void KCodeMemory::Finalize(KernelCore& kernel) {
     }
 
     // Close the page group.
-    m_page_group->Close(kernel);
+    m_page_group->Close();
     m_page_group->Finalize();
 
     // Close our reference to our owner.
-    m_owner->Close(kernel);
+    m_owner->Close();
 }
 
-Result KCodeMemory::Map(KernelCore& kernel, KProcessAddress address, size_t size) {
+Result KCodeMemory::Map(KProcessAddress address, size_t size) {
     // Validate the size.
     R_UNLESS(m_page_group->GetNumPages() == Common::DivideUp(size, PageSize), ResultInvalidSize);
 
@@ -77,7 +75,7 @@ Result KCodeMemory::Map(KernelCore& kernel, KProcessAddress address, size_t size
     R_UNLESS(!m_is_mapped, ResultInvalidState);
 
     // Map the memory.
-    R_TRY(GetCurrentProcess(kernel).GetPageTable().MapPageGroup(
+    R_TRY(GetCurrentProcess(m_kernel).GetPageTable().MapPageGroup(
         address, *m_page_group, KMemoryState::CodeOut, KMemoryPermission::UserReadWrite));
 
     // Mark ourselves as mapped.
@@ -86,7 +84,7 @@ Result KCodeMemory::Map(KernelCore& kernel, KProcessAddress address, size_t size
     R_SUCCEED();
 }
 
-Result KCodeMemory::Unmap(KernelCore& kernel, KProcessAddress address, size_t size) {
+Result KCodeMemory::Unmap(KProcessAddress address, size_t size) {
     // Validate the size.
     R_UNLESS(m_page_group->GetNumPages() == Common::DivideUp(size, PageSize), ResultInvalidSize);
 
@@ -94,7 +92,7 @@ Result KCodeMemory::Unmap(KernelCore& kernel, KProcessAddress address, size_t si
     KScopedLightLock lk(m_lock);
 
     // Unmap the memory.
-    R_TRY(GetCurrentProcess(kernel).GetPageTable().UnmapPageGroup(address, *m_page_group,
+    R_TRY(GetCurrentProcess(m_kernel).GetPageTable().UnmapPageGroup(address, *m_page_group,
                                                                     KMemoryState::CodeOut));
 
     // Mark ourselves as unmapped.
@@ -103,7 +101,7 @@ Result KCodeMemory::Unmap(KernelCore& kernel, KProcessAddress address, size_t si
     R_SUCCEED();
 }
 
-Result KCodeMemory::MapToOwner(KernelCore& kernel, KProcessAddress address, size_t size, Svc::MemoryPermission perm) {
+Result KCodeMemory::MapToOwner(KProcessAddress address, size_t size, Svc::MemoryPermission perm) {
     // Validate the size.
     R_UNLESS(m_page_group->GetNumPages() == Common::DivideUp(size, PageSize), ResultInvalidSize);
 
@@ -137,7 +135,7 @@ Result KCodeMemory::MapToOwner(KernelCore& kernel, KProcessAddress address, size
     R_SUCCEED();
 }
 
-Result KCodeMemory::UnmapFromOwner(KernelCore& kernel, KProcessAddress address, size_t size) {
+Result KCodeMemory::UnmapFromOwner(KProcessAddress address, size_t size) {
     // Validate the size.
     R_UNLESS(m_page_group->GetNumPages() == Common::DivideUp(size, PageSize), ResultInvalidSize);
 

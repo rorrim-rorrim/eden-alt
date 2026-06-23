@@ -56,15 +56,13 @@ VkFormat GetFormat(const Tegra::FramebufferConfig& framebuffer) {
 
 } // Anonymous namespace
 
-Layer::Layer(const Device& device, MemoryAllocator& memory_allocator_, Scheduler& scheduler_, Tegra::MaxwellDeviceMemoryManager& device_memory_, size_t image_count_, VkExtent2D output_size, VkDescriptorSetLayout layout, const PresentFilters& filters_)
-    : memory_allocator(memory_allocator_)
-    , scheduler(scheduler_)
-    , device_memory(device_memory_)
-    , filters(filters_)
-    , image_count(image_count_)
-{
-    CreateDescriptorPool(device);
-    CreateDescriptorSets(device, layout);
+Layer::Layer(const Device& device_, MemoryAllocator& memory_allocator_, Scheduler& scheduler_,
+             Tegra::MaxwellDeviceMemoryManager& device_memory_, size_t image_count_,
+             VkExtent2D output_size, VkDescriptorSetLayout layout, const PresentFilters& filters_)
+    : device(device_), memory_allocator(memory_allocator_), scheduler(scheduler_),
+      device_memory(device_memory_), filters(filters_), image_count(image_count_) {
+    CreateDescriptorPool();
+    CreateDescriptorSets(layout);
     if (filters.get_scaling_filter() == Settings::ScalingFilter::Fsr) {
         sr_filter.emplace<FSR>(device, memory_allocator, image_count, output_size);
     } else if (filters.get_scaling_filter() == Settings::ScalingFilter::Sgsr) {
@@ -78,7 +76,7 @@ Layer::~Layer() {
     ReleaseRawImages();
 }
 
-void Layer::ConfigureDraw(const Device& device, PresentPushConstants* out_push_constants,
+void Layer::ConfigureDraw(PresentPushConstants* out_push_constants,
                           VkDescriptorSet* out_descriptor_set, RasterizerVulkan& rasterizer,
                           VkSampler sampler, size_t image_index,
                           const Tegra::FramebufferConfig& framebuffer,
@@ -91,8 +89,8 @@ void Layer::ConfigureDraw(const Device& device, PresentPushConstants* out_push_c
     const u32 scaled_height = texture_info ? texture_info->scaled_height : texture_height;
     const bool use_accelerated = texture_info.has_value();
 
-    RefreshResources(device, framebuffer);
-    SetAntiAliasPass(device);
+    RefreshResources(framebuffer);
+    SetAntiAliasPass();
 
     // Finish any pending renderpass
     scheduler.RequestOutsideRenderPassOperationContext();
@@ -110,9 +108,9 @@ void Layer::ConfigureDraw(const Device& device, PresentPushConstants* out_push_c
         texture_info ? texture_info->image_view : *raw_image_views[image_index];
 
     if (auto* fxaa = std::get_if<FXAA>(&anti_alias)) {
-        fxaa->Draw(device, scheduler, image_index, &source_image, &source_image_view);
+        fxaa->Draw(scheduler, image_index, &source_image, &source_image_view);
     } else if (auto* smaa = std::get_if<SMAA>(&anti_alias)) {
-        smaa->Draw(device, scheduler, image_index, &source_image, &source_image_view);
+        smaa->Draw(scheduler, image_index, &source_image, &source_image_view);
     }
 
     auto crop_rect = Tegra::NormalizeCrop(framebuffer, texture_width, texture_height);
@@ -122,30 +120,30 @@ void Layer::ConfigureDraw(const Device& device, PresentPushConstants* out_push_c
     };
 
     if (auto* fsr = std::get_if<FSR>(&sr_filter)) {
-        source_image_view = fsr->Draw(device, scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
+        source_image_view = fsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
         crop_rect = {0, 0, 1, 1};
     } else if (auto* sgsr = std::get_if<SGSR>(&sr_filter)) {
-        source_image_view = sgsr->Draw(device, scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
+        source_image_view = sgsr->Draw(scheduler, image_index, source_image, source_image_view, render_extent, crop_rect);
         crop_rect = {0, 0, 1, 1};
     }
 
-    SetMatrixData(device, *out_push_constants, layout);
-    SetVertexData(device, *out_push_constants, layout, crop_rect);
+    SetMatrixData(*out_push_constants, layout);
+    SetVertexData(*out_push_constants, layout, crop_rect);
 
-    UpdateDescriptorSet(device, source_image_view, sampler, image_index);
+    UpdateDescriptorSet(source_image_view, sampler, image_index);
     *out_descriptor_set = descriptor_sets[image_index];
 }
 
-void Layer::CreateDescriptorPool(const Device& device) {
+void Layer::CreateDescriptorPool() {
     descriptor_pool = CreateWrappedDescriptorPool(device, image_count, image_count);
 }
 
-void Layer::CreateDescriptorSets(const Device& device, VkDescriptorSetLayout layout) {
+void Layer::CreateDescriptorSets(VkDescriptorSetLayout layout) {
     const std::vector layouts(image_count, layout);
     descriptor_sets = CreateWrappedDescriptorSets(descriptor_pool, layouts);
 }
 
-void Layer::CreateStagingBuffer(const Device& device, const Tegra::FramebufferConfig& framebuffer) {
+void Layer::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {
     const VkBufferCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
@@ -161,7 +159,7 @@ void Layer::CreateStagingBuffer(const Device& device, const Tegra::FramebufferCo
     buffer = memory_allocator.CreateBuffer(ci, MemoryUsage::Upload);
 }
 
-void Layer::CreateRawImages(const Device& device, const Tegra::FramebufferConfig& framebuffer) {
+void Layer::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
     const auto format = GetFormat(framebuffer);
     resource_ticks.resize(image_count);
     raw_images.resize(image_count);
@@ -174,7 +172,7 @@ void Layer::CreateRawImages(const Device& device, const Tegra::FramebufferConfig
     }
 }
 
-void Layer::RefreshResources(const Device& device, const Tegra::FramebufferConfig& framebuffer) {
+void Layer::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
     if (framebuffer.width == raw_width && framebuffer.height == raw_height &&
         framebuffer.pixel_format == pixel_format && !raw_images.empty()) {
         return;
@@ -186,11 +184,11 @@ void Layer::RefreshResources(const Device& device, const Tegra::FramebufferConfi
     anti_alias.emplace<std::monostate>();
 
     ReleaseRawImages();
-    CreateStagingBuffer(device, framebuffer);
-    CreateRawImages(device, framebuffer);
+    CreateStagingBuffer(framebuffer);
+    CreateRawImages(framebuffer);
 }
 
-void Layer::SetAntiAliasPass(const Device& device) {
+void Layer::SetAntiAliasPass() {
     if (!std::holds_alternative<std::monostate>(anti_alias) && anti_alias_setting == filters.get_anti_aliasing())
         return;
 
@@ -231,17 +229,20 @@ u64 Layer::GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer,
     return GetSizeInBytes(framebuffer) * image_index;
 }
 
-void Layer::SetMatrixData(const Device& device, PresentPushConstants& data, const Layout::FramebufferLayout& layout) const {
-    data.modelview_matrix = MakeOrthographicMatrix(f32(layout.width), static_cast<f32>(layout.height));
+void Layer::SetMatrixData(PresentPushConstants& data,
+                          const Layout::FramebufferLayout& layout) const {
+    data.modelview_matrix =
+        MakeOrthographicMatrix(static_cast<f32>(layout.width), static_cast<f32>(layout.height));
 }
 
-void Layer::SetVertexData(const Device& device, PresentPushConstants& data, const Layout::FramebufferLayout& layout, const Common::Rectangle<f32>& crop) const {
+void Layer::SetVertexData(PresentPushConstants& data, const Layout::FramebufferLayout& layout,
+                          const Common::Rectangle<f32>& crop) const {
     // Map the coordinates to the screen.
     const auto& screen = layout.screen;
-    const auto x = f32(screen.left);
-    const auto y = f32(screen.top);
-    const auto w = f32(screen.GetWidth());
-    const auto h = f32(screen.GetHeight());
+    const auto x = static_cast<f32>(screen.left);
+    const auto y = static_cast<f32>(screen.top);
+    const auto w = static_cast<f32>(screen.GetWidth());
+    const auto h = static_cast<f32>(screen.GetHeight());
 
     data.vertices[0] = ScreenRectVertex(x, y, crop.left, crop.top);
     data.vertices[1] = ScreenRectVertex(x + w, y, crop.right, crop.top);
@@ -249,7 +250,7 @@ void Layer::SetVertexData(const Device& device, PresentPushConstants& data, cons
     data.vertices[3] = ScreenRectVertex(x + w, y + h, crop.right, crop.bottom);
 }
 
-void Layer::UpdateDescriptorSet(const Device& device, VkImageView image_view, VkSampler sampler, size_t image_index) {
+void Layer::UpdateDescriptorSet(VkImageView image_view, VkSampler sampler, size_t image_index) {
     const VkDescriptorImageInfo image_info{
         .sampler = sampler,
         .imageView = image_view,

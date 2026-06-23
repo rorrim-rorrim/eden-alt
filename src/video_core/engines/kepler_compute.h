@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -45,7 +42,7 @@ namespace Tegra::Engines {
 
 class KeplerCompute final : public EngineInterface {
 public:
-    explicit KeplerCompute(MemoryManager& memory_manager);
+    explicit KeplerCompute(Core::System& system, MemoryManager& memory_manager);
     ~KeplerCompute();
 
     /// Binds a rasterizer to this engine.
@@ -202,10 +199,11 @@ public:
                   "KeplerCompute LaunchParams has wrong size");
 
     /// Write the value to the register identified by method.
-    void CallMethod(Core::System& system, u32 method, u32 method_argument, bool is_last_call) override;
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(Core::System& system, u32 method, const u32* base_start, u32 amount, u32 methods_pending) override;
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
     std::optional<GPUVAddr> GetIndirectComputeAddress() const {
         return indirect_compute;
@@ -214,7 +212,7 @@ public:
 private:
     void ProcessLaunch();
 
-    void ConsumeSinkImpl(Core::System& system) override;
+    void ConsumeSinkImpl() override;
 
     /// Retrieves information about a specific TIC entry from the TIC buffer.
     Texture::TICEntry GetTICEntry(u32 tic_index) const;
@@ -222,6 +220,7 @@ private:
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
 
+    Core::System& system;
     MemoryManager& memory_manager;
     VideoCore::RasterizerInterface* rasterizer = nullptr;
     Upload::State upload_state;

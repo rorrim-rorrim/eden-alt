@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -13,6 +10,14 @@
 
 namespace Service {
 
+Process::Process(Core::System& system)
+    : m_system(system), m_process(), m_main_thread_priority(), m_main_thread_stack_size(),
+      m_process_started() {}
+
+Process::~Process() {
+    this->Finalize();
+}
+
 bool Process::Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_load_result) {
     // First, ensure we are not holding another process.
     this->Finalize();
@@ -23,7 +28,7 @@ bool Process::Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_lo
 
     // On exit, ensure we free the additional reference to the process.
     SCOPE_EXIT {
-        process->Close(m_system.Kernel());
+        process->Close();
     };
 
     // Insert process modules into memory.
@@ -47,7 +52,7 @@ bool Process::Initialize(Loader::AppLoader& loader, Loader::ResultStatus& out_lo
 
     // Take ownership of the process object.
     m_process = process;
-    m_process->Open(m_system.Kernel());
+    m_process->Open();
 
     // We succeeded.
     return true;
@@ -59,7 +64,8 @@ void Process::Finalize() {
 
     // Close the process.
     if (m_process) {
-        m_process->Close(m_system.Kernel());
+        m_process->Close();
+
         // TODO: remove this, kernel already tracks this
         m_system.Kernel().RemoveProcess(m_process);
     }
@@ -79,7 +85,7 @@ bool Process::Run() {
 
     // Start.
     if (m_process) {
-        m_process->Run(m_system.Kernel(), m_main_thread_priority, m_main_thread_stack_size);
+        m_process->Run(m_main_thread_priority, m_main_thread_stack_size);
     }
 
     // Mark as started.
@@ -91,13 +97,13 @@ bool Process::Run() {
 
 void Process::Terminate() {
     if (m_process) {
-        m_process->Terminate(m_system.Kernel());
+        m_process->Terminate();
     }
 }
 
 void Process::ResetSignal() {
     if (m_process) {
-        m_process->Reset(m_system.Kernel());
+        m_process->Reset();
     }
 }
 
@@ -138,7 +144,8 @@ u64 Process::GetProgramId() const {
 
 void Process::Suspend(bool suspended) {
     if (m_process) {
-        m_process->SetActivity(m_system.Kernel(), suspended ? Kernel::Svc::ProcessActivity::Paused : Kernel::Svc::ProcessActivity::Runnable);
+        m_process->SetActivity(suspended ? Kernel::Svc::ProcessActivity::Paused
+                                         : Kernel::Svc::ProcessActivity::Runnable);
     }
 }
 

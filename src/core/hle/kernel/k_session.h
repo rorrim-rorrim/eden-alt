@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -24,8 +21,8 @@ public:
     explicit KSession(KernelCore& kernel);
     ~KSession() override;
 
-    void Initialize(KernelCore& kernel, KClientPort* port, uintptr_t name);
-    void Finalize(KernelCore& kernel) override;
+    void Initialize(KClientPort* port, uintptr_t name);
+    void Finalize() override;
 
     bool IsInitialized() const override {
         return m_initialized;
@@ -35,9 +32,11 @@ public:
         return reinterpret_cast<uintptr_t>(m_process);
     }
 
-    static void PostDestroy(KernelCore& kernel, uintptr_t arg);
-    void OnServerClosed(KernelCore& kernel);
-    void OnClientClosed(KernelCore& kernel);
+    static void PostDestroy(uintptr_t arg);
+
+    void OnServerClosed();
+
+    void OnClientClosed();
 
     bool IsServerClosed() const {
         return this->GetState() != State::Normal;
@@ -47,8 +46,8 @@ public:
         return this->GetState() != State::Normal;
     }
 
-    Result OnRequest(KernelCore& kernel, KSessionRequest* request) {
-        R_RETURN(m_server.OnRequest(kernel, request));
+    Result OnRequest(KSessionRequest* request) {
+        R_RETURN(m_server.OnRequest(request));
     }
 
     KClientSession& GetClientSession() {

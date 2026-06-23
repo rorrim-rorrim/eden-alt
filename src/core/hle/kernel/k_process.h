@@ -141,8 +141,8 @@ private:
     bool m_is_handle_table_initialized : 1 = false;
 
 private:
-    Result StartTermination(KernelCore& kernel);
-    void FinishTermination(KernelCore& kernel);
+    Result StartTermination();
+    void FinishTermination();
 
     void PinThread(s32 core_id, KThread* thread) {
         ASSERT(0 <= core_id && core_id < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
@@ -162,16 +162,16 @@ public:
     explicit KProcess(KernelCore& kernel);
     ~KProcess() override;
 
-    Result Initialize(KernelCore& kernel, const Svc::CreateProcessParameter& params, KResourceLimit* res_limit,
+    Result Initialize(const Svc::CreateProcessParameter& params, KResourceLimit* res_limit,
                       bool is_real);
 
-    Result Initialize(KernelCore& kernel, const Svc::CreateProcessParameter& params, const KPageGroup& pg,
+    Result Initialize(const Svc::CreateProcessParameter& params, const KPageGroup& pg,
                       std::span<const u32> caps, KResourceLimit* res_limit,
                       KMemoryManager::Pool pool, bool immortal);
-    Result Initialize(KernelCore& kernel, const Svc::CreateProcessParameter& params, std::span<const u32> user_caps,
+    Result Initialize(const Svc::CreateProcessParameter& params, std::span<const u32> user_caps,
                       KResourceLimit* res_limit, KMemoryManager::Pool pool,
                       KProcessAddress aslr_space_start);
-    void Exit(KernelCore& kernel);
+    void Exit();
 
     const char* GetName() const {
         return m_name.data();
@@ -267,7 +267,7 @@ public:
         m_pointer_buffer_size = size;
     }
 
-    Result Terminate(KernelCore& kernel);
+    Result Terminate();
 
     bool IsTerminated() const {
         return m_state == State::Terminated;
@@ -300,9 +300,9 @@ public:
         return m_thread_list;
     }
 
-    bool EnterUserException(KernelCore& kernel);
-    bool LeaveUserException(KernelCore& kernel);
-    bool ReleaseUserException(KernelCore& kernel, KThread* thread);
+    bool EnterUserException();
+    bool LeaveUserException();
+    bool ReleaseUserException(KThread* thread);
 
     KThread* GetPinnedThread(s32 core_id) const {
         ASSERT(0 <= core_id && core_id < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
@@ -317,10 +317,10 @@ public:
         return m_resource_limit;
     }
 
-    bool ReserveResource(KernelCore& kernel, Svc::LimitableResource which, s64 value);
-    bool ReserveResource(KernelCore& kernel, Svc::LimitableResource which, s64 value, s64 timeout);
-    void ReleaseResource(KernelCore& kernel, Svc::LimitableResource which, s64 value);
-    void ReleaseResource(KernelCore& kernel, Svc::LimitableResource which, s64 value, s64 hint);
+    bool ReserveResource(Svc::LimitableResource which, s64 value);
+    bool ReserveResource(Svc::LimitableResource which, s64 value, s64 timeout);
+    void ReleaseResource(Svc::LimitableResource which, s64 value);
+    void ReleaseResource(Svc::LimitableResource which, s64 value, s64 hint);
 
     KLightLock& GetStateLock() {
         return m_state_lock;
@@ -343,16 +343,16 @@ public:
         return m_handle_table;
     }
 
-    size_t GetUsedUserPhysicalMemorySize(KernelCore& kernel) const;
-    size_t GetTotalUserPhysicalMemorySize(KernelCore& kernel) const;
-    size_t GetUsedNonSystemUserPhysicalMemorySize(KernelCore& kernel) const;
-    size_t GetTotalNonSystemUserPhysicalMemorySize(KernelCore& kernel) const;
+    size_t GetUsedUserPhysicalMemorySize() const;
+    size_t GetTotalUserPhysicalMemorySize() const;
+    size_t GetUsedNonSystemUserPhysicalMemorySize() const;
+    size_t GetTotalNonSystemUserPhysicalMemorySize() const;
 
-    Result AddSharedMemory(KernelCore& kernel, KSharedMemory* shmem, KProcessAddress address, size_t size);
-    void RemoveSharedMemory(KernelCore& kernel, KSharedMemory* shmem, KProcessAddress address, size_t size);
+    Result AddSharedMemory(KSharedMemory* shmem, KProcessAddress address, size_t size);
+    void RemoveSharedMemory(KSharedMemory* shmem, KProcessAddress address, size_t size);
 
-    Result CreateThreadLocalRegion(KernelCore& kernel, KProcessAddress* out);
-    Result DeleteThreadLocalRegion(KernelCore& kernel, KProcessAddress addr);
+    Result CreateThreadLocalRegion(KProcessAddress* out);
+    Result DeleteThreadLocalRegion(KProcessAddress addr);
 
     KProcessAddress GetProcessLocalRegionAddress() const {
         return m_plr_address;
@@ -376,8 +376,8 @@ public:
         ++m_schedule_count;
     }
 
-    void IncrementRunningThreadCount(KernelCore& kernel);
-    void DecrementRunningThreadCount(KernelCore& kernel);
+    void IncrementRunningThreadCount();
+    void DecrementRunningThreadCount();
 
     size_t GetRequiredSecureMemorySizeNonDefault() const {
         if (!this->IsDefaultApplicationSystemResource() && m_system_resource->IsSecureResource()) {
@@ -422,9 +422,11 @@ public:
     }
 
     void ClearRunningThread(KThread* thread) {
-        for (size_t i = 0; i < m_running_threads.size(); ++i)
-            if (m_running_threads[i] == thread)
+        for (size_t i = 0; i < m_running_threads.size(); ++i) {
+            if (m_running_threads[i] == thread) {
                 m_running_threads[i] = nullptr;
+            }
+        }
     }
 
     const KSystemResource& GetSystemResource() const {
@@ -451,27 +453,30 @@ public:
         return m_running_thread_switch_counts[core];
     }
 
-    void RegisterThread(KernelCore& kernel, KThread* thread);
-    void UnregisterThread(KernelCore& kernel, KThread* thread);
-    Result Run(KernelCore& kernel, s32 priority, size_t stack_size);
-    Result Reset(KernelCore& kernel);
+    void RegisterThread(KThread* thread);
+    void UnregisterThread(KThread* thread);
 
-    void SetDebugBreak(KernelCore& kernel) {
+    Result Run(s32 priority, size_t stack_size);
+
+    Result Reset();
+
+    void SetDebugBreak() {
         if (m_state == State::RunningAttached) {
-            this->ChangeState(kernel, State::DebugBreak);
+            this->ChangeState(State::DebugBreak);
         }
     }
 
-    void SetAttached(KernelCore& kernel) {
+    void SetAttached() {
         if (m_state == State::DebugBreak) {
-            this->ChangeState(kernel, State::RunningAttached);
+            this->ChangeState(State::RunningAttached);
         }
     }
 
-    Result SetActivity(KernelCore& kernel, Svc::ProcessActivity activity);
-    void PinCurrentThread(KernelCore& kernel);
-    void UnpinCurrentThread(KernelCore& kernel);
-    void UnpinThread(KernelCore& kernel, KThread* thread);
+    Result SetActivity(Svc::ProcessActivity activity);
+
+    void PinCurrentThread();
+    void UnpinCurrentThread();
+    void UnpinThread(KThread* thread);
 
     void SignalConditionVariable(uintptr_t cv_key, int32_t count) {
         return m_cond_var.Signal(cv_key, count);
@@ -481,17 +486,19 @@ public:
         R_RETURN(m_cond_var.Wait(address, cv_key, tag, ns));
     }
 
-    Result SignalAddressArbiter(uintptr_t address, Svc::SignalType signal_type, s32 value, s32 count) {
+    Result SignalAddressArbiter(uintptr_t address, Svc::SignalType signal_type, s32 value,
+                                s32 count) {
         R_RETURN(m_address_arbiter.SignalToAddress(address, signal_type, value, count));
     }
 
-    Result WaitAddressArbiter(uintptr_t address, Svc::ArbitrationType arb_type, s32 value, s64 timeout) {
+    Result WaitAddressArbiter(uintptr_t address, Svc::ArbitrationType arb_type, s32 value,
+                              s64 timeout) {
         R_RETURN(m_address_arbiter.WaitForAddress(address, arb_type, value, timeout));
     }
 
-    Result GetThreadList(KernelCore& kernel, s32* out_num_threads, KProcessAddress out_thread_ids, s32 max_out_count);
+    Result GetThreadList(s32* out_num_threads, KProcessAddress out_thread_ids, s32 max_out_count);
 
-    static void Switch(KernelCore& kernel, KProcess* cur_process, KProcess* next_process);
+    static void Switch(KProcess* cur_process, KProcess* next_process);
 
 #ifdef HAS_NCE
     ankerl::unordered_dense::map<u64, u64>& GetPostHandlers() noexcept {
@@ -505,21 +512,21 @@ public:
 
 public:
     // Attempts to insert a watchpoint into a free slot. Returns false if none are available.
-    bool InsertWatchpoint(KernelCore& kernel, KProcessAddress addr, u64 size, DebugWatchpointType type);
+    bool InsertWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type);
 
     // Attempts to remove the watchpoint specified by the given parameters.
-    bool RemoveWatchpoint(KernelCore& kernel, KProcessAddress addr, u64 size, DebugWatchpointType type);
+    bool RemoveWatchpoint(KProcessAddress addr, u64 size, DebugWatchpointType type);
 
     const std::array<DebugWatchpoint, Core::Hardware::NUM_WATCHPOINTS>& GetWatchpoints() const {
         return m_watchpoints;
     }
 
 public:
-    Result LoadFromMetadata(KernelCore& kernel, const FileSys::ProgramMetadata& metadata, std::size_t code_size, KProcessAddress aslr_space_start, size_t aslr_space_offset);
+    Result LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size, KProcessAddress aslr_space_start, size_t aslr_space_offset);
 
-    void LoadModule(KernelCore& kernel, CodeSet code_set, KProcessAddress base_addr);
+    void LoadModule(CodeSet code_set, KProcessAddress base_addr);
 
-    void InitializeInterfaces(KernelCore& kernel);
+    void InitializeInterfaces();
 
     Core::Memory::Memory& GetMemory() {
         return m_memory;
@@ -535,9 +542,9 @@ public:
         return m_is_initialized;
     }
 
-    static void PostDestroy(KernelCore& kernel, uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
-    void Finalize(KernelCore& kernel) override;
+    void Finalize() override;
 
     u64 GetIdImpl() const {
         return this->GetProcessId();
@@ -546,34 +553,34 @@ public:
         return this->GetIdImpl();
     }
 
-    virtual bool IsSignaled(KernelCore& kernel) const override {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    virtual bool IsSignaled() const override {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
         return m_is_signaled;
     }
 
-    void DoWorkerTaskImpl(KernelCore& kernel);
+    void DoWorkerTaskImpl();
 
 private:
-    void ChangeState(KernelCore& kernel, State new_state) {
+    void ChangeState(State new_state) {
         if (m_state != new_state) {
             m_state = new_state;
             m_is_signaled = true;
-            this->NotifyAvailable(kernel);
+            this->NotifyAvailable();
         }
     }
 
-    Result InitializeHandleTable(KernelCore& kernel, s32 size) {
+    Result InitializeHandleTable(s32 size) {
         // Try to initialize the handle table.
-        R_TRY(m_handle_table.Initialize(kernel, size));
+        R_TRY(m_handle_table.Initialize(size));
 
         // We succeeded, so note that we did.
         m_is_handle_table_initialized = true;
         R_SUCCEED();
     }
 
-    void FinalizeHandleTable(KernelCore& kernel) {
+    void FinalizeHandleTable() {
         // Finalize the table.
-        m_handle_table.Finalize(kernel);
+        m_handle_table.Finalize();
 
         // Note that the table is finalized.
         m_is_handle_table_initialized = false;

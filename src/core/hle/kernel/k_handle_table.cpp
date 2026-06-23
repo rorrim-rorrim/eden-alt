@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
@@ -6,27 +6,28 @@
 
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_process.h"
-#include "core/hle/kernel/kernel.h"
 
 namespace Kernel {
 
-void KHandleTable::Finalize(KernelCore& kernel) {
+void KHandleTable::Finalize() {
     // Get the table and clear our record of it.
     u16 saved_table_size = 0;
     {
-        KScopedDisableDispatch dd{kernel};
+        KScopedDisableDispatch dd{m_kernel};
         KScopedSpinLock lk(m_lock);
 
         std::swap(m_table_size, saved_table_size);
     }
 
     // Close and free all entries.
-    for (size_t i = 0; i < saved_table_size; i++)
-        if (KAutoObject* obj = m_objects[i]; obj != nullptr)
-            obj->Close(kernel);
+    for (size_t i = 0; i < saved_table_size; i++) {
+        if (KAutoObject* obj = m_objects[i]; obj != nullptr) {
+            obj->Close();
+        }
+    }
 }
 
-bool KHandleTable::Remove(KernelCore& kernel, Handle handle) {
+bool KHandleTable::Remove(Handle handle) {
     // Don't allow removal of a pseudo-handle.
     if (Svc::IsPseudoHandle(handle)) [[unlikely]] {
         return false;
@@ -41,7 +42,7 @@ bool KHandleTable::Remove(KernelCore& kernel, Handle handle) {
     // Find the object and free the entry.
     KAutoObject* obj = nullptr;
     {
-        KScopedDisableDispatch dd{kernel};
+        KScopedDisableDispatch dd{m_kernel};
         KScopedSpinLock lk(m_lock);
 
         if (this->IsValidHandle(handle)) [[likely]] {
@@ -55,13 +56,13 @@ bool KHandleTable::Remove(KernelCore& kernel, Handle handle) {
     }
 
     // Close the object.
-    kernel.UnregisterInUseObject(obj);
-    obj->Close(kernel);
+    m_kernel.UnregisterInUseObject(obj);
+    obj->Close();
     return true;
 }
 
-Result KHandleTable::Add(KernelCore& kernel, Handle* out_handle, KAutoObject* obj) {
-    KScopedDisableDispatch dd{kernel};
+Result KHandleTable::Add(Handle* out_handle, KAutoObject* obj) {
+    KScopedDisableDispatch dd{m_kernel};
     KScopedSpinLock lk(m_lock);
 
     // Never exceed our capacity.
@@ -75,7 +76,7 @@ Result KHandleTable::Add(KernelCore& kernel, Handle* out_handle, KAutoObject* ob
         m_entry_infos[index].linear_id = linear_id;
         m_objects[index] = obj;
 
-        obj->Open(kernel);
+        obj->Open();
 
         *out_handle = EncodeHandle(static_cast<u16>(index), linear_id);
     }
@@ -83,22 +84,24 @@ Result KHandleTable::Add(KernelCore& kernel, Handle* out_handle, KAutoObject* ob
     R_SUCCEED();
 }
 
-KScopedAutoObject<KAutoObject> KHandleTable::GetObjectForIpc(KernelCore& kernel, Handle handle, KThread* cur_thread) const {
+KScopedAutoObject<KAutoObject> KHandleTable::GetObjectForIpc(Handle handle,
+                                                             KThread* cur_thread) const {
     // Handle pseudo-handles.
     ASSERT(cur_thread != nullptr);
     if (handle == Svc::PseudoHandle::CurrentProcess) {
         auto* const cur_process = cur_thread->GetOwnerProcess();
         ASSERT(cur_process != nullptr);
-        return {kernel, cur_process};
+        return cur_process;
     }
     if (handle == Svc::PseudoHandle::CurrentThread) {
-        return {kernel, cur_thread};
+        return cur_thread;
     }
-    return GetObjectForIpcWithoutPseudoHandle(kernel, handle);
+
+    return GetObjectForIpcWithoutPseudoHandle(handle);
 }
 
-Result KHandleTable::Reserve(KernelCore& kernel, Handle* out_handle) {
-    KScopedDisableDispatch dd{kernel};
+Result KHandleTable::Reserve(Handle* out_handle) {
+    KScopedDisableDispatch dd{m_kernel};
     KScopedSpinLock lk(m_lock);
 
     // Never exceed our capacity.
@@ -108,8 +111,8 @@ Result KHandleTable::Reserve(KernelCore& kernel, Handle* out_handle) {
     R_SUCCEED();
 }
 
-void KHandleTable::Unreserve(KernelCore& kernel, Handle handle) {
-    KScopedDisableDispatch dd{kernel};
+void KHandleTable::Unreserve(Handle handle) {
+    KScopedDisableDispatch dd{m_kernel};
     KScopedSpinLock lk(m_lock);
 
     // Unpack the handle.
@@ -127,8 +130,8 @@ void KHandleTable::Unreserve(KernelCore& kernel, Handle handle) {
     }
 }
 
-void KHandleTable::Register(KernelCore& kernel, Handle handle, KAutoObject* obj) {
-    KScopedDisableDispatch dd{kernel};
+void KHandleTable::Register(Handle handle, KAutoObject* obj) {
+    KScopedDisableDispatch dd{m_kernel};
     KScopedSpinLock lk(m_lock);
 
     // Unpack the handle.
@@ -146,7 +149,7 @@ void KHandleTable::Register(KernelCore& kernel, Handle handle, KAutoObject* obj)
         m_entry_infos[index].linear_id = static_cast<u16>(linear_id);
         m_objects[index] = obj;
 
-        obj->Open(kernel);
+        obj->Open();
     }
 }
 

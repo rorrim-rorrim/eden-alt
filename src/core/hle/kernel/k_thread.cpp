@@ -95,12 +95,12 @@ namespace Kernel {
             explicit ThreadQueueImplForKThreadSetProperty(KernelCore& kernel, KThread::WaiterList* wl)
                 : KThreadQueue(kernel), m_wait_list(wl) {}
 
-            void CancelWait(KernelCore& kernel, KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
+            void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
                 // Remove the thread from the wait list.
                 m_wait_list->erase(m_wait_list->iterator_to(*waiting_thread));
 
                 // Invoke the base cancel wait handler.
-                KThreadQueue::CancelWait(kernel, waiting_thread, wait_result, cancel_timer_task);
+                KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
             }
 
         private:
@@ -113,7 +113,7 @@ namespace Kernel {
         : KAutoObjectWithSlabHeapAndContainer{kernel}, m_activity_pause_lock{kernel} {}
     KThread::~KThread() = default;
 
-    Result KThread::Initialize(KernelCore& kernel, KThreadFunction func, uintptr_t arg, KProcessAddress user_stack_top,
+    Result KThread::Initialize(KThreadFunction func, uintptr_t arg, KProcessAddress user_stack_top,
                                s32 prio, s32 virt_core, KProcess* owner, ThreadType type) {
         // Assert parameters are valid.
         ASSERT((type == ThreadType::Main) || (type == ThreadType::Dummy) ||
@@ -225,12 +225,12 @@ namespace Kernel {
         if (owner != nullptr) {
             // Setup the TLS, if needed.
             if (type == ThreadType::User) {
-                R_TRY(owner->CreateThreadLocalRegion(kernel, std::addressof(m_tls_address)));
+                R_TRY(owner->CreateThreadLocalRegion(std::addressof(m_tls_address)));
                 owner->GetMemory().ZeroBlock(m_tls_address, Svc::ThreadLocalRegionSize);
             }
 
             m_parent = owner;
-            m_parent->Open(kernel);
+            m_parent->Open();
         }
 
         // Initialize thread context.
@@ -247,28 +247,28 @@ namespace Kernel {
         this->SetInExceptionHandler();
 
         // Set thread ID.
-        m_thread_id = kernel.CreateNewThreadID();
+        m_thread_id = m_kernel.CreateNewThreadID();
 
         // We initialized!
         m_initialized = true;
 
         // Register ourselves with our parent process.
         if (m_parent != nullptr) {
-            m_parent->RegisterThread(kernel, this);
+            m_parent->RegisterThread(this);
             if (m_parent->IsSuspended()) {
-                RequestSuspend(kernel, SuspendType::Process);
+                RequestSuspend(SuspendType::Process);
             }
         }
 
         R_SUCCEED();
     }
 
-    Result KThread::InitializeThread(KernelCore& kernel, KThread* thread, KThreadFunction func, uintptr_t arg,
+    Result KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_t arg,
                                      KProcessAddress user_stack_top, s32 prio, s32 core,
                                      KProcess* owner, ThreadType type,
                                      std::function<void()>&& init_func) {
         // Initialize the thread.
-        R_TRY(thread->Initialize(kernel, func, arg, user_stack_top, prio, core, owner, type));
+        R_TRY(thread->Initialize(func, arg, user_stack_top, prio, core, owner, type));
 
         // Initialize emulation parameters.
         thread->m_host_context = std::make_shared<Common::Fiber>(std::move(init_func));
@@ -276,9 +276,9 @@ namespace Kernel {
         R_SUCCEED();
     }
 
-    Result KThread::InitializeDummyThread(Core::System& system, KThread* thread, KProcess* owner) {
+    Result KThread::InitializeDummyThread(KThread* thread, KProcess* owner) {
         // Initialize the thread.
-        R_TRY(thread->Initialize(system.Kernel(), {}, {}, {}, DummyThreadPriority, 3, owner, ThreadType::Dummy));
+        R_TRY(thread->Initialize({}, {}, {}, DummyThreadPriority, 3, owner, ThreadType::Dummy));
 
         // Initialize emulation parameters.
         thread->m_stack_parameters.disable_count = 0;
@@ -287,27 +287,37 @@ namespace Kernel {
     }
 
     Result KThread::InitializeMainThread(Core::System& system, KThread* thread, s32 virt_core) {
-        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main, system.GetCpuManager().GetGuestActivateFunc(system.Kernel())));
+        R_RETURN(InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {},
+                                  ThreadType::Main, system.GetCpuManager().GetGuestActivateFunc()));
     }
 
     Result KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
-        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main, system.GetCpuManager().GetIdleThreadStartFunc(system.Kernel())));
+        R_RETURN(InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {},
+                                  ThreadType::Main, system.GetCpuManager().GetIdleThreadStartFunc()));
     }
 
-    Result KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread, KThreadFunction func, uintptr_t arg, s32 virt_core) {
-        R_RETURN(InitializeThread(system.Kernel(), thread, func, arg, {}, {}, virt_core, nullptr, ThreadType::HighPriority, system.GetCpuManager().GetShutdownThreadStartFunc(system.Kernel())));
+    Result KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread,
+                                                 KThreadFunction func, uintptr_t arg, s32 virt_core) {
+        R_RETURN(InitializeThread(thread, func, arg, {}, {}, virt_core, nullptr,
+                                  ThreadType::HighPriority,
+                                  system.GetCpuManager().GetShutdownThreadStartFunc()));
     }
 
-    Result KThread::InitializeUserThread(Core::System& system, KThread* thread, KThreadFunction func, uintptr_t arg, KProcessAddress user_stack_top, s32 prio, s32 virt_core, KProcess* owner) {
+    Result KThread::InitializeUserThread(Core::System& system, KThread* thread, KThreadFunction func,
+                                         uintptr_t arg, KProcessAddress user_stack_top, s32 prio,
+                                         s32 virt_core, KProcess* owner) {
         system.Kernel().GlobalSchedulerContext().AddThread(thread);
-        R_RETURN(InitializeThread(system.Kernel(), thread, func, arg, user_stack_top, prio, virt_core, owner, ThreadType::User, system.GetCpuManager().GetGuestThreadFunc(system.Kernel())));
+        R_RETURN(InitializeThread(thread, func, arg, user_stack_top, prio, virt_core, owner,
+                                  ThreadType::User, system.GetCpuManager().GetGuestThreadFunc()));
     }
 
-    Result KThread::InitializeServiceThread(Core::System& system, KThread* thread, std::function<void()>&& func, s32 prio, s32 virt_core, KProcess* owner) {
+    Result KThread::InitializeServiceThread(Core::System& system, KThread* thread,
+                                            std::function<void()>&& func, s32 prio, s32 virt_core,
+                                            KProcess* owner) {
         system.Kernel().GlobalSchedulerContext().AddThread(thread);
         std::function<void()> func2{[&system, func_{std::move(func)}] {
             // Similar to UserModeThreadStarter.
-            system.Kernel().CurrentScheduler()->OnThreadStart(system.Kernel());
+            system.Kernel().CurrentScheduler()->OnThreadStart();
 
             // Run the guest function.
             func_();
@@ -316,35 +326,35 @@ namespace Kernel {
             Svc::ExitThread(system);
         }};
 
-        R_RETURN(InitializeThread(system.Kernel(), thread, {}, {}, {}, prio, virt_core, owner, ThreadType::HighPriority,
+        R_RETURN(InitializeThread(thread, {}, {}, {}, prio, virt_core, owner, ThreadType::HighPriority,
                                   std::move(func2)));
     }
 
-    void KThread::PostDestroy(KernelCore& kernel, uintptr_t arg) {
+    void KThread::PostDestroy(uintptr_t arg) {
         KProcess* owner = reinterpret_cast<KProcess*>(arg & ~1ULL);
         const bool resource_limit_release_hint = (arg & 1);
         const s64 hint_value = (resource_limit_release_hint ? 0 : 1);
         if (owner != nullptr) {
-            owner->GetResourceLimit()->Release(kernel, LimitableResource::ThreadCountMax, 1, hint_value);
-            owner->Close(kernel);
+            owner->GetResourceLimit()->Release(LimitableResource::ThreadCountMax, 1, hint_value);
+            owner->Close();
         }
     }
 
-    void KThread::Finalize(KernelCore& kernel) {
+    void KThread::Finalize() {
         // If the thread has an owner process, unregister it.
         if (m_parent != nullptr) {
-            m_parent->UnregisterThread(kernel, this);
+            m_parent->UnregisterThread(this);
         }
 
         // If the thread has a local region, delete it.
         if (m_tls_address != 0) {
-            ASSERT(m_parent->DeleteThreadLocalRegion(kernel, m_tls_address).IsSuccess());
+            ASSERT(m_parent->DeleteThreadLocalRegion(m_tls_address).IsSuccess());
         }
 
         // Release any waiters.
         {
             ASSERT(m_waiting_lock_info == nullptr);
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
 
             // Check that we have no kernel waiters.
             ASSERT(m_num_kernel_waiters == 0);
@@ -368,14 +378,14 @@ namespace Kernel {
                     }
 
                     // Cancel the thread's wait.
-                    waiter->CancelWait(kernel, ResultInvalidState, true);
+                    waiter->CancelWait(ResultInvalidState, true);
                 }
 
                 // Remove the held lock from our list.
                 it = m_held_lock_info_list.erase(it);
 
                 // Free the lock info.
-                LockWithPriorityInheritanceInfo::Free(kernel, lock_info);
+                LockWithPriorityInheritanceInfo::Free(m_kernel, lock_info);
             }
         }
 
@@ -383,35 +393,35 @@ namespace Kernel {
         m_host_context.reset();
 
         // Perform inherited finalization.
-        KSynchronizationObject::Finalize(kernel);
+        KSynchronizationObject::Finalize();
     }
 
-    bool KThread::IsSignaled(KernelCore& kernel) const {
+    bool KThread::IsSignaled() const {
         return m_signaled;
     }
 
-    void KThread::OnTimer(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::OnTimer() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // If we're waiting, cancel the wait.
         if (this->GetState() == ThreadState::Waiting) {
-            m_wait_queue->CancelWait(kernel, this, ResultTimedOut, false);
+            m_wait_queue->CancelWait(this, ResultTimedOut, false);
         }
     }
 
-    void KThread::StartTermination(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::StartTermination() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Release user exception and unpin, if relevant.
         if (m_parent != nullptr) {
-            m_parent->ReleaseUserException(kernel, this);
-            if (m_parent->GetPinnedThread(GetCurrentCoreId(kernel)) == this) {
-                m_parent->UnpinCurrentThread(kernel);
+            m_parent->ReleaseUserException(this);
+            if (m_parent->GetPinnedThread(GetCurrentCoreId(m_kernel)) == this) {
+                m_parent->UnpinCurrentThread();
             }
         }
 
         // Set state to terminated.
-        this->SetState(kernel, ThreadState::Terminated);
+        this->SetState(ThreadState::Terminated);
 
         // Clear the thread's status as running in parent.
         if (m_parent != nullptr) {
@@ -419,41 +429,41 @@ namespace Kernel {
         }
 
         // Clear previous thread in KScheduler.
-        KScheduler::ClearPreviousThread(kernel, this);
+        KScheduler::ClearPreviousThread(m_kernel, this);
 
         // Register terminated dpc flag.
         this->RegisterDpc(DpcFlag::Terminated);
     }
 
-    void KThread::FinishTermination(KernelCore& kernel) {
+    void KThread::FinishTermination() {
         // Ensure that the thread is not executing on any core.
         if (m_parent != nullptr) {
-            for (std::size_t i = 0; i < std::size_t(Core::Hardware::NUM_CPU_CORES); ++i) {
+            for (std::size_t i = 0; i < static_cast<std::size_t>(Core::Hardware::NUM_CPU_CORES); ++i) {
                 KThread* core_thread{};
                 do {
-                    core_thread = kernel.Scheduler(i).GetSchedulerCurrentThread();
+                    core_thread = m_kernel.Scheduler(i).GetSchedulerCurrentThread();
                 } while (core_thread == this);
             }
         }
 
         // Acquire the scheduler lock.
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Signal.
         m_signaled = true;
-        KSynchronizationObject::NotifyAvailable(kernel);
+        KSynchronizationObject::NotifyAvailable();
 
         // Close the thread.
-        this->Close(kernel);
+        this->Close();
     }
 
-    void KThread::DoWorkerTaskImpl(KernelCore& kernel) {
+    void KThread::DoWorkerTaskImpl() {
         // Finish the termination that was begun by Exit().
-        this->FinishTermination(kernel);
+        this->FinishTermination();
     }
 
-    void KThread::Pin(KernelCore& kernel, s32 current_core) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::Pin(s32 current_core) {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Set ourselves as pinned.
         GetStackParameters().is_pinned = true;
@@ -477,7 +487,7 @@ namespace Kernel {
             if (active_core != current_core ||
                 m_physical_affinity_mask.GetAffinityMask() !=
                     m_original_physical_affinity_mask.GetAffinityMask()) {
-                KScheduler::OnThreadAffinityMaskChanged(kernel, this,
+                KScheduler::OnThreadAffinityMaskChanged(m_kernel, this,
                                                         m_original_physical_affinity_mask, active_core);
                     }
         }
@@ -489,15 +499,15 @@ namespace Kernel {
                                                static_cast<u32>(ThreadState::SuspendShift)));
 
             // Update our state.
-            this->UpdateState(kernel);
+            this->UpdateState();
         }
 
         // TODO(bunnei): Update our SVC access permissions.
         ASSERT(m_parent != nullptr);
     }
 
-    void KThread::Unpin(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::Unpin() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Set ourselves as unpinned.
         this->GetStackParameters().is_pinned = false;
@@ -525,7 +535,7 @@ namespace Kernel {
                             std::countl_zero(m_physical_affinity_mask.GetAffinityMask())));
                     }
                 }
-                KScheduler::OnThreadAffinityMaskChanged(kernel, this, old_mask, active_core);
+                KScheduler::OnThreadAffinityMaskChanged(m_kernel, this, old_mask, active_core);
             }
         }
 
@@ -536,19 +546,20 @@ namespace Kernel {
                                               static_cast<u32>(ThreadState::SuspendShift)));
 
             // Update our state.
-            this->UpdateState(kernel);
+            this->UpdateState();
         }
 
         // TODO(bunnei): Update our SVC access permissions.
         ASSERT(m_parent != nullptr);
 
         // Resume any threads that began waiting on us while we were pinned.
-        for (auto it = m_pinned_waiter_list.begin(); it != m_pinned_waiter_list.end(); it = m_pinned_waiter_list.erase(it)) {
-            it->EndWait(kernel, ResultSuccess);
-        }
+        for (auto it = m_pinned_waiter_list.begin(); it != m_pinned_waiter_list.end();
+             it = m_pinned_waiter_list.erase(it)) {
+            it->EndWait(ResultSuccess);
+             }
     }
 
-    u16 KThread::GetUserDisableCount(KernelCore& kernel) const {
+    u16 KThread::GetUserDisableCount() const {
         if (!this->IsUserThread()) {
             // We only emulate TLS for user threads
             return {};
@@ -558,7 +569,7 @@ namespace Kernel {
         return memory.Read16(m_tls_address + offsetof(ThreadLocalRegion, disable_count));
     }
 
-    void KThread::SetInterruptFlag(KernelCore& kernel) {
+    void KThread::SetInterruptFlag() {
         if (!this->IsUserThread()) {
             // We only emulate TLS for user threads
             return;
@@ -568,7 +579,7 @@ namespace Kernel {
         memory.Write16(m_tls_address + offsetof(ThreadLocalRegion, interrupt_flag), 1);
     }
 
-    void KThread::ClearInterruptFlag(KernelCore& kernel) {
+    void KThread::ClearInterruptFlag() {
         if (!this->IsUserThread()) {
             // We only emulate TLS for user threads
             return;
@@ -578,7 +589,7 @@ namespace Kernel {
         memory.Write16(m_tls_address + offsetof(ThreadLocalRegion, interrupt_flag), 0);
     }
 
-    void KThread::UpdateTlsThreadCpuTime(KernelCore& kernel, s64 switch_tick) {
+    void KThread::UpdateTlsThreadCpuTime(s64 switch_tick) {
         if (!this->IsUserThread()) {
             return;
         }
@@ -591,8 +602,8 @@ namespace Kernel {
         memory.Write64(m_tls_address + offsetof(ThreadLocalRegion, thread_cpu_time), static_cast<u64>(value));
     }
 
-    Result KThread::GetCoreMask(KernelCore& kernel, s32* out_ideal_core, u64* out_affinity_mask) {
-        KScopedSchedulerLock sl{kernel};
+    Result KThread::GetCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {
+        KScopedSchedulerLock sl{m_kernel};
 
         // Get the virtual mask.
         *out_ideal_core = m_virtual_ideal_core_id;
@@ -601,8 +612,8 @@ namespace Kernel {
         R_SUCCEED();
     }
 
-    Result KThread::GetPhysicalCoreMask(KernelCore& kernel, s32* out_ideal_core, u64* out_affinity_mask) {
-        KScopedSchedulerLock sl{kernel};
+    Result KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {
+        KScopedSchedulerLock sl{m_kernel};
         ASSERT(m_num_core_migration_disables >= 0);
 
         // Select between core mask and original core mask.
@@ -617,7 +628,7 @@ namespace Kernel {
         R_SUCCEED();
     }
 
-    Result KThread::SetCoreMask(KernelCore& kernel, s32 core_id, u64 v_affinity_mask) {
+    Result KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
         ASSERT(m_parent != nullptr);
         ASSERT(v_affinity_mask != 0);
         KScopedLightLock lk(m_activity_pause_lock);
@@ -625,7 +636,7 @@ namespace Kernel {
         // Set the core mask.
         u64 p_affinity_mask = 0;
         {
-            KScopedSchedulerLock sl(kernel);
+            KScopedSchedulerLock sl(m_kernel);
             ASSERT(m_num_core_migration_disables >= 0);
 
             // If we're updating, set our ideal virtual core.
@@ -671,7 +682,7 @@ namespace Kernel {
                                       std::countl_zero(m_physical_affinity_mask.GetAffinityMask()));
                         SetActiveCore(new_core);
                     }
-                    KScheduler::OnThreadAffinityMaskChanged(kernel, this, old_mask, active_core);
+                    KScheduler::OnThreadAffinityMaskChanged(m_kernel, this, old_mask, active_core);
                 }
             } else {
                 // Otherwise, we edit the original affinity for restoration later.
@@ -681,12 +692,12 @@ namespace Kernel {
         }
 
         // Update the pinned waiter list.
-        ThreadQueueImplForKThreadSetProperty wait_queue(kernel, std::addressof(m_pinned_waiter_list));
+        ThreadQueueImplForKThreadSetProperty wait_queue(m_kernel, std::addressof(m_pinned_waiter_list));
         {
             bool retry_update{};
             do {
                 // Lock the scheduler.
-                KScopedSchedulerLock sl(kernel);
+                KScopedSchedulerLock sl(m_kernel);
 
                 // Don't do any further management if our termination has been requested.
                 R_SUCCEED_IF(this->IsTerminationRequested());
@@ -699,7 +710,7 @@ namespace Kernel {
                 s32 thread_core;
                 for (thread_core = 0; thread_core < static_cast<s32>(Core::Hardware::NUM_CPU_CORES);
                      ++thread_core) {
-                    if (kernel.Scheduler(thread_core).GetSchedulerCurrentThread() == this) {
+                    if (m_kernel.Scheduler(thread_core).GetSchedulerCurrentThread() == this) {
                         thread_is_current = true;
                         break;
                     }
@@ -711,12 +722,12 @@ namespace Kernel {
                     // If the thread is pinned, we want to wait until it's not pinned.
                     if (this->GetStackParameters().is_pinned) {
                         // Verify that the current thread isn't terminating.
-                        R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
+                        R_UNLESS(!GetCurrentThread(m_kernel).IsTerminationRequested(),
                                  ResultTerminationRequested);
 
                         // Wait until the thread isn't pinned any more.
-                        m_pinned_waiter_list.push_back(GetCurrentThread(kernel));
-                        GetCurrentThread(kernel).BeginWait(kernel, std::addressof(wait_queue));
+                        m_pinned_waiter_list.push_back(GetCurrentThread(m_kernel));
+                        GetCurrentThread(m_kernel).BeginWait(std::addressof(wait_queue));
                     } else {
                         // If the thread isn't pinned, release the scheduler lock and retry until it's
                         // not current.
@@ -729,25 +740,25 @@ namespace Kernel {
         R_SUCCEED();
     }
 
-    void KThread::SetBasePriority(KernelCore& kernel, s32 value) {
+    void KThread::SetBasePriority(s32 value) {
         ASSERT(Svc::HighestThreadPriority <= value && value <= Svc::LowestThreadPriority);
 
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Change our base priority.
         m_base_priority = value;
 
         // Perform a priority restoration.
-        RestorePriority(kernel, this);
+        RestorePriority(m_kernel, this);
     }
 
-    KThread* KThread::GetLockOwner(KernelCore& kernel) const {
+    KThread* KThread::GetLockOwner() const {
         return m_waiting_lock_info != nullptr ? m_waiting_lock_info->GetOwner() : nullptr;
     }
 
-    void KThread::IncreaseBasePriority(KernelCore& kernel, s32 priority) {
+    void KThread::IncreaseBasePriority(s32 priority) {
         ASSERT(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority);
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
         ASSERT(!this->GetStackParameters().is_pinned);
 
         // Set our base priority.
@@ -755,47 +766,47 @@ namespace Kernel {
             m_base_priority = priority;
 
             // Perform a priority restoration.
-            RestorePriority(kernel, this);
+            RestorePriority(m_kernel, this);
         }
     }
 
-    void KThread::RequestSuspend(KernelCore& kernel, SuspendType type) {
-        KScopedSchedulerLock sl{kernel};
+    void KThread::RequestSuspend(SuspendType type) {
+        KScopedSchedulerLock sl{m_kernel};
 
         // Note the request in our flags.
         m_suspend_request_flags |=
             (1U << (static_cast<u32>(ThreadState::SuspendShift) + static_cast<u32>(type)));
 
         // Try to perform the suspend.
-        this->TrySuspend(kernel);
+        this->TrySuspend();
     }
 
-    void KThread::Resume(KernelCore& kernel, SuspendType type) {
-        KScopedSchedulerLock sl{kernel};
+    void KThread::Resume(SuspendType type) {
+        KScopedSchedulerLock sl{m_kernel};
 
         // Clear the request in our flags.
         m_suspend_request_flags &=
             ~(1U << (static_cast<u32>(ThreadState::SuspendShift) + static_cast<u32>(type)));
 
         // Update our state.
-        this->UpdateState(kernel);
+        this->UpdateState();
     }
 
-    void KThread::WaitCancel(KernelCore& kernel) {
-        KScopedSchedulerLock sl{kernel};
+    void KThread::WaitCancel() {
+        KScopedSchedulerLock sl{m_kernel};
 
         // Check if we're waiting and cancellable.
         if (this->GetState() == ThreadState::Waiting && m_cancellable) {
             m_wait_cancelled = false;
-            m_wait_queue->CancelWait(kernel, this, ResultCancelled, true);
+            m_wait_queue->CancelWait(this, ResultCancelled, true);
         } else {
             // Otherwise, note that we cancelled a wait.
             m_wait_cancelled = true;
         }
     }
 
-    void KThread::TrySuspend(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::TrySuspend() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
         ASSERT(this->IsSuspendRequested());
 
         // Ensure that we have no waiters.
@@ -805,11 +816,11 @@ namespace Kernel {
         ASSERT(this->GetNumKernelWaiters() == 0);
 
         // Perform the suspend.
-        this->UpdateState(kernel);
+        this->UpdateState();
     }
 
-    void KThread::UpdateState(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::UpdateState() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Set our suspend flags in state.
         const ThreadState old_state = m_thread_state.load(std::memory_order_relaxed);
@@ -819,37 +830,37 @@ namespace Kernel {
 
         // Note the state change in scheduler.
         if (new_state != old_state) {
-            KScheduler::OnThreadStateChanged(kernel, this, old_state);
+            KScheduler::OnThreadStateChanged(m_kernel, this, old_state);
         }
     }
 
-    void KThread::Continue(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::Continue() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Clear our suspend flags in state.
         const ThreadState old_state = m_thread_state.load(std::memory_order_relaxed);
         m_thread_state.store(old_state & ThreadState::Mask, std::memory_order_relaxed);
 
         // Note the state change in scheduler.
-        KScheduler::OnThreadStateChanged(kernel, this, old_state);
+        KScheduler::OnThreadStateChanged(m_kernel, this, old_state);
     }
 
-    void KThread::CloneFpuStatus(KernelCore& kernel) {
+    void KThread::CloneFpuStatus() {
         // We shouldn't reach here when starting kernel threads.
         ASSERT(this->GetOwnerProcess() != nullptr);
-        ASSERT(this->GetOwnerProcess() == GetCurrentProcessPointer(kernel));
+        ASSERT(this->GetOwnerProcess() == GetCurrentProcessPointer(m_kernel));
 
-        kernel.CurrentPhysicalCore().CloneFpuStatus(this);
+        m_kernel.CurrentPhysicalCore().CloneFpuStatus(this);
     }
 
-    Result KThread::SetActivity(KernelCore& kernel, Svc::ThreadActivity activity) {
+    Result KThread::SetActivity(Svc::ThreadActivity activity) {
         // Lock ourselves.
         KScopedLightLock lk(m_activity_pause_lock);
 
         // Set the activity.
         {
             // Lock the scheduler.
-            KScopedSchedulerLock sl(kernel);
+            KScopedSchedulerLock sl(m_kernel);
 
             // Verify our state.
             const auto cur_state = this->GetState();
@@ -862,7 +873,7 @@ namespace Kernel {
                 R_UNLESS(!this->IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
                 // Suspend.
-                this->RequestSuspend(kernel, SuspendType::Thread);
+                this->RequestSuspend(SuspendType::Thread);
             } else {
                 ASSERT(activity == Svc::ThreadActivity::Runnable);
 
@@ -870,19 +881,19 @@ namespace Kernel {
                 R_UNLESS(this->IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
                 // Resume.
-                this->Resume(kernel, SuspendType::Thread);
+                this->Resume(SuspendType::Thread);
             }
         }
 
         // If the thread is now paused, update the pinned waiter list.
         if (activity == Svc::ThreadActivity::Paused) {
-            ThreadQueueImplForKThreadSetProperty wait_queue(kernel,
+            ThreadQueueImplForKThreadSetProperty wait_queue(m_kernel,
                                                             std::addressof(m_pinned_waiter_list));
 
             bool thread_is_current{};
             do {
                 // Lock the scheduler.
-                KScopedSchedulerLock sl(kernel);
+                KScopedSchedulerLock sl(m_kernel);
 
                 // Don't do any further management if our termination has been requested.
                 R_SUCCEED_IF(this->IsTerminationRequested());
@@ -893,17 +904,17 @@ namespace Kernel {
                 // Check whether the thread is pinned.
                 if (this->GetStackParameters().is_pinned) {
                     // Verify that the current thread isn't terminating.
-                    R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
+                    R_UNLESS(!GetCurrentThread(m_kernel).IsTerminationRequested(),
                              ResultTerminationRequested);
 
                     // Wait until the thread isn't pinned any more.
-                    m_pinned_waiter_list.push_back(GetCurrentThread(kernel));
-                    GetCurrentThread(kernel).BeginWait(kernel, std::addressof(wait_queue));
+                    m_pinned_waiter_list.push_back(GetCurrentThread(m_kernel));
+                    GetCurrentThread(m_kernel).BeginWait(std::addressof(wait_queue));
                 } else {
                     // Check if the thread is currently running.
                     // If it is, we'll need to retry.
                     for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
-                        if (kernel.Scheduler(i).GetSchedulerCurrentThread() == this) {
+                        if (m_kernel.Scheduler(i).GetSchedulerCurrentThread() == this) {
                             thread_is_current = true;
                             break;
                         }
@@ -915,14 +926,14 @@ namespace Kernel {
         R_SUCCEED();
     }
 
-    Result KThread::GetThreadContext3(KernelCore& kernel, Svc::ThreadContext* out) {
+    Result KThread::GetThreadContext3(Svc::ThreadContext* out) {
         // Lock ourselves.
         KScopedLightLock lk{m_activity_pause_lock};
 
         // Get the context.
         {
             // Lock the scheduler.
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
 
             // Verify that we're suspended.
             R_UNLESS(this->IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
@@ -946,8 +957,8 @@ namespace Kernel {
         R_SUCCEED();
     }
 
-    void KThread::AddHeldLock(KernelCore& kernel, LockWithPriorityInheritanceInfo* lock_info) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::AddHeldLock(LockWithPriorityInheritanceInfo* lock_info) {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Set ourselves as the lock's owner.
         lock_info->SetOwner(this);
@@ -956,21 +967,23 @@ namespace Kernel {
         m_held_lock_info_list.push_front(*lock_info);
     }
 
-    KThread::LockWithPriorityInheritanceInfo* KThread::FindHeldLock(KernelCore& kernel, KProcessAddress address_key, bool is_kernel_address_key) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    KThread::LockWithPriorityInheritanceInfo* KThread::FindHeldLock(KProcessAddress address_key,
+                                                                    bool is_kernel_address_key) {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Try to find an existing held lock.
         for (auto& held_lock : m_held_lock_info_list) {
-            if (held_lock.GetAddressKey() == address_key && held_lock.GetIsKernelAddressKey() == is_kernel_address_key) {
+            if (held_lock.GetAddressKey() == address_key &&
+                held_lock.GetIsKernelAddressKey() == is_kernel_address_key) {
                 return std::addressof(held_lock);
-            }
+                }
         }
 
         return nullptr;
     }
 
-    void KThread::AddWaiterImpl(KernelCore& kernel, KThread* thread) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::AddWaiterImpl(KThread* thread) {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
         ASSERT(thread->GetConditionVariableTree() == nullptr);
 
         // Get the thread's address key.
@@ -980,31 +993,31 @@ namespace Kernel {
         // Keep track of how many kernel waiters we have.
         if (is_kernel_address_key) {
             ASSERT((m_num_kernel_waiters++) >= 0);
-            KScheduler::SetSchedulerUpdateNeeded(kernel);
+            KScheduler::SetSchedulerUpdateNeeded(m_kernel);
         }
 
         // Get the relevant lock info.
-        auto* lock_info = this->FindHeldLock(kernel, address_key, is_kernel_address_key);
+        auto* lock_info = this->FindHeldLock(address_key, is_kernel_address_key);
         if (lock_info == nullptr) {
             // Create a new lock for the address key.
             lock_info =
-                LockWithPriorityInheritanceInfo::Create(kernel, address_key, is_kernel_address_key);
+                LockWithPriorityInheritanceInfo::Create(m_kernel, address_key, is_kernel_address_key);
 
             // Add the new lock to our list.
-            this->AddHeldLock(kernel, lock_info);
+            this->AddHeldLock(lock_info);
         }
 
         // Add the thread as waiter to the lock info.
         lock_info->AddWaiter(thread);
     }
 
-    void KThread::RemoveWaiterImpl(KernelCore& kernel, KThread* thread) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::RemoveWaiterImpl(KThread* thread) {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Keep track of how many kernel waiters we have.
         if (thread->GetIsKernelAddressKey()) {
             ASSERT((m_num_kernel_waiters--) > 0);
-            KScheduler::SetSchedulerUpdateNeeded(kernel);
+            KScheduler::SetSchedulerUpdateNeeded(m_kernel);
         }
 
         // Get the info for the lock the thread is waiting on.
@@ -1014,7 +1027,7 @@ namespace Kernel {
         // Remove the waiter.
         if (lock_info->RemoveWaiter(thread)) {
             m_held_lock_info_list.erase(m_held_lock_info_list.iterator_to(*lock_info));
-            LockWithPriorityInheritanceInfo::Free(kernel, lock_info);
+            LockWithPriorityInheritanceInfo::Free(m_kernel, lock_info);
         }
     }
 
@@ -1035,12 +1048,12 @@ namespace Kernel {
             }
 
             // Get the owner of whatever lock this thread is waiting on.
-            KThread* const lock_owner = thread->GetLockOwner(kernel);
+            KThread* const lock_owner = thread->GetLockOwner();
 
             // If the thread is waiting on some lock, remove it as a waiter to prevent violating red
             // black tree invariants.
             if (lock_owner != nullptr) {
-                lock_owner->RemoveWaiterImpl(kernel, thread);
+                lock_owner->RemoveWaiterImpl(thread);
             }
 
             // Ensure we don't violate condition variable red black tree invariants.
@@ -1059,7 +1072,7 @@ namespace Kernel {
 
             // If we removed the thread from some lock's waiting list, add it back.
             if (lock_owner != nullptr) {
-                lock_owner->AddWaiterImpl(kernel, thread);
+                lock_owner->AddWaiterImpl(thread);
             }
 
             // Update the scheduler.
@@ -1070,30 +1083,32 @@ namespace Kernel {
         }
     }
 
-    void KThread::AddWaiter(KernelCore& kernel, KThread* thread) {
-        this->AddWaiterImpl(kernel, thread);
+    void KThread::AddWaiter(KThread* thread) {
+        this->AddWaiterImpl(thread);
 
         // If the thread has a higher priority than us, we should inherit.
         if (thread->GetPriority() < this->GetPriority()) {
-            RestorePriority(kernel, this);
+            RestorePriority(m_kernel, this);
         }
     }
 
-    void KThread::RemoveWaiter(KernelCore& kernel, KThread* thread) {
-        this->RemoveWaiterImpl(kernel, thread);
+    void KThread::RemoveWaiter(KThread* thread) {
+        this->RemoveWaiterImpl(thread);
 
         // If our priority is the same as the thread's (and we've inherited), we may need to restore to
         // lower priority.
-        if (this->GetPriority() == thread->GetPriority() && this->GetPriority() < this->GetBasePriority()) {
-            RestorePriority(kernel, this);
-        }
+        if (this->GetPriority() == thread->GetPriority() &&
+            this->GetPriority() < this->GetBasePriority()) {
+            RestorePriority(m_kernel, this);
+            }
     }
 
-    KThread* KThread::RemoveWaiterByKey(KernelCore& kernel, bool* out_has_waiters, KProcessAddress key, bool is_kernel_address_key_) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    KThread* KThread::RemoveWaiterByKey(bool* out_has_waiters, KProcessAddress key,
+                                        bool is_kernel_address_key_) {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
         // Get the relevant lock info.
-        auto* lock_info = this->FindHeldLock(kernel, key, is_kernel_address_key_);
+        auto* lock_info = this->FindHeldLock(key, is_kernel_address_key_);
         if (lock_info == nullptr) {
             *out_has_waiters = false;
             return nullptr;
@@ -1106,7 +1121,7 @@ namespace Kernel {
         if (lock_info->GetIsKernelAddressKey()) {
             m_num_kernel_waiters -= lock_info->GetWaiterCount();
             ASSERT(m_num_kernel_waiters >= 0);
-            KScheduler::SetSchedulerUpdateNeeded(kernel);
+            KScheduler::SetSchedulerUpdateNeeded(m_kernel);
         }
 
         ASSERT(lock_info->GetWaiterCount() > 0);
@@ -1118,13 +1133,13 @@ namespace Kernel {
             *out_has_waiters = false;
 
             // Free the lock info, since it has no waiters.
-            LockWithPriorityInheritanceInfo::Free(kernel, lock_info);
+            LockWithPriorityInheritanceInfo::Free(m_kernel, lock_info);
         } else {
             // There are additional waiters on the lock.
             *out_has_waiters = true;
 
             // Add the lock to the new owner's held list.
-            next_lock_owner->AddHeldLock(kernel, lock_info);
+            next_lock_owner->AddHeldLock(lock_info);
 
             // Keep track of any kernel waiters for the new owner.
             if (lock_info->GetIsKernelAddressKey()) {
@@ -1140,7 +1155,7 @@ namespace Kernel {
         // to lower priority.
         if (this->GetPriority() == next_lock_owner->GetPriority() &&
             this->GetPriority() < this->GetBasePriority()) {
-            RestorePriority(kernel, this);
+            RestorePriority(m_kernel, this);
             // NOTE: No need to restore priority on the next lock owner, because it was already the
             // highest priority waiter on the lock.
             }
@@ -1149,91 +1164,91 @@ namespace Kernel {
         return next_lock_owner;
     }
 
-    Result KThread::Run(KernelCore& kernel) {
+    Result KThread::Run() {
         while (true) {
-            KScopedSchedulerLock lk{kernel};
+            KScopedSchedulerLock lk{m_kernel};
 
             // If either this thread or the current thread are requesting termination, note it.
             R_UNLESS(!this->IsTerminationRequested(), ResultTerminationRequested);
-            R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(), ResultTerminationRequested);
+            R_UNLESS(!GetCurrentThread(m_kernel).IsTerminationRequested(), ResultTerminationRequested);
 
             // Ensure our thread state is correct.
             R_UNLESS(this->GetState() == ThreadState::Initialized, ResultInvalidState);
 
             // If the current thread has been asked to suspend, suspend it and retry.
-            if (GetCurrentThread(kernel).IsSuspended()) {
-                GetCurrentThread(kernel).UpdateState(kernel);
+            if (GetCurrentThread(m_kernel).IsSuspended()) {
+                GetCurrentThread(m_kernel).UpdateState();
                 continue;
             }
 
             // If we're not a kernel thread and we've been asked to suspend, suspend ourselves.
             if (KProcess* owner = this->GetOwnerProcess(); owner != nullptr) {
                 if (this->IsUserThread() && this->IsSuspended()) {
-                    this->UpdateState(kernel);
+                    this->UpdateState();
                 }
-                owner->IncrementRunningThreadCount(kernel);
+                owner->IncrementRunningThreadCount();
             }
 
             // Open a reference, now that we're running.
-            this->Open(kernel);
+            this->Open();
 
             // Set our state and finish.
-            this->SetState(kernel, ThreadState::Runnable);
+            this->SetState(ThreadState::Runnable);
 
             R_SUCCEED();
         }
     }
 
-    void KThread::Exit(KernelCore& kernel) {
-        ASSERT(this == GetCurrentThreadPointer(kernel));
+    void KThread::Exit() {
+        ASSERT(this == GetCurrentThreadPointer(m_kernel));
 
         // Release the thread resource hint, running thread count from parent.
         if (m_parent != nullptr) {
-            m_parent->GetResourceLimit()->Release(kernel, Kernel::LimitableResource::ThreadCountMax, 0, 1);
+            m_parent->GetResourceLimit()->Release(Kernel::LimitableResource::ThreadCountMax, 0, 1);
             m_resource_limit_release_hint = true;
-            m_parent->DecrementRunningThreadCount(kernel);
+            m_parent->DecrementRunningThreadCount();
         }
 
         // Perform termination.
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
 
             // Disallow all suspension.
             m_suspend_allowed_flags = 0;
-            this->UpdateState(kernel);
+            this->UpdateState();
 
             // Disallow all suspension.
             m_suspend_allowed_flags = 0;
 
             // Start termination.
-            this->StartTermination(kernel);
+            this->StartTermination();
 
             // Register the thread as a work task.
-            KWorkerTaskManager::AddTask(kernel, KWorkerTaskManager::WorkerType::Exit, this);
+            KWorkerTaskManager::AddTask(m_kernel, KWorkerTaskManager::WorkerType::Exit, this);
         }
 
         UNREACHABLE_MSG("KThread::Exit() would return");
     }
 
-    Result KThread::Terminate(KernelCore& kernel) {
-        ASSERT(this != GetCurrentThreadPointer(kernel));
+    Result KThread::Terminate() {
+        ASSERT(this != GetCurrentThreadPointer(m_kernel));
 
         // Request the thread terminate if it hasn't already.
-        if (const auto new_state = this->RequestTerminate(kernel); new_state != ThreadState::Terminated) {
+        if (const auto new_state = this->RequestTerminate(); new_state != ThreadState::Terminated) {
             // If the thread isn't terminated, wait for it to terminate.
             s32 index;
             KSynchronizationObject* objects[] = {this};
-            R_TRY(KSynchronizationObject::Wait(kernel, std::addressof(index), objects, 1,
+            R_TRY(KSynchronizationObject::Wait(m_kernel, std::addressof(index), objects, 1,
                                                Svc::WaitInfinite));
         }
 
         R_SUCCEED();
     }
 
-    ThreadState KThread::RequestTerminate(KernelCore& kernel) {
-        ASSERT(this != GetCurrentThreadPointer(kernel));
+    ThreadState KThread::RequestTerminate() {
+        ASSERT(this != GetCurrentThreadPointer(m_kernel));
 
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Determine if this is the first termination request.
         const bool first_request = [&]() -> bool {
@@ -1255,46 +1270,46 @@ namespace Kernel {
 
             // If the thread is pinned, unpin it.
             if (this->GetStackParameters().is_pinned) {
-                this->GetOwnerProcess()->UnpinThread(kernel, this);
+                this->GetOwnerProcess()->UnpinThread(this);
             }
 
             // If the thread is suspended, continue it.
             if (this->IsSuspended()) {
                 m_suspend_allowed_flags = 0;
-                this->UpdateState(kernel);
+                this->UpdateState();
             }
 
             // Change the thread's priority to be higher than any system thread's.
-            this->IncreaseBasePriority(kernel, TerminatingThreadPriority);
+            this->IncreaseBasePriority(TerminatingThreadPriority);
 
             // If the thread is runnable, send a termination interrupt to cores it may be running on.
             if (this->GetState() == ThreadState::Runnable) {
                 // NOTE: We do not mask the "current core", because this code may not actually be
                 //       executing from the thread representing the "current core".
                 if (const u64 core_mask = m_physical_affinity_mask.GetAffinityMask(); core_mask != 0) {
-                    Kernel::KInterruptManager::SendInterProcessorInterrupt(kernel, core_mask);
+                    Kernel::KInterruptManager::SendInterProcessorInterrupt(m_kernel, core_mask);
                 }
             }
 
             // Wake up the thread.
             if (this->GetState() == ThreadState::Waiting) {
-                m_wait_queue->CancelWait(kernel, this, ResultTerminationRequested, true);
+                m_wait_queue->CancelWait(this, ResultTerminationRequested, true);
             }
         }
 
         return this->GetState();
     }
 
-    Result KThread::Sleep(KernelCore& kernel, s64 timeout) {
-        ASSERT(!KScheduler::IsSchedulerLockedByCurrentThread(kernel));
-        ASSERT(this == GetCurrentThreadPointer(kernel));
+    Result KThread::Sleep(s64 timeout) {
+        ASSERT(!KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
+        ASSERT(this == GetCurrentThreadPointer(m_kernel));
         ASSERT(timeout > 0);
 
-        ThreadQueueImplForKThreadSleep wait_queue(kernel);
+        ThreadQueueImplForKThreadSleep wait_queue(m_kernel);
         KHardwareTimer* timer{};
         {
             // Setup the scheduling lock and sleep.
-            KScopedSchedulerLockAndSleep slp(kernel, std::addressof(timer), this, timeout);
+            KScopedSchedulerLockAndSleep slp(m_kernel, std::addressof(timer), this, timeout);
 
             // Check if the thread should terminate.
             if (this->IsTerminationRequested()) {
@@ -1304,15 +1319,15 @@ namespace Kernel {
 
             // Wait for the sleep to end.
             wait_queue.SetHardwareTimer(timer);
-            this->BeginWait(kernel, std::addressof(wait_queue));
+            this->BeginWait(std::addressof(wait_queue));
             this->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
         }
 
         R_SUCCEED();
     }
 
-    void KThread::RequestDummyThreadWait(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::RequestDummyThreadWait() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
         ASSERT(this->IsDummyThread());
 
         // We will block when the scheduler lock is released.
@@ -1320,8 +1335,8 @@ namespace Kernel {
         m_dummy_thread_runnable = false;
     }
 
-    void KThread::DummyThreadBeginWait(KernelCore& kernel) {
-        if (!this->IsDummyThread() || kernel.IsPhantomModeForSingleCore()) {
+    void KThread::DummyThreadBeginWait() {
+        if (!this->IsDummyThread() || m_kernel.IsPhantomModeForSingleCore()) {
             // Occurs in single core mode.
             return;
         }
@@ -1331,8 +1346,8 @@ namespace Kernel {
         m_dummy_thread_cv.wait(lock, [this] { return m_dummy_thread_runnable; });
     }
 
-    void KThread::DummyThreadEndWait(KernelCore& kernel) {
-        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    void KThread::DummyThreadEndWait() {
+        ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
         ASSERT(this->IsDummyThread());
 
         // Wake up the waiting thread.
@@ -1343,26 +1358,28 @@ namespace Kernel {
         m_dummy_thread_cv.notify_one();
     }
 
-    void KThread::BeginWait(KernelCore& kernel, KThreadQueue* queue) {
+    void KThread::BeginWait(KThreadQueue* queue) {
         // Set our state as waiting.
-        this->SetState(kernel, ThreadState::Waiting);
+        this->SetState(ThreadState::Waiting);
 
         // Set our wait queue.
         m_wait_queue = queue;
     }
 
-    void KThread::NotifyAvailable(KernelCore& kernel, KSynchronizationObject* signaled_object, Result wait_result) {
+    void KThread::NotifyAvailable(KSynchronizationObject* signaled_object, Result wait_result) {
         // Lock the scheduler.
-        KScopedSchedulerLock sl(kernel);
+        KScopedSchedulerLock sl(m_kernel);
+
         // If we're waiting, notify our queue that we're available.
         if (this->GetState() == ThreadState::Waiting) {
-            m_wait_queue->NotifyAvailable(kernel, this, signaled_object, wait_result);
+            m_wait_queue->NotifyAvailable(this, signaled_object, wait_result);
         }
     }
 
-    void KThread::EndWait(KernelCore& kernel, Result wait_result) {
+    void KThread::EndWait(Result wait_result) {
         // Lock the scheduler.
-        KScopedSchedulerLock sl(kernel);
+        KScopedSchedulerLock sl(m_kernel);
+
         // If we're waiting, notify our queue that we're available.
         if (this->GetState() == ThreadState::Waiting) {
             if (m_wait_queue == nullptr) {
@@ -1371,29 +1388,32 @@ namespace Kernel {
                 return;
             }
 
-            m_wait_queue->EndWait(kernel, this, wait_result);
+            m_wait_queue->EndWait(this, wait_result);
         }
     }
 
-    void KThread::CancelWait(KernelCore& kernel, Result wait_result, bool cancel_timer_task) {
+    void KThread::CancelWait(Result wait_result, bool cancel_timer_task) {
         // Lock the scheduler.
-        KScopedSchedulerLock sl(kernel);
+        KScopedSchedulerLock sl(m_kernel);
+
         // If we're waiting, notify our queue that we're available.
         if (this->GetState() == ThreadState::Waiting) {
-            m_wait_queue->CancelWait(kernel, this, wait_result, cancel_timer_task);
+            m_wait_queue->CancelWait(this, wait_result, cancel_timer_task);
         }
     }
 
-    void KThread::SetState(KernelCore& kernel, ThreadState state) {
-        KScopedSchedulerLock sl{kernel};
+    void KThread::SetState(ThreadState state) {
+        KScopedSchedulerLock sl{m_kernel};
+
         // Clear debugging state
         this->SetWaitReasonForDebugging({});
+
         const ThreadState old_state = m_thread_state.load(std::memory_order_relaxed);
         m_thread_state.store(
             static_cast<ThreadState>((old_state & ~ThreadState::Mask) | (state & ThreadState::Mask)),
             std::memory_order_relaxed);
         if (m_thread_state.load(std::memory_order_relaxed) != old_state) {
-            KScheduler::OnThreadStateChanged(kernel, this, old_state);
+            KScheduler::OnThreadStateChanged(m_kernel, this, old_state);
         }
     }
 
@@ -1439,12 +1459,12 @@ namespace Kernel {
             auto* scheduler = m_kernel.CurrentScheduler();
 
             if (scheduler && !m_kernel.IsPhantomModeForSingleCore()) {
-                scheduler->RescheduleCurrentCore(m_kernel);
+                scheduler->RescheduleCurrentCore();
             } else {
                 KScheduler::RescheduleCurrentHLEThread(m_kernel);
             }
         } else {
-            GetCurrentThread(m_kernel).EnableDispatch(m_kernel);
+            GetCurrentThread(m_kernel).EnableDispatch();
         }
     }
 }

@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -18,45 +15,50 @@ KReadableEvent::KReadableEvent(KernelCore& kernel) : KSynchronizationObject{kern
 
 KReadableEvent::~KReadableEvent() = default;
 
-void KReadableEvent::Initialize(KernelCore& kernel, KEvent* parent) {
+void KReadableEvent::Initialize(KEvent* parent) {
     m_is_signaled = false;
     m_parent = parent;
+
     if (m_parent != nullptr) {
-        m_parent->Open(kernel);
+        m_parent->Open();
     }
 }
 
-bool KReadableEvent::IsSignaled(KernelCore& kernel) const {
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+bool KReadableEvent::IsSignaled() const {
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
+
     return m_is_signaled;
 }
 
-void KReadableEvent::Destroy(KernelCore& kernel) {
+void KReadableEvent::Destroy() {
     if (m_parent) {
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
             m_parent->OnReadableEventDestroyed();
         }
-        m_parent->Close(kernel);
+        m_parent->Close();
     }
 }
 
-Result KReadableEvent::Signal(KernelCore& kernel) {
-    KScopedSchedulerLock lk{kernel};
+Result KReadableEvent::Signal() {
+    KScopedSchedulerLock lk{m_kernel};
+
     if (!m_is_signaled) {
         m_is_signaled = true;
-        this->NotifyAvailable(kernel);
+        this->NotifyAvailable();
     }
+
     R_SUCCEED();
 }
 
-Result KReadableEvent::Clear(KernelCore& kernel) {
-    this->Reset(kernel);
+Result KReadableEvent::Clear() {
+    this->Reset();
+
     R_SUCCEED();
 }
 
-Result KReadableEvent::Reset(KernelCore& kernel) {
-    KScopedSchedulerLock lk{kernel};
+Result KReadableEvent::Reset() {
+    KScopedSchedulerLock lk{m_kernel};
 
     R_UNLESS(m_is_signaled, ResultInvalidState);
 
