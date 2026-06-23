@@ -492,7 +492,9 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         device.IsExtExtendedDynamicState3BlendingSupported();
     dynamic_features.has_extended_dynamic_state_3_enables =
         device.IsExtExtendedDynamicState3EnablesSupported();
-    dynamic_features.has_dynamic_state3_depth_clamp_enable = false;
+    dynamic_features.has_dynamic_state3_depth_clamp_enable =
+        dynamic_features.has_extended_dynamic_state_3_enables &&
+        device.SupportsDynamicState3DepthClampEnable();
     dynamic_features.has_dynamic_state3_logic_op_enable =
         dynamic_features.has_extended_dynamic_state_3_enables &&
         device.SupportsDynamicState3LogicOpEnable();
