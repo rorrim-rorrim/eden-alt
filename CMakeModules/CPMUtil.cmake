@@ -491,9 +491,9 @@ function(AddPackage)
         set_precedence(ON OFF)
     endif()
 
-    if(DEFINED PKG_ARGS_VERSION)
+    if(DEFINED PKG_ARGS_MIN_VERSION)
         list(APPEND EXTRA_ARGS
-            VERSION ${PKG_ARGS_VERSION})
+            VERSION ${PKG_ARGS_MIN_VERSION})
     endif()
 
     if (PKG_ARGS_FIND_PACKAGE_ARGUMENTS)
