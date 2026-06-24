@@ -204,7 +204,7 @@
     },
     "openssl": {
         "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
-        "min_version": "3",
+        "min_version": "3.0.0",
         "package": "OpenSSL",
         "patches": [
             "0001-add-bundled-cert.patch"
@@ -215,7 +215,7 @@
     },
     "openssl-ci": {
         "ci": true,
-        "min_version": "3",
+        "min_version": "3.0.0",
         "name": "openssl",
         "package": "OpenSSL",
         "repo": "crueter-ci/OpenSSL",
