@@ -9,17 +9,12 @@
 
 # re-read json files
 # shellcheck disable=SC2016
-PACKAGES=$(echo "$CPMFILES" | xargs jq -s 'reduce .[] as $item ({}; . * $item)')
+PACKAGES=$(jq -s 'reduce .[] as $item ({}; . * $item)' cpmfile.json)
 export PACKAGES
 
 . "$SCRIPTS"/vars.sh
 
 [ "$CI" = null ] || exit 0
-
-[ "$HASH_URL" = null ] || exit 0
-[ "$HASH_SUFFIX" = null ] || exit 0
-
-[ "$HASH" != null ] || { echo "-- * Package has no hash specified" && exit 0; }
 
 ACTUAL=$("$SCRIPTS"/util/url-hash.sh "$DOWNLOAD")
 

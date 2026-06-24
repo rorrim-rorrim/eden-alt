@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: Copyright 2026 crueter
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
+# TODO(crueter): Fix this pls
+
 # This reads a single-line input from the user and also gives them
 # help if needed.
 # $1: The prompt itself, without any trailing spaces or whatever
@@ -149,7 +151,6 @@ else
 windows-amd64 windows-arm64
 mingw-amd64 mingw-arm64
 android-aarch64 android-x86_64
-solaris-amd64 freebsd-amd64 openbsd-amd64
 linux-amd64 linux-aarch64
 macos-universal ios-aarch64"
 

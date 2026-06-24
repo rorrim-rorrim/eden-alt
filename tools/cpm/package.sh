@@ -18,7 +18,7 @@ Commands:
     add     	Add a new package
     rm      	Remove a package
     version 	Change the version of a package
-    which   	Find which cpmfile a package is defined in
+    which   	Check if a package is defined
     download 	Get the download URL for a package
 
 EOF
