@@ -36,15 +36,13 @@ constexpr u32 DESCRIPTOR_SIZE_SHIFT = u32(std::countr_zero(DESCRIPTOR_SIZE));
 constexpr u32 DESCRIPTOR_MAX_COUNT = 1024;
 
 u32 DynamicDescriptorSizeShift(const IR::U32& dynamic_offset) {
-    const IR::Inst* const inst{dynamic_offset.InstRecursive()};
-    if (!inst || inst->GetOpcode() != IR::Opcode::ShiftLeftLogical32) {
+    const IR::Inst* const inst = dynamic_offset.InstRecursive();
+    if (!inst || inst->GetOpcode() != IR::Opcode::ShiftLeftLogical32)
         return DESCRIPTOR_SIZE_SHIFT;
-    }
-    const IR::Value shift{inst->Arg(1)};
-    if (!shift.IsImmediate()) {
+    const IR::Value shift = inst->Arg(1);
+    if (!shift.IsImmediate())
         return DESCRIPTOR_SIZE_SHIFT;
-    }
-    const u32 size_shift{shift.U32()};
+    const u32 size_shift = shift.U32();
     return size_shift >= DESCRIPTOR_SIZE_SHIFT && size_shift < 31 ? size_shift : DESCRIPTOR_SIZE_SHIFT;
 }
 
@@ -72,20 +70,22 @@ template <typename T>
 }
 
 u32 DynamicSampledTextureCap(const Info& info, const HostTranslateInfo& host_info, u32 dynamic_arrays) {
+    auto const sampled_limit = std::min(host_info.max_per_stage_descriptor_sampled_images, host_info.max_descriptor_set_sampled_images);
+    auto const resource_limit = host_info.max_per_stage_resources;
     if (dynamic_arrays > 0) {
-        const u32 sampled_static_count = StaticDescriptorCount(info.texture_buffer_descriptors) + StaticDescriptorCount(info.texture_descriptors);
+        auto const sampled_static_count = StaticDescriptorCount(info.texture_buffer_descriptors) + StaticDescriptorCount(info.texture_descriptors);
         auto const resource_static_count =
-            NumDescriptors(info.constant_buffer_descriptors) +
-            NumDescriptors(info.storage_buffers_descriptors) + sampled_static_count +
-            NumDescriptors(info.image_buffer_descriptors) + NumDescriptors(info.image_descriptors);
-        auto const sampled_limit = std::min(host_info.max_per_stage_descriptor_sampled_images, host_info.max_descriptor_set_sampled_images);
+            NumDescriptors(info.constant_buffer_descriptors)
+            + NumDescriptors(info.storage_buffers_descriptors)
+            + sampled_static_count + NumDescriptors(info.image_buffer_descriptors)
+            + NumDescriptors(info.image_descriptors);
         auto const sampled_budget = SaturatingSub(sampled_limit, sampled_static_count);
-        auto const resource_budget = SaturatingSub(host_info.max_per_stage_resources, resource_static_count);
+        auto const resource_budget = SaturatingSub(resource_limit, resource_static_count);
         auto const sampled_cap = sampled_budget / dynamic_arrays;
         auto const resource_cap = resource_budget / dynamic_arrays;
-        return std::max(1U, std::min({DESCRIPTOR_MAX_COUNT, sampled_cap, resource_cap}));
+        return (std::max)(1U, (std::min)(sampled_cap, resource_cap));
     }
-    return DESCRIPTOR_MAX_COUNT;
+    return (std::min)({DESCRIPTOR_MAX_COUNT, sampled_limit, resource_limit});
 }
 
 IR::Opcode IndexedInstruction(const IR::Inst& inst) {
@@ -443,7 +443,9 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
     } else {
         return std::nullopt;
     }
-    const u32 size_shift{DynamicDescriptorSizeShift(dynamic_offset)};
+    auto const size_shift = DynamicDescriptorSizeShift(dynamic_offset);
+    auto const sampled_limit = (std::min)(host_info.max_per_stage_descriptor_sampled_images, host_info.max_descriptor_set_sampled_images);
+    auto const resource_limit = host_info.max_per_stage_resources;
     return ConstBufferAddr{
         .index = index.U32(),
         .offset = base_offset,
@@ -452,7 +454,7 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         .secondary_offset = 0,
         .secondary_shift_left = 0,
         .dynamic_offset = dynamic_offset,
-        .count = DynamicDescriptorCount(base_offset, size_shift, DESCRIPTOR_MAX_COUNT),
+        .count = DynamicDescriptorCount(base_offset, size_shift, (std::min)({DESCRIPTOR_MAX_COUNT, sampled_limit, resource_limit})),
         .has_secondary = false,
     };
 }
@@ -679,8 +681,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
         program.info.texture_descriptors,
         program.info.image_descriptors,
     };
-    const u32 sampled_dynamic_cap{
-        DynamicSampledTextureCap(program.info, host_info, DynamicSampledTextureArrayCount(to_replace))};
+    const u32 sampled_dynamic_cap = DynamicSampledTextureCap(program.info, host_info, DynamicSampledTextureArrayCount(to_replace));
     for (TextureInst& texture_inst : to_replace) {
         // TODO: Handle arrays
         IR::Inst* const inst{texture_inst.inst};
