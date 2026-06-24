@@ -22,7 +22,7 @@ download_package() {
 
 	curl "$DOWNLOAD" -sS -L -o "$OUTFILE"
 
-	ACTUAL_HASH=$("${HASH_ALGO}"sum "$OUTFILE" | cut -d" " -f1)
+	ACTUAL_HASH=$(sha512sum "$OUTFILE" | cut -d" " -f1)
 	[ "$ACTUAL_HASH" != "$HASH" ] && echo "!! $FILENAME did not match expected hash; expected $HASH but got $ACTUAL_HASH" && exit 1
 
 	TMPDIR="$TMP/extracted"
@@ -100,11 +100,7 @@ ci_package() {
 		OUTDIR="${CPM_SOURCE_CACHE}/${LOWER_PACKAGE}/${KEY}"
 		[ -d "$OUTDIR" ] && continue
 
-		HASH_ALGO=$(echo "$JSON" | jq -r ".hash_algo")
-		[ "$HASH_ALGO" != null ] || HASH_ALGO=sha512
-
-		HASH_SUFFIX="${HASH_ALGO}sum"
-		HASH_URL="${DOWNLOAD}.${HASH_SUFFIX}"
+		HASH_URL="${DOWNLOAD}.sha512sum"
 
 		HASH=$(curl "$HASH_URL" -sS -q -L -o -)
 
@@ -140,7 +136,9 @@ done
 [ -n "$packages" ] || usage
 
 for PACKAGE in $packages; do
+	unset JSON
 	export PACKAGE
+
 	# shellcheck disable=SC1091
 	. "$SCRIPTS"/vars.sh
 

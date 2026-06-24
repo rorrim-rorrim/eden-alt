@@ -12,11 +12,6 @@ must_install() {
 
 must_install jq find mktemp tar 7z unzip sha512sum git patch curl
 
-PACKAGES=$(jq -s 'reduce .[] as $item ({}; . * $item)' cpmfile.json)
+LIBS=$(jq -j 'keys_unsorted | join(" ")' cpmfile.json)
 
-LIBS=$(echo "$PACKAGES" | jq -j 'keys_unsorted | join(" ")')
-
-export PACKAGES
 export LIBS
-export DIRS
-export MAXDEPTH

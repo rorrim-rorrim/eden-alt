@@ -21,7 +21,7 @@
     },
     "boost_headers": {
         "bundled": true,
-        "hash": "8a07d7a6f0065587d3005a83481a794704ae22e773b9f336fbd89ed230aaa7b4c86c03edcbae30bba8b3e20839c3131eaa2dceac037ef811533ef4eadc53b15b",
+        "hash": "4ef845775e2277a8104ded6ddf749aa262ce52cf8438042869a048f9a0156dd772fbbcfa74efa1378fecef339b7286f6fe4b4feb5c45d49966b35d08e3e83507",
         "repo": "boostorg/headers",
         "tag": "boost-%VERSION%",
         "version": "1.90.0"

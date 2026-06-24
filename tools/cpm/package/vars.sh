@@ -13,7 +13,7 @@ if [ -z "$JSON" ]; then
 	[ -n "$PACKAGE" ] || { echo "Package was not specified" && exit 0; }
 
 	# shellcheck disable=SC2153
-	JSON=$(echo "$PACKAGES" | jq -r ".\"$PACKAGE\" | select( . != null )")
+	JSON=$(jq -r ".\"$PACKAGE\" | select( . != null )" cpmfile.json)
 
 	if [ -z "$JSON" ]; then
 		echo "!! No cpmfile definition for $PACKAGE" >&2

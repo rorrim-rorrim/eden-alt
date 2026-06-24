@@ -305,13 +305,16 @@ function(AddJsonPackage)
 
     if(ci)
         AddCIPackage(
-            VERSION ${version}
-            NAME ${name}
-            REPO ${repo}
-            PACKAGE ${package}
-            EXTENSION ${extension}
-            MIN_VERSION ${min_version}
-            DISABLED_PLATFORMS ${disabled_platforms}
+            VERSION "${version}"
+            NAME "${name}"
+            REPO "${repo}"
+            PACKAGE "${package}"
+            EXTENSION "${extension}"
+            MIN_VERSION "${min_version}"
+            DISABLED_PLATFORMS "${disabled_platforms}"
+
+            GIT_HOST "${git_host}"
+
             ${EXTRA_ARGS})
     else()
         if (NOT DEFINED JSON_FORCE_BUNDLED_PACKAGE)
@@ -337,6 +340,7 @@ function(AddJsonPackage)
 
             ARTIFACT "${artifact}"
             TAG "${tag}"
+
             ${EXTRA_ARGS})
     endif()
 
@@ -580,7 +584,8 @@ function(AddCIPackage)
         REPO
         PACKAGE
         EXTENSION
-        MIN_VERSION)
+        MIN_VERSION
+        GIT_HOST)
 
     set(multiValueArgs DISABLED_PLATFORMS)
 
@@ -616,6 +621,12 @@ function(AddCIPackage)
         set(ARTIFACT_EXT "tar.zst")
     else()
         set(ARTIFACT_EXT ${PKG_ARGS_EXTENSION})
+    endif()
+
+    if (NOT DEFINED PKG_ARGS_GIT_HOST)
+        set(ARTIFACT_GIT_HOST "github.com")
+    else()
+        set(ARTIFACT_GIT_HOST "${PKG_ARGS_GIT_HOST}")
     endif()
 
     if(DEFINED PKG_ARGS_MIN_VERSION)
@@ -680,15 +691,33 @@ function(AddCIPackage)
             set(EXTRA_ARGS MODULE_PATH)
         endif()
 
+        # download sha512sum file
+        # TODO:
+        set(sha512sum_url
+            "https://${ARTIFACT_GIT_HOST}/${ARTIFACT_REPO}/releases/download/v${ARTIFACT_VERSION}/${ARTIFACT}.sha512sum")
+        set(sha512sum_file
+            "${CMAKE_CURRENT_BINARY_DIR}/.cpmutil_${ARTIFACT}_sha512sum")
+
+        file(DOWNLOAD "${sha512sum_url}" "${sha512sum_file}"
+            STATUS sha512sum_status)
+        list(GET sha512sum_status 0 sha512sum_error)
+
+        if(sha512sum_error)
+            message(FATAL_ERROR "[CPMUtil] Failed to download sha512sum "
+                "for ${ARTIFACT_NAME} from ${sha512sum_url}")
+        endif()
+
+        file(READ "${sha512sum_file}" sha512sum_hash)
+        string(STRIP "${sha512sum_hash}" sha512sum_hash)
+        file(REMOVE "${sha512sum_file}")
+
         AddPackage(
             NAME ${ARTIFACT_PACKAGE}
             REPO ${ARTIFACT_REPO}
             TAG "v${ARTIFACT_VERSION}"
             MIN_VERSION ${ARTIFACT_VERSION}
             ARTIFACT ${ARTIFACT}
-
-            KEY "${pkgname}-${ARTIFACT_VERSION}"
-            HASH_SUFFIX sha512sum
+            HASH ${sha512sum_hash}
             FORCE_BUNDLED_PACKAGE ON
             ${EXTRA_ARGS})
 
