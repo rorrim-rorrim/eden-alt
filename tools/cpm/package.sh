@@ -20,6 +20,9 @@ Commands:
     version 	Change the version of a package
     which   	Check if a package is defined
     download 	Get the download URL for a package
+    dir     	Get the local directory for a package
+    reset   	Reset a fetched package to its original state
+    patch   	Create an in-tree patch based on local modifications
 
 EOF
 
@@ -31,7 +34,7 @@ export SCRIPTS
 
 while :; do
 	case "$1" in
-	hash | update | fetch | add | rm | version | which | download)
+	hash | update | fetch | add | rm | version | which | download | reset | patch | dir)
 		cmd="$1"
 		shift
 		"$SCRIPTS/$cmd".sh "$@"

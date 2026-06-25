@@ -55,7 +55,11 @@ PACKAGE_NAME=$(value "package")
 GIT_HOST=$(value "git_host")
 [ "$GIT_HOST" != null ] || GIT_HOST=github.com
 
+# used for cache key
+LOWER_PACKAGE=$(echo "$PACKAGE_NAME" | tr '[:upper:]' '[:lower:]')
+
 export PACKAGE_NAME
+export LOWER_PACKAGE
 export REPO
 export CI
 export GIT_HOST

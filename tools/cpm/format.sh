@@ -5,3 +5,5 @@
 
 jq --indent 4 -S <cpmfile.json >cpmfile.json.new
 mv cpmfile.json.new cpmfile.json
+
+# TODO: Run some sanity checks e.g. patches exist, etc.

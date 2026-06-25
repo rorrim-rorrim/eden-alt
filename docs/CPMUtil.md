@@ -208,27 +208,15 @@ CI packages use `<platform>-<architecture>-<version>` unconditionally.
 
 ## Addendum: Making Patches
 
-CPMUtil currently lacks functionality to make patches; these will be added in the future. For now, here's how to go about it; you should familiarize yourself with CPMUtil's shell tooling, and Git, first.
+CPMUtil has a dedicated command for making patches. You're recommended to have Git and a command line editor installed, but CPMUtil is able to work without either. To do so, follow these steps, noting your package's JSON key:
 
-- Clean-fetch your package:
-  - `rm -rf .cache/cpm/<lowercase package name>`
-  - `tools/cpmutil.sh package fetch <package JSON key>`
-  - `cd .cache/cpm/<lowercase package name>/<version>`
-- Now, initialize a Git repository and commit:
-  - `git init`
-  - `git add .`
-  - `git commit -m "Initial Commit"`
-- Now, make any changes you need within the source directory.
-- Then, create your patch:
-  - `git commit -am "short summary of patch"`
-    - You may optionally choose to use `-av` instead to use your configured command-line editor. This also allows you to add a lengthy description.
-  - `git format-patch -1 HEAD`
-- Your patch is now stored in `0001-short-summary-of-patch.patch` or similar.
-- Copy this patch to the root of your repository.
-- Rename the patch if needed, taking special note to ensure the starting number is correct
-  - For instance, if you already have 2 other patches, it should be renamed to `0003-...`
-- Move the patch to `.patch/<package-json-key>`, creating the directory if it doesn't exist.
-- Add your patch filename to the corresponding JSON definition.
+- Clean-fetch your package: `tools/cpmutil.sh package reset <package>`
+- Make any necessary modifications to the package source.
+  - You can access the package source directory via `tools/cpmutil.sh package dir <package>`.
+- Create the patch: `tools/cpmutil.sh package patch <package>`
+  - Follow the on-screen prompts. If you have Git installed, an editor will be opened so you can type your commit message. If not, just type a one-line description.
+
+And you're done! CPMUtil will automatically create and name the patch, and add it to the list of patches in the JSON definition.
 
 ## Addendum: Package Identification Lists
 

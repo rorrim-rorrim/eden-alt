@@ -38,6 +38,9 @@ Package commands:
     version 	Change the version of a package
     which   	Check if a package is defined
     download 	Get the download URL for a package
+    dir     	Get the local directory for a package
+    reset   	Reset a fetched package to its original state
+    patch   	Create an in-tree patch based on local modifications
 
 EOF
 
