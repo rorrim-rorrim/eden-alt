@@ -827,7 +827,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
             const Binding& binding = VertexBufferSlot(index);
             Buffer& buffer = slot_buffers[binding.buffer_id];
             TouchBuffer(buffer, binding.buffer_id);
-            SynchronizeBuffer(buffer, binding.device_addr, binding.size, true);
+            SynchronizeBuffer(buffer, binding.device_addr, binding.size);
             if (!flags[Dirty::VertexBuffer0 + index]) {
                 flush_bindings();
                 continue;
@@ -857,7 +857,7 @@ void BufferCache<P>::BindHostVertexBuffers() {
             const Binding& binding = channel_state->vertex_buffers[index];
             Buffer& buffer = slot_buffers[binding.buffer_id];
             TouchBuffer(buffer, binding.buffer_id);
-            SynchronizeBuffer(buffer, binding.device_addr, binding.size, true);
+            SynchronizeBuffer(buffer, binding.device_addr, binding.size);
             if (!flags[Dirty::VertexBuffer0 + index]) {
                 continue;
             }
@@ -1617,7 +1617,7 @@ void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
 }
 
 template <class P>
-bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 size, bool preserve_gpu_writes) {
+bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 size) {
     upload_copies.clear();
     u64 staging_offset = 0;
     u64 largest_copy = 0;
@@ -1633,20 +1633,20 @@ bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 si
             .size = range_size
         });
         staging_offset += range_size;
-        largest_copy = std::max(largest_copy, range_size);
+        largest_copy = (std::max)(largest_copy, range_size);
     };
     memory_tracker.ForEachUploadRange(device_addr, size, [&](u64 addr, u64 range_size) {
-        if (preserve_gpu_writes) {
-            u64 start = addr;
-            u64 end = addr + range_size;
-            gpu_modified_ranges.ForEachInRange(start, range_size, [&](u64 gstart, u64 gsize) {
-                u64 gend = gstart + gsize;
+        u64 start = addr;
+        u64 end = addr + range_size;
+        gpu_modified_ranges.ForEachInRange(start, range_size, [&](u64 gstart, u64 gsize) {
+            u64 gend = gstart + gsize;
+            if (gstart > start) {
                 push(start, gstart);
-                start = std::max(start, gend);
-            });
+            }
+            start = (std::max)(start, gend);
+        });
+        if (start < end) {
             push(start, end);
-        } else {
-            push(addr, addr + range_size);
         }
     });
     if (upload_copies.empty()) {
