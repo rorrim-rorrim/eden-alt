@@ -1653,6 +1653,7 @@ bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 si
         return true;
     }
     UploadMemory(buffer, staging_offset, largest_copy, std::span(upload_copies));
+    any_buffer_uploaded = true;
     return false;
 }
 
