@@ -907,7 +907,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
 
     // EDS3 - Enables (composite: per-feature)
     if (key.state.extended_dynamic_state_3_enables) {
-        if (device.SupportsDynamicState3DepthClampEnable()) {
+        if (key.state.dynamic_state3_depth_clamp_enable != 0) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT);
         }
         if (device.SupportsDynamicState3LogicOpEnable()) {

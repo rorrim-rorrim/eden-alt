@@ -1578,7 +1578,7 @@ void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& r
     if (!state_tracker.TouchDepthClampEnable()) {
         return;
     }
-    if (!device.SupportsDynamicState3DepthClampEnable()) {
+    if (!pipeline_cache.SupportsDynamicState3DepthClampEnable()) {
         return;
     }
     bool is_enabled = !(regs.viewport_clip_control.geometry_clip ==

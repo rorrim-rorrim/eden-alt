@@ -113,6 +113,10 @@ public:
 
     [[nodiscard]] ComputePipeline* CurrentComputePipeline();
 
+    [[nodiscard]] bool SupportsDynamicState3DepthClampEnable() const {
+        return dynamic_features.has_dynamic_state3_depth_clamp_enable;
+    }
+
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback);
 

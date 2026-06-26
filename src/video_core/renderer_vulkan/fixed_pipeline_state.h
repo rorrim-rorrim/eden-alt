@@ -208,6 +208,7 @@ struct FixedPipelineState {
         BitField<12, 2, u32> tessellation_spacing;
         BitField<14, 1, u32> tessellation_clockwise;
         BitField<15, 5, u32> patch_control_points_minus_one;
+        BitField<20, 1, u32> dynamic_state3_depth_clamp_enable;
 
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
         BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
