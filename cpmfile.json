@@ -140,7 +140,7 @@
     "libadrenotools": {
         "hash": "f6526620cb752876edc5ed4c0925d57b873a8218ee09ad10859ee476e9333259784f61c1dcc55a2bcba597352d18aff22cd2e4c1925ec2ae94074e09d7da2265",
         "patches": [
-            "0001-linkerns-cpm.patch"
+            "0001-use-cpmfile-def-for-linkernsbypass.patch"
         ],
         "repo": "eden-emulator/libadrenotools",
         "sha": "8ba23b42d7",
@@ -155,6 +155,12 @@
         "repo": "libusb/libusb",
         "tag": "v%VERSION%",
         "version": "1.0.29"
+    },
+    "linkernsbypass": {
+        "hash": "bbe3f1f08e2bc7172b36e8f052912cc374289fc9a8e5a39ae7547a0c232de8f57ba24883451896b7a9a5d1be0e4de5c5b0f70c2022eda18d7d5a754847521800",
+        "repo": "bylaws/liblinkernsbypass",
+        "sha": "aa3975893d",
+        "version": "0.0.0"
     },
     "llvm-mingw": {
         "artifact": "clang-rt-builtins.tar.zst",
@@ -294,13 +300,13 @@
     "sirit": {
         "artifact": "sirit-source-%VERSION%.tar.zst",
         "find_args": "CONFIG",
+        "hash": "10b3ff60bdcad428bb4f54360ff749212333a1d24c0b3ed99e466b1bfcf99d2db6cf596c0f965854a2095dfef9b7ce4e045edb070fa9f76eb3b295ab03a4a293",
         "options": [
             "SIRIT_USE_SYSTEM_SPIRV_HEADERS ON"
         ],
         "repo": "eden-emulator/sirit",
         "tag": "v%VERSION%",
-        "version": "1.0.5",
-        "hash": "10b3ff60bdcad428bb4f54360ff749212333a1d24c0b3ed99e466b1bfcf99d2db6cf596c0f965854a2095dfef9b7ce4e045edb070fa9f76eb3b295ab03a4a293"
+        "version": "1.0.5"
     },
     "sirit-ci": {
         "ci": true,
