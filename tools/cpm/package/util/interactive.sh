@@ -223,6 +223,6 @@ jq --arg key "$PKG" --argjson new "$JSON" \
 	'.[$key] = $new' "cpmfile.json" --indent 4 >"cpmfile.json.tmp" &&
 	mv "cpmfile.json.tmp" cpmfile.json
 
-"$SCRIPTS"/format.sh
+"$SCRIPTS"/../format.sh
 
 echo "Added package $PKG to cpmfile.json. Include it in your project with AddJsonPackage($PKG)"

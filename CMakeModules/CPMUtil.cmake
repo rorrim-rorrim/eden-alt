@@ -63,8 +63,9 @@ else()
 endif()
 
 # Utility stuff
-function(cpm_utils_message level name message)
-    message(${level} "[CPMUtil] ${name}: ${message}")
+function(cpm_utils_message level)
+    string(REPLACE ";" " " message "${ARGN}")
+    message(${level} "[CPMUtil] ${message}")
 endfunction()
 
 # propagate a variable to parent scope
@@ -189,7 +190,7 @@ macro(parse_object object)
     get_json_element("${object}" git_host git_host "github.com")
 
     if (NOT version)
-        cpm_utils_message(FATAL_ERROR "${JSON_NAME}" "version is required")
+        cpm_utils_message(FATAL_ERROR "${JSON_NAME}: version is required")
     endif()
 
     if(ci)
@@ -241,8 +242,9 @@ macro(parse_object object)
                 set(full_patch
                     "${CPMUTIL_PATCH_DIR}/${JSON_NAME}/${_patch}")
                 if(NOT EXISTS ${full_patch})
-                    cpm_utils_message(FATAL_ERROR ${JSON_NAME}
-                        "specifies patch ${full_patch} which does not exist")
+                    cpm_utils_message(FATAL_ERROR
+                        "${JSON_NAME} specifies patch"
+                        "${full_patch} which does not exist")
                 endif()
 
                 list(APPEND patches "${full_patch}")
@@ -294,20 +296,18 @@ function(AddJsonPackage)
     endif()
 
     if(NOT DEFINED CPMFILE_CONTENT)
-        cpm_utils_message(FATAL_ERROR ${name}
-            "No cpmfile present")
-        return()
+        cpm_utils_message(FATAL_ERROR "${name}: No cpmfile present")
     endif()
 
     if(NOT DEFINED JSON_NAME)
-        cpm_utils_message(FATAL_ERROR "json package" "No name specified")
+        cpm_utils_message(FATAL_ERROR "AddJsonPackage: No name specified")
     endif()
 
     string(JSON object ERROR_VARIABLE
         err GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
 
     if(err)
-        cpm_utils_message(FATAL_ERROR ${JSON_NAME} "Not found in cpmfile")
+        cpm_utils_message(FATAL_ERROR "${JSON_NAME} not found in cpmfile")
     endif()
 
     parse_object(${object})
@@ -402,11 +402,11 @@ function(AddPackage)
         "${ARGN}")
 
     if(NOT DEFINED PKG_ARGS_NAME)
-        cpm_utils_message(FATAL_ERROR "AddPackage" "NAME is required")
+        cpm_utils_message(FATAL_ERROR "AddPackage: NAME is required")
     endif()
 
     if(NOT DEFINED PKG_ARGS_VERSION)
-        cpm_utils_message(FATAL_ERROR "${PKG_ARGS_NAME}" "VERSION is required")
+        cpm_utils_message(FATAL_ERROR "${PKG_ARGS_NAME}: VERSION is required")
     endif()
 
     set(${PKG_ARGS_NAME}_CUSTOM_DIR "" CACHE STRING
@@ -448,11 +448,11 @@ function(AddPackage)
             endif()
         endif()
     else()
-        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
-            "No URL or repository defined")
+        cpm_utils_message(FATAL_ERROR
+            "${PKG_ARGS_NAME}: No URL or repository defined")
     endif()
 
-    cpm_utils_message(DEBUG ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
+    cpm_utils_message(DEBUG "${PKG_ARGS_NAME} download URL is ${pkg_url}")
 
     # TODO: maybe singular version/ref that detects sha/tag?
     if(DEFINED PKG_ARGS_SHA)
@@ -464,8 +464,7 @@ function(AddPackage)
     if(DEFINED PKG_ARGS_HASH)
         set(pkg_hash "SHA512=${PKG_ARGS_HASH}")
     else()
-        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
-            "No hash defined")
+        cpm_utils_message(FATAL_ERROR "${PKG_ARGS_NAME}: No hash defined")
     endif()
 
     #[[
@@ -547,18 +546,22 @@ function(AddPackage)
     if (PKG_ARGS_PATCHES)
         list(APPEND EXTRA_ARGS PATCHES "${PKG_ARGS_PATCHES}")
     endif()
+
     if (PKG_ARGS_OPTIONS)
         list(APPEND EXTRA_ARGS OPTIONS "${PKG_ARGS_OPTIONS}")
     endif()
+
     if (PKG_ARGS_SOURCE_SUBDIR)
         list(APPEND EXTRA_ARGS SOURCE_SUBDIR "${PKG_ARGS_SOURCE_SUBDIR}")
     endif()
+
     if (PKG_ARGS_DOWNLOAD_ONLY OR PKG_ARGS_MODULE_PATH)
         list(APPEND EXTRA_ARGS DOWNLOAD_ONLY ON)
     endif()
 
-    message(STATUS
-        "[CPMUtil] Using bundled package ${PKG_ARGS_NAME}@${PKG_ARGS_VERSION} (${pkg_key})")
+    cpm_utils_message(STATUS
+        "Using bundled package"
+        "${PKG_ARGS_NAME}@${PKG_ARGS_VERSION} (${pkg_key})")
 
     CPMAddPackage(
         NAME ${PKG_ARGS_NAME}
@@ -612,18 +615,20 @@ function(AddCIPackage)
         "${multiValueArgs}"
         ${ARGN})
 
-    # TODO: use cpm_utils_message
     if(NOT DEFINED PKG_ARGS_VERSION)
-        message(FATAL_ERROR "[CPMUtil] VERSION is required")
+        cpm_utils_message(FATAL_ERROR "VERSION is required")
     endif()
+
     if(NOT DEFINED PKG_ARGS_NAME)
-        message(FATAL_ERROR "[CPMUtil] NAME is required")
+        cpm_utils_message(FATAL_ERROR "NAME is required")
     endif()
+
     if(NOT DEFINED PKG_ARGS_REPO)
-        message(FATAL_ERROR "[CPMUtil] REPO is required")
+        cpm_utils_message(FATAL_ERROR "REPO is required")
     endif()
+
     if(NOT DEFINED PKG_ARGS_PACKAGE)
-        message(FATAL_ERROR "[CPMUtil] PACKAGE is required")
+        cpm_utils_message(FATAL_ERROR "PACKAGE is required")
     endif()
 
     if(NOT DEFINED PKG_ARGS_CMAKE_FILENAME)
@@ -674,7 +679,7 @@ function(AddCIPackage)
     elseif(APPLE)
         set(platname macos)
     else()
-        cpm_utils_message(WARNING ${PKG_ARGS_NAME}
+        cpm_utils_message(WARNING
             "Unsupported platform ${CMAKE_SYSTEM_NAME} for CI packages")
     endif()
 
@@ -689,7 +694,7 @@ function(AddCIPackage)
     elseif(ANDROID AND CPMUTIL_AMD64)
         set(archname x86_64)
     else()
-        cpm_utils_message(WARNING ${PKG_ARGS_NAME}
+        cpm_utils_message(WARNING
             "Unsupported platform/arch combo for CI packages")
     endif()
 
@@ -707,7 +712,7 @@ function(AddCIPackage)
         endif()
 
         # download sha512sum file
-        # TODO:
+        # TODO: CI pkgs
         set(sha512sum_url
             "https://${ARTIFACT_GIT_HOST}/${ARTIFACT_REPO}/releases/download/v${ARTIFACT_VERSION}/${ARTIFACT}.sha512sum")
         set(sha512sum_file
