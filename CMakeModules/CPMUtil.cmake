@@ -9,7 +9,8 @@ else()
     set(BUNDLED_DEFAULT OFF)
 endif()
 
-set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm" CACHE STRING "" FORCE)
+set(CPM_SOURCE_CACHE "${PROJECT_SOURCE_DIR}/.cache/cpm"
+    CACHE PATH "Directory to download CPM dependencies")
 
 option(CPMUTIL_FORCE_BUNDLED
     "Force bundled packages for all CPM depdendencies" ${BUNDLED_DEFAULT})
@@ -71,6 +72,7 @@ macro(Propagate var)
     set(${var} ${${var}} PARENT_SCOPE)
 endmacro()
 
+# idk
 function(array_to_list array length out)
     math(EXPR range "${length} - 1")
 
@@ -83,6 +85,7 @@ function(array_to_list array length out)
     set("${out}" "${NEW_LIST}" PARENT_SCOPE)
 endfunction()
 
+# json
 function(get_json_element object out member default)
     string(JSON out_type ERROR_VARIABLE err TYPE "${object}" ${member})
 
@@ -101,6 +104,13 @@ function(get_json_element object out member default)
     set("${out}" "${outvar}" PARENT_SCOPE)
 endfunction()
 
+# register a package to CPMUtil's global registry
+function(cpmutil_register_package name url version)
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${name})
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${url})
+    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "${version}")
+endfunction()
+
 # Determine whether or not a package has a viable system candidate.
 function(SystemPackageViable JSON_NAME)
     string(JSON object GET "${CPMFILE_CONTENT}" "${JSON_NAME}")
@@ -108,14 +118,17 @@ function(SystemPackageViable JSON_NAME)
     parse_object(${object})
 
     string(REPLACE " " ";" find_args "${find_args}")
-    if (${package}_FORCE_BUNDLED)
+    if(${package}_FORCE_BUNDLED OR
+        (CPMUTIL_FORCE_BUNDLED
+         AND NOT ${package}_FORCE_SYSTEM
+         AND NOT CPMUTIL_FORCE_SYSTEM))
         set(${package}_FOUND OFF)
     else()
         find_package(${package} ${version} ${find_args} QUIET NO_POLICY_SCOPE)
     endif()
 
-    set(${pkg}_VIABLE ${${package}_FOUND} PARENT_SCOPE)
-    set(${pkg}_PACKAGE ${package} PARENT_SCOPE)
+    set(${JSON_NAME}_VIABLE ${${package}_FOUND} PARENT_SCOPE)
+    set(${JSON_NAME}_PACKAGE ${package} PARENT_SCOPE)
 endfunction()
 
 # Add several packages such that if one is bundled,
@@ -174,6 +187,10 @@ macro(parse_object object)
     get_json_element("${object}" version version "")
     get_json_element("${object}" min_version min_version "")
     get_json_element("${object}" git_host git_host "github.com")
+
+    if (NOT version)
+        cpm_utils_message(FATAL_ERROR "${JSON_NAME}" "version is required")
+    endif()
 
     if(ci)
         get_json_element("${object}" name name "${JSON_NAME}")
@@ -352,7 +369,6 @@ function(AddJsonPackage)
 endfunction()
 
 function(AddPackage)
-    cpm_set_policies()
     set(EXTRA_ARGS "")
 
     set(oneValueArgs
@@ -386,7 +402,11 @@ function(AddPackage)
         "${ARGN}")
 
     if(NOT DEFINED PKG_ARGS_NAME)
-        cpm_utils_message(FATAL_ERROR "package" "No package name defined")
+        cpm_utils_message(FATAL_ERROR "AddPackage" "NAME is required")
+    endif()
+
+    if(NOT DEFINED PKG_ARGS_VERSION)
+        cpm_utils_message(FATAL_ERROR "${PKG_ARGS_NAME}" "VERSION is required")
     endif()
 
     set(${PKG_ARGS_NAME}_CUSTOM_DIR "" CACHE STRING
@@ -434,17 +454,11 @@ function(AddPackage)
 
     cpm_utils_message(DEBUG ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
 
+    # TODO: maybe singular version/ref that detects sha/tag?
     if(DEFINED PKG_ARGS_SHA)
         string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)
-    elseif(DEFINED PKG_ARGS_VERSION)
-        set(pkg_key ${PKG_ARGS_VERSION})
-    elseif(DEFINED PKG_ARGS_TAG)
-        set(pkg_key ${PKG_ARGS_TAG})
-    elseif(DEFINED PKG_ARGS_MIN_VERSION)
-        set(pkg_key ${PKG_ARGS_MIN_VERSION})
     else()
-        cpm_utils_message(FATAL_ERROR ${PKG_ARGS_NAME}
-            "Could not determine cache key")
+        set(pkg_key ${PKG_ARGS_VERSION})
     endif()
 
     if(DEFINED PKG_ARGS_HASH)
@@ -454,118 +468,119 @@ function(AddPackage)
             "No hash defined")
     endif()
 
-    macro(set_precedence local force)
-        set(CPM_USE_LOCAL_PACKAGES ${local})
-        set(CPM_LOCAL_PACKAGES_ONLY ${force})
-    endmacro()
-
     #[[
         Precedence:
-        - package_FORCE_SYSTEM
-        - package_FORCE_BUNDLED
-        - CPMUTIL_FORCE_SYSTEM
-        - CPMUTIL_FORCE_BUNDLED
-        - BUNDLED_PACKAGE
-        - default to allow local
+        - FORCE_BUNDLED_PACKAGE (caller override)
+        - package_FORCE_SYSTEM, package_FORCE_BUNDLED (user option)
+        - CPMUTIL_FORCE_SYSTEM, CPMUTIL_FORCE_BUNDLED (global option)
+        - BUNDLED_PACKAGE (json default)
+        - default to allow system
     ]]
     if(PKG_ARGS_FORCE_BUNDLED_PACKAGE)
-        set_precedence(OFF OFF)
+        set(use_system OFF)
     elseif(${PKG_ARGS_NAME}_FORCE_SYSTEM)
-        set_precedence(ON ON)
+        set(use_system ON)
+        set(force_system ON)
     elseif(${PKG_ARGS_NAME}_FORCE_BUNDLED)
-        set_precedence(OFF OFF)
+        set(use_system OFF)
     elseif(CPMUTIL_FORCE_SYSTEM)
-        set_precedence(ON ON)
+        set(use_system ON)
+        set(force_system ON)
     elseif(CPMUTIL_FORCE_BUNDLED)
-        set_precedence(OFF OFF)
+        set(use_system OFF)
     elseif(DEFINED PKG_ARGS_BUNDLED_PACKAGE AND
         NOT PKG_ARGS_BUNDLED_PACKAGE STREQUAL "unset")
         if(PKG_ARGS_BUNDLED_PACKAGE)
-            set(local OFF)
+            set(use_system OFF)
         else()
-            set(local ON)
+            set(use_system ON)
+        endif()
+    else()
+        set(use_system ON)
+    endif()
+
+    if(use_system)
+        set(find_args ${PKG_ARGS_NAME})
+        if(DEFINED PKG_ARGS_MIN_VERSION)
+            list(APPEND find_args ${PKG_ARGS_MIN_VERSION})
         endif()
 
-        set_precedence(${local} OFF)
-    else()
-        set_precedence(ON OFF)
-    endif()
+        if (DEFINED PKG_ARGS_FIND_PACKAGE_ARGUMENTS)
+            string(REPLACE " " ";"
+                passed_find_args
+                "${PKG_ARGS_FIND_PACKAGE_ARGUMENTS}")
 
-    if(DEFINED PKG_ARGS_MIN_VERSION)
-        list(APPEND EXTRA_ARGS
-            VERSION ${PKG_ARGS_MIN_VERSION})
-    endif()
+            set(find_args "${find_args};${passed_find_args}")
+        endif()
 
-    if (PKG_ARGS_FIND_PACKAGE_ARGUMENTS)
-        list(APPEND EXTRA_ARGS
-            FIND_PACKAGE_ARGUMENTS "${PKG_ARGS_FIND_PACKAGE_ARGUMENTS}")
+        find_package(${find_args} QUIET)
+
+        if(${PKG_ARGS_NAME}_FOUND)
+            if(DEFINED ${PKG_ARGS_NAME}_VERSION)
+                set(sys_ver ${${PKG_ARGS_NAME}_VERSION})
+            else()
+                set(sys_ver ${PKG_ARGS_VERSION})
+            endif()
+
+            message(STATUS
+                "[CPMUtil] Using system package ${PKG_ARGS_NAME}@${sys_ver}")
+
+            CPMRegisterPackage(${PKG_ARGS_NAME} "${sys_ver}")
+
+            cpmutil_register_package(
+                ${PKG_ARGS_NAME}
+                ${pkg_git_url}
+                "${sys_ver} (system)")
+
+            set(${PKG_ARGS_NAME}_ADDED NO PARENT_SCOPE)
+
+            return()
+        endif()
+
+        if(force_system)
+            string(REPLACE ";" " " str_find_args "${find_args}")
+            message(FATAL_ERROR "[CPMUtil] ${PKG_ARGS_NAME} not found via "
+                "find_package(${str_find_args})")
+        endif()
     endif()
 
     if (PKG_ARGS_PATCHES)
-        list(APPEND EXTRA_ARGS
-            PATCHES "${PKG_ARGS_PATCHES}")
+        list(APPEND EXTRA_ARGS PATCHES "${PKG_ARGS_PATCHES}")
     endif()
-
     if (PKG_ARGS_OPTIONS)
-        list(APPEND EXTRA_ARGS
-            OPTIONS "${PKG_ARGS_OPTIONS}")
+        list(APPEND EXTRA_ARGS OPTIONS "${PKG_ARGS_OPTIONS}")
     endif()
-
     if (PKG_ARGS_SOURCE_SUBDIR)
-        list(APPEND EXTRA_ARGS
-            SOURCE_SUBDIR "${PKG_ARGS_SOURCE_SUBDIR}")
+        list(APPEND EXTRA_ARGS SOURCE_SUBDIR "${PKG_ARGS_SOURCE_SUBDIR}")
     endif()
-
     if (PKG_ARGS_DOWNLOAD_ONLY OR PKG_ARGS_MODULE_PATH)
         list(APPEND EXTRA_ARGS DOWNLOAD_ONLY ON)
     endif()
+
+    message(STATUS
+        "[CPMUtil] Using bundled package ${PKG_ARGS_NAME}@${PKG_ARGS_VERSION} (${pkg_key})")
 
     CPMAddPackage(
         NAME ${PKG_ARGS_NAME}
         URL ${pkg_url}
         URL_HASH ${pkg_hash}
         CUSTOM_CACHE_KEY ${pkg_key}
+        VERSION ${PKG_ARGS_VERSION}
 
         EXCLUDE_FROM_ALL ON
 
         ${EXTRA_ARGS}
-
         ${PKG_ARGS_UNPARSED_ARGUMENTS})
 
-    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_NAMES ${PKG_ARGS_NAME})
-    set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_URLS ${pkg_git_url})
-
-    if(${PKG_ARGS_NAME}_ADDED)
-        if(DEFINED PKG_ARGS_SHA)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                ${PKG_ARGS_SHA})
-        elseif(DEFINED PKG_ARGS_VERSION)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                ${PKG_ARGS_VERSION})
-        elseif(DEFINED PKG_ARGS_TAG)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                ${PKG_ARGS_TAG})
-        elseif(DEFINED PKG_ARGS_MIN_VERSION)
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                ${PKG_ARGS_MIN_VERSION})
-        else()
-            cpm_utils_message(WARNING ${PKG_ARGS_NAME}
-                "Package has no specified sha, tag, or version")
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS "unknown")
-        endif()
+    if(DEFINED PKG_ARGS_SHA)
+        set(ver ${PKG_ARGS_SHA})
     else()
-        if(DEFINED CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION AND NOT
-            "${CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION}" STREQUAL "")
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                "${CPM_PACKAGE_${PKG_ARGS_NAME}_VERSION} (system)")
-        else()
-            set_property(GLOBAL APPEND PROPERTY CPM_PACKAGE_SHAS
-                "unknown (system)")
-        endif()
+        set(ver ${PKG_ARGS_VERSION})
     endif()
 
-    # pass stuff to parent scope
-    Propagate(${PKG_ARGS_NAME}_ADDED)
+    cpmutil_register_package(${PKG_ARGS_NAME} ${pkg_git_url} ${ver})
+
+    set(${PKG_ARGS_NAME}_ADDED YES PARENT_SCOPE)
     Propagate(${PKG_ARGS_NAME}_SOURCE_DIR)
     Propagate(${PKG_ARGS_NAME}_BINARY_DIR)
 
@@ -715,6 +730,7 @@ function(AddCIPackage)
             NAME ${ARTIFACT_PACKAGE}
             REPO ${ARTIFACT_REPO}
             TAG "v${ARTIFACT_VERSION}"
+            VERSION "${ARTIFACT_VERSION}"
             MIN_VERSION ${ARTIFACT_VERSION}
             ARTIFACT ${ARTIFACT}
             HASH ${sha512sum_hash}

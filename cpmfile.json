@@ -316,7 +316,8 @@
         ],
         "package": "SPIRV-Headers",
         "repo": "KhronosGroup/SPIRV-Headers",
-        "sha": "04f10f650d"
+        "sha": "04f10f650d",
+        "version": "1.4.350"
     },
     "tzdb": {
         "artifact": "%VERSION%.tar.gz",
