@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
 #include <cstddef>
 #include <functional>
@@ -92,10 +93,12 @@ public:
         requires std::is_invocable_v<T, vk::CommandBuffer, vk::CommandBuffer>
     void RecordWithUploadBuffer(T&& command) {
         if (chunk->Record(command)) {
+            record_serial.fetch_add(1, std::memory_order_relaxed);
             return;
         }
         DispatchWork();
         (void)chunk->Record(command);
+        record_serial.fetch_add(1, std::memory_order_relaxed);
     }
 
     template <typename T>
@@ -115,6 +118,11 @@ public:
     /// Returns true when a tick has been triggered by the GPU.
     [[nodiscard]] bool IsFree(u64 tick) const noexcept {
         return master_semaphore->IsFree(tick);
+    }
+
+    /// Returns a monotonic serial incremented for every recorded command callback.
+    [[nodiscard]] u64 CurrentRecordSerial() const noexcept {
+        return record_serial.load(std::memory_order_relaxed);
     }
 
     /// Waits for the given GPU tick, optionally pacing frames.
@@ -298,6 +306,7 @@ private:
     u64 frame_counter{};
 
     u64 last_submitted_tick = 0;
+    std::atomic<u64> record_serial{0};
 };
 
 } // namespace Vulkan

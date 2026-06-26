@@ -1270,7 +1270,7 @@ struct QueryCacheRuntimeImpl {
         , tfb_streamer(size_t(QueryType::StreamingByteCount), runtime, device, scheduler, memory_allocator, staging_pool)
         , primitives_succeeded_streamer(size_t(QueryType::StreamingPrimitivesSucceeded), runtime, tfb_streamer, device_memory_)
         , primitives_needed_minus_succeeded_streamer(size_t(QueryType::StreamingPrimitivesNeededMinusSucceeded), runtime, 0u)
-        , hcr_setup{}, hcr_is_set{}, is_hcr_running{}, maxwell3d{} {
+        , hcr_setup{}, hcr_is_set{}, is_hcr_running{}, hcr_bc_resolve_cache{}, maxwell3d{} {
 
         hcr_setup.sType = VK_STRUCTURE_TYPE_CONDITIONAL_RENDERING_BEGIN_INFO_EXT;
         hcr_setup.pNext = nullptr;
@@ -1325,6 +1325,15 @@ struct QueryCacheRuntimeImpl {
     bool hcr_is_set;
     bool is_hcr_running;
 
+    struct HCRBCResolveCache {
+        DAddr address{};
+        u64 record_serial{};
+        bool is_equal{};
+        bool compare_to_zero{};
+        bool valid{};
+    };
+    HCRBCResolveCache hcr_bc_resolve_cache;
+
     // maxwell3d
     Maxwell3D* maxwell3d;
 };
@@ -1350,6 +1359,7 @@ void QueryCacheRuntime::EndHostConditionalRendering() {
     PauseHostConditionalRendering();
     impl->hcr_is_set = false;
     impl->is_hcr_running = false;
+    impl->hcr_bc_resolve_cache.valid = false;
     impl->hcr_buffer = VkBuffer{};
     impl->hcr_offset = 0;
 }
@@ -1379,6 +1389,7 @@ void QueryCacheRuntime::ResumeHostConditionalRendering() {
 
 void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::LookupData object,
                                                                  bool is_equal) {
+    impl->hcr_bc_resolve_cache.valid = false;
     {
         std::scoped_lock lk(impl->buffer_cache.mutex);
         static constexpr auto sync_info = VideoCommon::ObtainBufferSynchronize::FullSynchronize;
@@ -1410,6 +1421,14 @@ void QueryCacheRuntime::HostConditionalRenderingCompareValueImpl(VideoCommon::Lo
 
 void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, bool is_equal,
                                                               bool compare_to_zero) {
+    const u64 current_record_serial = impl->scheduler.CurrentRecordSerial();
+    auto& cache = impl->hcr_bc_resolve_cache;
+    if (cache.valid && cache.address == address && cache.is_equal == is_equal &&
+        cache.compare_to_zero == compare_to_zero &&
+        cache.record_serial == current_record_serial) {
+        return;
+    }
+
     VkBuffer to_resolve;
     u32 to_resolve_offset;
     const u32 resolve_size = compare_to_zero ? 8 : 24;
@@ -1433,16 +1452,66 @@ void QueryCacheRuntime::HostConditionalRenderingCompareBCImpl(DAddr address, boo
     impl->hcr_setup.flags = is_equal ? 0 : VK_CONDITIONAL_RENDERING_INVERTED_BIT_EXT;
     impl->hcr_is_set = true;
     impl->is_hcr_running = false;
+
+    cache.address = address;
+    cache.record_serial = impl->scheduler.CurrentRecordSerial();
+    cache.is_equal = is_equal;
+    cache.compare_to_zero = compare_to_zero;
+    cache.valid = true;
+
     if (was_running) {
         ResumeHostConditionalRendering();
     }
 }
 
 bool QueryCacheRuntime::HostConditionalRenderingCompareValue(VideoCommon::LookupData object_1,
-                                                             [[maybe_unused]] bool qc_dirty) {
+                                                             bool qc_dirty) {
     if (!impl->device.IsExtConditionalRendering()) {
         return false;
     }
+    if (object_1.address == 0) {
+        EndHostConditionalRendering();
+        return false;
+    }
+
+    const bool is_in_qc = object_1.found_query != nullptr;
+    bool is_in_bc = false;
+    if (!is_in_qc) {
+        std::scoped_lock lk(impl->buffer_cache.mutex);
+        is_in_bc = impl->buffer_cache.IsRegionGpuModified(object_1.address, 8);
+    }
+    const bool is_in_ac = is_in_qc || is_in_bc;
+
+    if (!is_in_ac) {
+        EndHostConditionalRendering();
+        return false;
+    }
+
+    if (!qc_dirty && !is_in_bc) {
+        EndHostConditionalRendering();
+        return false;
+    }
+
+    const auto driver_id = impl->device.GetDriverID();
+    const bool is_gpu_high = Settings::IsGPULevelHigh();
+
+    if ((!is_gpu_high && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) ||
+        driver_id == VK_DRIVER_ID_ARM_PROPRIETARY || driver_id == VK_DRIVER_ID_MESA_TURNIP) {
+        EndHostConditionalRendering();
+        return true;
+    }
+
+    if (!is_gpu_high) {
+        EndHostConditionalRendering();
+        return true;
+    }
+
+    if (!is_in_bc) {
+        // Avoid comparing stale data: query cache can be newer than guest memory.
+        EndHostConditionalRendering();
+        return true;
+    }
+
     HostConditionalRenderingCompareBCImpl(object_1.address, true, true);
     return true;
 }
@@ -1470,13 +1539,17 @@ bool QueryCacheRuntime::HostConditionalRenderingCompareValues(VideoCommon::Looku
     std::array<bool, 2> is_in_qc{};
     std::array<bool, 2> is_in_ac{};
     std::array<bool, 2> is_null{};
-    {
+    for (size_t i = 0; i < 2; i++) {
+        is_in_qc[i] = objects[i]->found_query != nullptr;
+    }
+    if (!is_in_qc[0] || !is_in_qc[1]) {
         std::scoped_lock lk(impl->buffer_cache.mutex);
         for (size_t i = 0; i < 2; i++) {
-            is_in_qc[i] = objects[i]->found_query != nullptr;
             is_in_bc[i] = !is_in_qc[i] && check_in_bc(objects[i]->address);
-            is_in_ac[i] = is_in_qc[i] || is_in_bc[i];
         }
+    }
+    for (size_t i = 0; i < 2; i++) {
+        is_in_ac[i] = is_in_qc[i] || is_in_bc[i];
     }
 
     if (!is_in_ac[0] && !is_in_ac[1]) {
