@@ -65,7 +65,7 @@ u32 SaturatingSub(u32 lhs, u32 rhs) {
 template <typename T>
 [[nodiscard]] u32 StaticDescriptorCount(T const& descriptors) noexcept {
     return std::accumulate(descriptors.cbegin(), descriptors.cend(), 0U, [](auto const& acc, auto const& e) {
-        return acc + e.count <= 1 ? e.count : 0;
+        return acc + (e.count <= 1 ? e.count : 0);
     });
 }
 
