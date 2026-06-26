@@ -233,6 +233,7 @@ macro(parse_object object)
         endif()
 
         # format patchdir
+        unset(patches)
         if(raw_patches)
             math(EXPR range "${raw_patches_LENGTH} - 1")
 
@@ -255,6 +256,7 @@ macro(parse_object object)
         # options
         get_json_element("${object}" raw_options options "")
 
+        unset(options)
         if(raw_options)
             array_to_list("${raw_options}" ${raw_options_LENGTH} options)
         endif()
@@ -312,6 +314,7 @@ function(AddJsonPackage)
 
     parse_object(${object})
 
+    unset(EXTRA_ARGS)
     if (JSON_MODULE_PATH)
         list(APPEND EXTRA_ARGS MODULE_PATH)
     endif()
