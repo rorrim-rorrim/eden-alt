@@ -157,6 +157,7 @@
         "version": "1.0.29"
     },
     "linkernsbypass": {
+        "bundled": "true",
         "hash": "bbe3f1f08e2bc7172b36e8f052912cc374289fc9a8e5a39ae7547a0c232de8f57ba24883451896b7a9a5d1be0e4de5c5b0f70c2022eda18d7d5a754847521800",
         "repo": "bylaws/liblinkernsbypass",
         "sha": "aa3975893d",
