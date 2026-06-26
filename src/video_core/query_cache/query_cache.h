@@ -287,6 +287,7 @@ void QueryCacheBase<Traits>::CounterReport(GPUVAddr addr, QueryType counter_type
             u32 value = static_cast<u32>(query_base->value);
             std::memcpy(pointer, &value, sizeof(value));
         }
+        query_base->flags |= QueryFlagBits::IsGuestSynced;
         if (!is_synced) [[likely]] {
             impl->pending_unregister.push_back(query_location);
         }
@@ -569,10 +570,12 @@ bool QueryCacheBase<Traits>::SemiFlushQueryDirty(QueryCacheBase<Traits>::QueryLo
         auto* ptr = impl->device_memory.template GetPointer<u8>(query_base->guest_address);
         if (True(query_base->flags & QueryFlagBits::HasTimestamp)) {
             std::memcpy(ptr, &query_base->value, sizeof(query_base->value));
+            query_base->flags |= QueryFlagBits::IsGuestSynced;
             return false;
         }
         u32 value_l = static_cast<u32>(query_base->value);
         std::memcpy(ptr, &value_l, sizeof(value_l));
+        query_base->flags |= QueryFlagBits::IsGuestSynced;
         return false;
     }
     return True(query_base->flags & QueryFlagBits::IsHostManaged) &&
