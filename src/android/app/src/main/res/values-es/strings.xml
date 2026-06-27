@@ -567,8 +567,6 @@
     <string name="gpu_log_level_description">Nivel de detalle de los registros de la GPU (más alto = más detalles, más sobrecarga)</string>
     <string name="gpu_log_vulkan_calls">Registros de llamadas del API de Vulkan</string>
     <string name="gpu_log_vulkan_calls_description">Rastrear todas las llamadas del API de Vulkan en el búfer circular</string>
-    <string name="gpu_log_shader_dumps">Volcar sombreadores</string>
-    <string name="gpu_log_shader_dumps_description">Guardar sombreadores compilados de SPIR-V en archivos</string>
     <string name="gpu_log_memory_tracking">Rastrear memoria de la GPU</string>
     <string name="gpu_log_memory_tracking_description">Monitorizar las asignaciones y desasignaciones de memoria de la GPU</string>
     <string name="gpu_log_driver_debug">Información de depuración del controlador</string>

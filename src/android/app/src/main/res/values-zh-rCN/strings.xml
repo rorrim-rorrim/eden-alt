@@ -563,8 +563,6 @@
     <string name="gpu_log_level_description">GPU 日志的详细级别(数值越高 = 细节越多,开销越大)</string>
     <string name="gpu_log_vulkan_calls">记录 Vulkan API 调用</string>
     <string name="gpu_log_vulkan_calls_description">在环形缓冲区中跟踪所有 Vulkan API 调用</string>
-    <string name="gpu_log_shader_dumps">转储着色器</string>
-    <string name="gpu_log_shader_dumps_description">保存已编译的着色器 SPIR-V 到文件中</string>
     <string name="gpu_log_memory_tracking">追踪 GPU 内存</string>
     <string name="gpu_log_memory_tracking_description">监控 GPU 内存的分配和释放</string>
     <string name="gpu_log_driver_debug">驱动调试信息</string>
