@@ -15,6 +15,8 @@ namespace Shader {
 
 /// Misc information about the host
 struct HostTranslateInfo {
+    static constexpr u32 DEFAULT_DESCRIPTOR_LIMIT = 1024;
+
     u64 min_ssbo_alignment{};            ///< Minimum alignment supported by the device for SSBOs
     u32 max_per_stage_descriptor_sampled_images{}; ///< maximum sampled descriptors per stage
     u32 max_per_stage_resources{};                 ///< maximum resources per stage
@@ -36,6 +38,29 @@ struct HostTranslateInfo {
                                                 ///< passthrough shaders
     bool support_conditional_barrier{}; ///< True when the device supports barriers in conditional
                                         ///< control flow
+
+    void ApplyDescriptorLimitPolicy() noexcept {
+        if (min_ssbo_alignment == 0) {
+            min_ssbo_alignment = 1;
+        }
+        ApplyDescriptorLimitFallback(max_per_stage_descriptor_sampled_images);
+        ApplyDescriptorLimitFallback(max_per_stage_resources);
+        ApplyDescriptorLimitFallback(max_descriptor_set_samplers);
+        ApplyDescriptorLimitFallback(max_descriptor_set_uniform_buffers);
+        ApplyDescriptorLimitFallback(max_descriptor_set_uniform_buffers_dynamic);
+        ApplyDescriptorLimitFallback(max_descriptor_set_storage_buffers);
+        ApplyDescriptorLimitFallback(max_descriptor_set_storage_buffers_dynamic);
+        ApplyDescriptorLimitFallback(max_descriptor_set_sampled_images);
+        ApplyDescriptorLimitFallback(max_descriptor_set_storage_images);
+        ApplyDescriptorLimitFallback(max_descriptor_set_input_attachements);
+    }
+
+private:
+    static void ApplyDescriptorLimitFallback(u32& limit) noexcept {
+        if (limit == 0) {
+            limit = DEFAULT_DESCRIPTOR_LIMIT;
+        }
+    }
 };
 
 } // namespace Shader

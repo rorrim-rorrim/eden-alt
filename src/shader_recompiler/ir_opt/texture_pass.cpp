@@ -47,7 +47,8 @@ u32 DynamicDescriptorSizeShift(const IR::U32& dynamic_offset) {
 }
 
 u32 DynamicDescriptorCount(u32 base_offset, u32 size_shift, u32 max_descriptors) {
-    auto const max_cbuf_bytes = 16 * max_descriptors;
+    auto const descriptor_limit = (std::max)(1U, max_descriptors);
+    auto const max_cbuf_bytes = 16 * descriptor_limit;
     if (size_shift >= 31 || base_offset >= max_cbuf_bytes)
         return 1;
     auto const stride = 1U << size_shift;
@@ -55,7 +56,7 @@ u32 DynamicDescriptorCount(u32 base_offset, u32 size_shift, u32 max_descriptors)
     if (available < DESCRIPTOR_SIZE)
         return 1;
     auto const available_count = 1U + (available - DESCRIPTOR_SIZE) / stride;
-    return std::min(max_descriptors, available_count);
+    return std::min(descriptor_limit, available_count);
 }
 
 u32 SaturatingSub(u32 lhs, u32 rhs) {
@@ -70,8 +71,9 @@ template <typename T>
 }
 
 u32 DynamicSampledTextureCap(const Info& info, const HostTranslateInfo& host_info, u32 dynamic_arrays) {
-    auto const sampled_limit = std::min(host_info.max_per_stage_descriptor_sampled_images, host_info.max_descriptor_set_sampled_images);
-    auto const resource_limit = host_info.max_per_stage_resources;
+    auto const sampled_limit = (std::max)(1U, std::min(host_info.max_per_stage_descriptor_sampled_images,
+                                                       host_info.max_descriptor_set_sampled_images));
+    auto const resource_limit = (std::max)(1U, host_info.max_per_stage_resources);
     if (dynamic_arrays > 0) {
         auto const sampled_static_count = StaticDescriptorCount(info.texture_buffer_descriptors) + StaticDescriptorCount(info.texture_descriptors);
         auto const resource_static_count =
@@ -444,8 +446,9 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         return std::nullopt;
     }
     auto const size_shift = DynamicDescriptorSizeShift(dynamic_offset);
-    auto const sampled_limit = (std::min)(host_info.max_per_stage_descriptor_sampled_images, host_info.max_descriptor_set_sampled_images);
-    auto const resource_limit = host_info.max_per_stage_resources;
+    auto const sampled_limit = (std::max)(1U, (std::min)(host_info.max_per_stage_descriptor_sampled_images,
+                                                         host_info.max_descriptor_set_sampled_images));
+    auto const resource_limit = (std::max)(1U, host_info.max_per_stage_resources);
     return ConstBufferAddr{
         .index = index.U32(),
         .offset = base_offset,

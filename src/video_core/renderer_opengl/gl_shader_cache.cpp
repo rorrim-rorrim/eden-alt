@@ -244,19 +244,22 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
           .max_user_clip_distances =
               std::min<u32>(device.GetMaxUserClipDistances(), Maxwell::Regs::NumClipDistances),
       },
-      // TODO: proper limits?
       host_info{
         .min_ssbo_alignment = static_cast<u32>(device.GetShaderStorageBufferAlignment()),
-        .max_per_stage_descriptor_sampled_images = 1024,//device.GetMaxPerStageDescriptorSampledImages(),
-        .max_per_stage_resources = 1024,//device.GetMaxPerStageResources(),
-        .max_descriptor_set_samplers = 1024,//device.GetMaxDescriptorSetSamplers(),
-        .max_descriptor_set_uniform_buffers = 1024,//device.GetMaxDescriptorSetUniformBuffers(),
-        .max_descriptor_set_uniform_buffers_dynamic = 1024,//device.GetMaxDescriptorSetUniformBuffersDynamic(),
-        .max_descriptor_set_storage_buffers = 1024,//device.GetMaxDescriptorSetStorageBuffers(),
-        .max_descriptor_set_storage_buffers_dynamic = 1024,//device.GetMaxDescriptorSetStorageBuffersDynamic(),
-        .max_descriptor_set_sampled_images = 1024,//device.GetMaxDescriptorSetSampledImages(),
-        .max_descriptor_set_storage_images = 1024,//device.GetMaxDescriptorSetStorageImages(),
-        .max_descriptor_set_input_attachements = 1024,//device.GetMaxDescriptorSetInputAttachments(),
+        .max_per_stage_descriptor_sampled_images =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_per_stage_resources = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_samplers = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_uniform_buffers = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_uniform_buffers_dynamic =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_storage_buffers = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_storage_buffers_dynamic =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_sampled_images = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_storage_images = Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
+        .max_descriptor_set_input_attachements =
+            Shader::HostTranslateInfo::DEFAULT_DESCRIPTOR_LIMIT,
         .support_float64 = true,
         .support_float16 = false,
         .support_int64 = device.HasShaderInt64(),
@@ -266,6 +269,7 @@ ShaderCache::ShaderCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_geometry_shader_passthrough = device.HasGeometryShaderPassthrough(),
         .support_conditional_barrier = device.SupportsConditionalBarriers(),
       } {
+    host_info.ApplyDescriptorLimitPolicy();
     if (use_asynchronous_shaders) {
         workers = CreateWorkers();
     }
