@@ -38,7 +38,7 @@ public:
     ~UpdateDescriptorQueue();
 
     void TickFrame();
-    void Acquire(Scheduler& scheduler);
+    void Acquire(Scheduler& scheduler, size_t required_entries = 0);
 
     const DescriptorUpdateEntry* UpdateData() const noexcept {
         return upload_start;
