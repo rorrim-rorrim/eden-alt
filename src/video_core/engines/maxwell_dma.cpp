@@ -21,8 +21,9 @@ namespace Tegra::Engines {
 
 using namespace Texture;
 
-MaxwellDMA::MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_)
-    : system{system_}, memory_manager{memory_manager_} {
+MaxwellDMA::MaxwellDMA(MemoryManager& memory_manager_)
+    : memory_manager{memory_manager_}
+{
     execution_mask.fill(0);
     execution_mask[offsetof(Regs, launch_dma) / sizeof(u32)] = true;
 }

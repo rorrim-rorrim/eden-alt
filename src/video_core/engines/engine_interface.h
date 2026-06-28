@@ -7,7 +7,6 @@
 #pragma once
 
 #include <array>
-
 #include <boost/container/small_vector.hpp>
 
 #include "common/common_types.h"
