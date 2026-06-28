@@ -1563,12 +1563,9 @@ void TextureCacheRuntime::CopyImageMSAA(Image& dst, Image& src,
                                         std::span<const VideoCommon::ImageCopy> copies) {
     const bool msaa_to_non_msaa = src.info.num_samples > 1 && dst.info.num_samples == 1;
     if (msaa_copy_pass) {
-        msaa_copy_pass->CopyImage(dst, src, copies,
-                                 src.info.num_samples > 1 && dst.info.num_samples == 1);
-        return;
+        return msaa_copy_pass->CopyImage(dst, src, copies, msaa_to_non_msaa);
     }
-
-    CopyImage(dst, src, copies);
+    UNIMPLEMENTED_MSG("Copying images with different samples is not supported.");
 }
 
 u64 TextureCacheRuntime::GetDeviceLocalMemory() const {
