@@ -48,9 +48,10 @@ public:
     std::array<u8, EXECUTION_MASK_TABLE_SIZE> execution_mask{};
     bool execution_mask_default{};
     boost::container::small_vector<std::pair<u32, u32>, 64> method_sink{};
-    bool current_dirty{};
     GPUVAddr current_dma_segment;
+    /// @brief Indicates whether the current DMA segment is dirty.
     bool current_dirty{};
+
 protected:
     virtual void ConsumeSinkImpl(Core::System& system) {
         for (auto [method, value] : method_sink) {
