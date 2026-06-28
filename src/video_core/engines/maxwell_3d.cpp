@@ -298,7 +298,7 @@ u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
     return argument;
 }
 
-void Maxwell3D::ConsumeSinkImpl() {
+void Maxwell3D::ConsumeSinkImpl(Core::System& system) {
     std::stable_sort(method_sink.begin(), method_sink.end(),
                      [](const auto& a, const auto& b) { return a.first < b.first; });
 
