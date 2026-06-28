@@ -175,8 +175,7 @@ void TextureCache<P>::RunGarbageCollector() {
         auto candidates = CollectBelow(frame_tick);
         for (const auto image_id : candidates) {
             auto& image = slot_images[image_id];
-            if (lowmemorydevice &&
-                image.info.is_sparse &&
+            if (image.info.is_sparse &&
                 image.guest_size_bytes >= 256_MiB &&
                 image.allocation_tick < frame_tick - 3) {
                 LOG_DEBUG(HW_GPU, "GC targeting old sparse texture at 0x{:X} ({} MiB, age: {} frames)",
