@@ -25,22 +25,6 @@ constexpr u32 SWIZZLE_Y_BITS = 0b011010000;
 
 using SwizzleTable = std::array<std::array<u32, GOB_SIZE_X>, GOB_SIZE_Y>;
 
-/**
- * This table represents the internal swizzle of a gob, in format 16 bytes x 2 sector packing.
- * Calculates the offset of an (x, y) position within a swizzled texture.
- * Taken from the Tegra X1 Technical Reference Manual. pages 1187-1188
- */
-constexpr SwizzleTable MakeSwizzleTable() {
-    SwizzleTable table{};
-    for (u32 y = 0; y < table.size(); ++y) {
-        for (u32 x = 0; x < table[0].size(); ++x) {
-            table[y][x] = ((x % 64) / 32) * 256 + ((y % 8) / 2) * 64 + ((x % 32) / 16) * 32 +
-                          (y % 2) * 16 + (x % 16);
-        }
-    }
-    return table;
-}
-
 /// Unswizzles a block linear texture into linear memory.
 void UnswizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixel,
                       u32 width, u32 height, u32 depth, u32 block_height, u32 block_depth,

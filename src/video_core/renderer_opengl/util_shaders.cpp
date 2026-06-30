@@ -56,10 +56,8 @@ UtilShaders::UtilShaders(ProgramManager& program_manager_)
       copy_bc4_program(MakeProgram(OPENGL_COPY_BC4_COMP)),
       convert_s8d24_program(MakeProgram(OPENGL_CONVERT_S8D24_COMP)),
       convert_ms_to_nonms_program(MakeProgram(CONVERT_MSAA_TO_NON_MSAA_COMP)),
-      convert_nonms_to_ms_program(MakeProgram(CONVERT_NON_MSAA_TO_MSAA_COMP)) {
-    const auto swizzle_table = Tegra::Texture::MakeSwizzleTable();
-    swizzle_table_buffer.Create();
-    glNamedBufferStorage(swizzle_table_buffer.handle, sizeof(swizzle_table), &swizzle_table, 0);
+      convert_nonms_to_ms_program(MakeProgram(CONVERT_NON_MSAA_TO_MSAA_COMP))
+{
 }
 
 UtilShaders::~UtilShaders() = default;
