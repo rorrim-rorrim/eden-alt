@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -22,8 +25,6 @@ constexpr u32 GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT + GOB_SIZE_Z_
 
 constexpr u32 SWIZZLE_X_BITS = 0b100101111;
 constexpr u32 SWIZZLE_Y_BITS = 0b011010000;
-
-using SwizzleTable = std::array<std::array<u32, GOB_SIZE_X>, GOB_SIZE_Y>;
 
 /// Unswizzles a block linear texture into linear memory.
 void UnswizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixel,
