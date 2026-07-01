@@ -753,12 +753,11 @@ struct Memory::Impl {
             }
         };
         auto& gpu = system.GPU();
-        gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr address) {
+        gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr addr) {
             if (flush) {
-                auto const wait_fence = gpu.RequestFlush(address, size);
-                gpu.WaitForSyncOperation(wait_fence);
+                void(gpu.OnCPURead(addr, size));
             }
-            gpu.InvalidateRegion(address, size);
+            gpu.InvalidateRegion(addr, size);
         });
     }
 
