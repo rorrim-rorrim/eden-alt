@@ -755,7 +755,8 @@ struct Memory::Impl {
         auto& gpu = system.GPU();
         gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr address) {
             if (flush) {
-                void(gpu.OnCPURead(address, size));
+                auto const wait_fence = gpu.RequestFlush(address, size);
+                gpu.WaitForSyncOperation(wait_fence);
             }
             gpu.InvalidateRegion(address, size);
         });
