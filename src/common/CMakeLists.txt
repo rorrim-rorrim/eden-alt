@@ -110,7 +110,6 @@ add_library(
     settings_input.h
     settings_setting.h
     slot_vector.h
-    socket_types.h
     spin_lock.h
     stb.cpp
     stb.h
