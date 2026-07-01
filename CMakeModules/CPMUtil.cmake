@@ -370,6 +370,7 @@ function(AddPackage)
 
         URL
 
+        KEY
         SOURCE_SUBDIR
         BUNDLED_PACKAGE
         FORCE_BUNDLED_PACKAGE
@@ -434,7 +435,9 @@ function(AddPackage)
 
     cpm_utils_message(DEBUG ${PKG_ARGS_NAME} "Download URL is ${pkg_url}")
 
-    if(DEFINED PKG_ARGS_SHA)
+    if(DEFINED PKG_ARGS_KEY AND NOT PKG_ARGS_KEY STREQUAL "")
+        set(pkg_key ${PKG_ARGS_KEY})
+    elseif(DEFINED PKG_ARGS_SHA)
         string(SUBSTRING ${PKG_ARGS_SHA} 0 4 pkg_key)
     elseif(DEFINED PKG_ARGS_VERSION)
         set(pkg_key ${PKG_ARGS_VERSION})
@@ -717,6 +720,7 @@ function(AddCIPackage)
             TAG "v${ARTIFACT_VERSION}"
             MIN_VERSION ${ARTIFACT_VERSION}
             ARTIFACT ${ARTIFACT}
+            KEY "${pkgname}-${ARTIFACT_VERSION}"
             HASH ${sha512sum_hash}
             FORCE_BUNDLED_PACKAGE ON
             ${EXTRA_ARGS})
