@@ -2314,29 +2314,46 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
 }
 
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
-    const auto& device = runtime.device;
-    const bool has_custom_border_extension = runtime.device.IsExtCustomBorderColorSupported();
-    const bool has_format_undefined =
-        has_custom_border_extension && runtime.device.IsCustomBorderColorWithoutFormatSupported();
-    const bool has_custom_border_colors =
-        has_format_undefined && runtime.device.IsCustomBorderColorsSupported();
+    const bool has_custom_border_ext = runtime.device.IsExtCustomBorderColorSupported();
+    const bool has_format_undefined = has_custom_border_ext && runtime.device.IsCustomBorderColorWithoutFormatSupported();
+    const bool has_custom_border_colors = has_format_undefined && runtime.device.IsCustomBorderColorsSupported();
+    const bool has_border_color_swizzle = has_custom_border_ext && runtime.device.IsExtBorderColorSwizzleSupported();
     const auto color = tsc.BorderColor();
+    const void* pnext = nullptr;
 
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
-        .pNext = nullptr,
+        .pNext = pnext,
         .customBorderColor = std::bit_cast<VkClearColorValue>(color),
         .format = VK_FORMAT_UNDEFINED,
     };
-    const void* pnext = nullptr;
     if (has_custom_border_colors) {
         pnext = &border_ci;
         // Log extension usage for custom border color
         if (GPU::Logging::IsActive()) {
-            GPU::Logging::GPULogger::GetInstance().LogExtensionUsage(
-                "VK_EXT_custom_border_color", "Sampler::Sampler");
+            GPU::Logging::GPULogger::GetInstance().LogExtensionUsage("VK_EXT_custom_border_color", "Sampler::Sampler");
         }
     }
+
+    const VkSamplerBorderColorComponentMappingCreateInfoEXT border_swizzle_ci{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_BORDER_COLOR_COMPONENT_MAPPING_CREATE_INFO_EXT,
+        .pNext = pnext,
+        .components = VkComponentMapping{
+            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+        },
+        .srgb = tsc.srgb_conversion
+    };
+    if (has_border_color_swizzle) {
+        pnext = &border_ci;
+        // Log extension usage for custom border color
+        if (GPU::Logging::IsActive()) {
+            GPU::Logging::GPULogger::GetInstance().LogExtensionUsage("VK_EXT_border_color_swizzle", "Sampler::Sampler");
+        }
+    }
+
     const VkSamplerReductionModeCreateInfoEXT reduction_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_REDUCTION_MODE_CREATE_INFO_EXT,
         .pNext = pnext,
@@ -2347,36 +2364,33 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
     } else if (reduction_ci.reductionMode != VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE_EXT) {
         LOG_WARNING(Render_Vulkan, "VK_EXT_sampler_filter_minmax is required");
     }
+
     // Some games have samplers with garbage. Sanitize them here.
     const f32 max_anisotropy = std::clamp(tsc.MaxAnisotropy(), 1.0f, 16.0f);
-
     const auto create_sampler = [&](const f32 anisotropy) {
-        return device.GetLogical().CreateSampler(VkSamplerCreateInfo{
+        return runtime.device.GetLogical().CreateSampler(VkSamplerCreateInfo{
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = pnext,
             .flags = 0,
             .magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter),
             .minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter),
             .mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
-            .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
-            .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
-            .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
+            .addressModeU = MaxwellToVK::Sampler::WrapMode(runtime.device, tsc.wrap_u, tsc.mag_filter),
+            .addressModeV = MaxwellToVK::Sampler::WrapMode(runtime.device, tsc.wrap_v, tsc.mag_filter),
+            .addressModeW = MaxwellToVK::Sampler::WrapMode(runtime.device, tsc.wrap_p, tsc.mag_filter),
             .mipLodBias = tsc.LodBias(),
-            .anisotropyEnable = static_cast<VkBool32>(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
+            .anisotropyEnable = VkBool32(anisotropy > 1.0f ? VK_TRUE : VK_FALSE),
             .maxAnisotropy = anisotropy,
             .compareEnable = tsc.depth_compare_enabled,
             .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
             .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.MinLod(),
             .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.MaxLod(),
-            .borderColor = has_custom_border_colors ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT
-                                                    : ConvertBorderColor(color),
+            .borderColor = has_custom_border_colors ? VK_BORDER_COLOR_FLOAT_CUSTOM_EXT : ConvertBorderColor(color),
             .unnormalizedCoordinates = VK_FALSE,
         });
     };
-
     sampler = create_sampler(max_anisotropy);
-
-    const f32 max_anisotropy_default = static_cast<f32>(1U << tsc.max_anisotropy);
+    const f32 max_anisotropy_default = f32(1U << tsc.max_anisotropy);
     if (max_anisotropy > max_anisotropy_default) {
         sampler_default_anisotropy = create_sampler(max_anisotropy_default);
     }

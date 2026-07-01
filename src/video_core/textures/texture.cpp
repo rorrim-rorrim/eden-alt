@@ -55,13 +55,16 @@ namespace {
 } // Anonymous namespace
 
 std::array<float, 4> TSCEntry::BorderColor() const noexcept {
-    // TODO: Handle SRGB correctly. Using this breaks shadows in some games (Xenoblade).
-    // if (!srgb_conversion) {
-    //    return border_color;
-    //}
-    // return {SRGB_CONVERSION_LUT[srgb_border_color_r], SRGB_CONVERSION_LUT[srgb_border_color_g],
-    //        SRGB_CONVERSION_LUT[srgb_border_color_b], border_color[3]};
-    return border_color;
+    if (!srgb_conversion)
+       return border_color;
+    // SRGB will be handled by custom border color swizzle
+    // if not, we are in big, big trouble and may break shadows on Xenoblade
+    return {
+        f32(srgb_border_color_r) / 255.f,
+        f32(srgb_border_color_g) / 255.f,
+        f32(srgb_border_color_b) / 255.f,
+        border_color[3]
+    };
 }
 
 float TSCEntry::MaxAnisotropy() const noexcept {
