@@ -737,10 +737,9 @@ struct Memory::Impl {
         PAddr last_address;
     };
 
-    void InvalidateGPUMemory(u8* p, size_t size) {
+    void InvalidateGPUMemory(u8* p, size_t size, bool flush) {
         constexpr size_t sys_core = Core::Hardware::NUM_CPU_CORES - 1;
-        const size_t core = (std::min)(system.GetCurrentHostThreadID(),
-                                     sys_core); // any other calls threads go to syscore.
+        const size_t core = (std::min)(system.GetCurrentHostThreadID(), sys_core); // any other calls threads go to syscore.
         if (!gpu_device_memory) [[unlikely]] {
             gpu_device_memory = &system.Host1x().MemoryManager();
         }
@@ -754,8 +753,12 @@ struct Memory::Impl {
             }
         };
         auto& gpu = system.GPU();
-        gpu_device_memory->ApplyOpOnPointer(
-            p, scratch_buffers[core], [&](DAddr address) { gpu.InvalidateRegion(address, size); });
+        gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr address) {
+            if (flush) {
+                gpu.FlushRegion(address, size);
+            }
+            gpu.InvalidateRegion(address, size);
+        });
     }
 
     Core::System& system;
@@ -959,27 +962,22 @@ void Memory::MarkRegionDebug(Common::ProcessAddress vaddr, u64 size, bool debug)
 }
 
 bool Memory::InvalidateNCE(Common::ProcessAddress vaddr, size_t size) {
-    [[maybe_unused]] bool mapped = true;
-    [[maybe_unused]] bool rasterizer = false;
-
-    u8* const ptr = impl->GetPointerImpl(
-        GetInteger(vaddr),
-        [&] {
-            LOG_ERROR(HW_Memory, "Unmapped InvalidateNCE for {} bytes @ {:#x}", size,
-                      GetInteger(vaddr));
-            mapped = false;
-        },
-        [&] { rasterizer = true; });
+    bool mapped = true;
+    bool rasterizer = false;
+    u8* const ptr = impl->GetPointerImpl(GetInteger(vaddr), [&] {
+        LOG_ERROR(HW_Memory, "Unmapped InvalidateNCE for {} bytes @ {:#x}", size, GetInteger(vaddr));
+        mapped = false;
+    }, [&] {
+        rasterizer = true;
+    });
     if (rasterizer) {
-        impl->InvalidateGPUMemory(ptr, size);
+        impl->InvalidateGPUMemory(ptr, size, true);
     }
-
 #ifdef __ANDROID__
     if (!rasterizer && mapped) {
         impl->host_buffer->DeferredMapSeparateHeap(GetInteger(vaddr));
     }
 #endif
-
     return mapped && ptr != nullptr;
 }
 
