@@ -2347,7 +2347,7 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
         .srgb = tsc.srgb_conversion
     };
     if (has_border_color_swizzle) {
-        pnext = &border_ci;
+        pnext = &border_swizzle_ci;
         // Log extension usage for custom border color
         if (GPU::Logging::IsActive()) {
             GPU::Logging::GPULogger::GetInstance().LogExtensionUsage("VK_EXT_border_color_swizzle", "Sampler::Sampler");
