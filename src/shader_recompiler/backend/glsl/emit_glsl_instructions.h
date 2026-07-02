@@ -743,6 +743,10 @@ void EmitShuffleDown(EmitContext& ctx, IR::Inst& inst, std::string_view value,
 void EmitShuffleButterfly(EmitContext& ctx, IR::Inst& inst, std::string_view value,
                           std::string_view index, std::string_view clamp,
                           std::string_view segmentation_mask);
+void EmitQuadBroadcast(EmitContext& ctx, IR::Inst& inst, std::string_view value,
+                       std::string_view lane);
+void EmitQuadSwap(EmitContext& ctx, IR::Inst& inst, std::string_view value,
+                  std::string_view direction);
 void EmitFSwizzleAdd(EmitContext& ctx, IR::Inst& inst, std::string_view op_a, std::string_view op_b,
                      std::string_view swizzle);
 void EmitDPdxFine(EmitContext& ctx, IR::Inst& inst, std::string_view op_a);
