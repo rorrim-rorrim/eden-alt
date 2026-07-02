@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -98,22 +101,22 @@ void EmitShuffleButterfly(EmitContext& ctx, IR::Inst& inst, ScalarU32 value, Sca
 }
 
 void EmitQuadBroadcast(EmitContext& ctx, IR::Inst& inst, ScalarU32 value, ScalarU32 lane) {
-    // QuadBroadcast: src = (thread_id & ~3) | (lane & 3) — SHFLIDX with quad mask 0x1C03
+    // QuadBroadcast: src = (thread_id & ~3) | (lane & 3) — SHFIDX with quad mask 0x1C03
     const Register ret{ctx.reg_alloc.Define(inst)};
     ctx.Add("AND.U RC.x,{}.threadid,~3;"
             "AND.U RC.y,{},3;"
             "OR.U RC.x,RC.x,RC.y;"
-            "SHFLIDX.U {},{},RC.x,0x1C03;"
-            "MOV.U {}.x,{}.x;",
+            "SHFIDX.U {},{},RC.x,0x1C03;"
+            "MOV.U {}.x,{}.y;",
             ctx.stage_name, lane, ret, value, ret, ret);
 }
 
 void EmitQuadSwap(EmitContext& ctx, IR::Inst& inst, ScalarU32 value, ScalarU32 direction) {
-    // QuadSwap: XOR thread_id with (direction+1) within quad — SHFLXOR with quad mask 0x1C03
+    // QuadSwap: XOR thread_id with (direction+1) within quad — SHFXOR with quad mask 0x1C03
     const Register ret{ctx.reg_alloc.Define(inst)};
     ctx.Add("ADD.U RC.x,{},1;"
-            "SHFLXOR.U {},{},RC.x,0x1C03;"
-            "MOV.U {}.x,{}.x;",
+            "SHFXOR.U {},{},RC.x,0x1C03;"
+            "MOV.U {}.x,{}.y;",
             direction, ret, value, ret, ret);
 }
 
