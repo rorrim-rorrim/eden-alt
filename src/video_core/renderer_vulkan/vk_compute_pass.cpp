@@ -683,7 +683,7 @@ BlockLinearUnswizzle3DPass::BlockLinearUnswizzle3DPass(
     StagingBufferPool& staging_buffer_pool_,
     ComputePassDescriptorQueue& compute_pass_descriptor_queue_)
     : ComputePass(device_, scheduler_, descriptor_pool_,
-        std::array<VkDescriptorSetLayoutBinding, 3>{{
+        std::array<VkDescriptorSetLayoutBinding, 2>{{
     {
         .binding = BL3D_BINDING_INPUT_BUFFER,
         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, // block-linear input
@@ -699,7 +699,7 @@ BlockLinearUnswizzle3DPass::BlockLinearUnswizzle3DPass(
         .pImmutableSamplers = nullptr,
     },
         }},
-        std::array<VkDescriptorUpdateTemplateEntry, 3>{{
+        std::array<VkDescriptorUpdateTemplateEntry, 2>{{
         {
             .dstBinding = BL3D_BINDING_INPUT_BUFFER,
             .dstArrayElement = 0,
@@ -719,12 +719,12 @@ BlockLinearUnswizzle3DPass::BlockLinearUnswizzle3DPass(
         }},
         DescriptorBankInfo{
             .uniform_buffers = 0,
-            .storage_buffers = 3,
+            .storage_buffers = 2,
             .texture_buffers = 0,
             .image_buffers = 0,
             .textures = 0,
             .images = 0,
-            .score = 3,
+            .score = 2,
         },
           COMPUTE_PUSH_CONSTANT_RANGE<sizeof(BlockLinearUnswizzle3DPushConstants)>,
           BLOCK_LINEAR_UNSWIZZLE_3D_BCN_COMP_SPV),
