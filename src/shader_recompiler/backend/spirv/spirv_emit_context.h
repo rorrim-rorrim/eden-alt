@@ -310,6 +310,10 @@ public:
 
     Id local_memory{};
 
+    /// True when this shader's shared memory uses SPV_KHR_workgroup_memory_explicit_layout.
+    /// False when the host lacks the extension or a width this shader accesses natively.
+    bool uses_explicit_workgroup_layout{};
+
     Id shared_memory_u8{};
     Id shared_memory_u16{};
     Id shared_memory_u32{};

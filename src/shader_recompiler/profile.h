@@ -31,14 +31,16 @@ struct Profile {
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
+    bool support_workgroup_layout_8bit_access{};
+    bool support_workgroup_layout_16bit_access{};
     bool support_vote{};
-    /// Bitmask over Shader::Stage of stages where the host supports subgroup operations
     u32 supported_subgroup_stages{0x7F};
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};
     bool support_typeless_image_loads{};
     bool support_demote_to_helper_invocation{};
     bool support_int64_atomics{};
+    bool support_shared_int64_atomics{};
     bool support_derivative_control{};
     bool support_geometry_shader_passthrough{};
     bool support_native_ndc{};

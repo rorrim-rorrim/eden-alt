@@ -501,13 +501,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan,
                     "Qualcomm drivers have slow push descriptor implementation");
         RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling 64-bit integer features on Qualcomm proprietary drivers");
-        RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
-                               VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
-        features.shader_atomic_int64.shaderBufferInt64Atomics = false;
-        features.shader_atomic_int64.shaderSharedInt64Atomics = false;
-        features.features.shaderInt64 = false;
 
 #if defined(__ANDROID__) && defined(ARCHITECTURE_arm64)
         // BCn patching only safe on Android 9+ (API 28+). Older versions crash on driver load.
@@ -560,7 +553,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             features.shader_float16_int8.shaderFloat16 = false;
         }
 
-        // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
         // Use hardware depth/stencil blits instead when available
         if (!extensions.shader_stencil_export) {
             LOG_INFO(Render_Vulkan,
@@ -573,8 +565,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
             if (!is_blit_depth24_stencil8_supported && !is_blit_depth32_stencil8_supported) {
                 LOG_WARNING(Render_Vulkan,
-                            "NVIDIA: Neither shader export nor hardware blits available for "
-                            "depth/stencil. Performance may be degraded.");
+                            "Neither shader export nor hardware blits available for "
+                            "depth/stencil.");
             }
         }
     }
@@ -656,17 +648,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
-
-    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
-    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
-    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
-    //   Level 1 = Core + VK_EXT_extended_dynamic_state
-    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
-    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
-
     switch (dyna_state) {
     case Settings::ExtendedDynamicState::Disabled:
-        // Level 0: Disable all extended dynamic state extensions
         RemoveExtensionFeature(extensions.extended_dynamic_state, features.extended_dynamic_state,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
@@ -677,7 +660,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = false;
         break;
     case Settings::ExtendedDynamicState::EDS1:
-        // Level 1: Enable EDS1, disable EDS2 and EDS3
         RemoveExtensionFeature(extensions.extended_dynamic_state2, features.extended_dynamic_state2,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
@@ -686,7 +668,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state3_enables = false;
         break;
     case Settings::ExtendedDynamicState::EDS2:
-        // Level 2: Enable EDS1 + EDS2, disable EDS3
         RemoveExtensionFeature(extensions.extended_dynamic_state3, features.extended_dynamic_state3,
                               VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         dynamic_state3_blending = false;
@@ -694,12 +675,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     case Settings::ExtendedDynamicState::EDS3:
     default:
-        // Level 3: Enable all (EDS1 + EDS2 + EDS3)
         break;
     }
 
-    // VK_EXT_vertex_input_dynamic_state is independent from EDS
-    // It can be enabled even without extended_dynamic_state
     if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
@@ -1281,8 +1259,7 @@ void Device::RemoveUnsuitableExtensions() {
                                        VK_EXT_IMAGE_ROBUSTNESS_EXTENSION_NAME);
 
     // VK_KHR_shader_atomic_int64
-    extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics &&
-                                     features.shader_atomic_int64.shaderSharedInt64Atomics;
+    extensions.shader_atomic_int64 = features.shader_atomic_int64.shaderBufferInt64Atomics;
     RemoveExtensionFeatureIfUnsuitable(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                        VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
 
@@ -1331,10 +1308,7 @@ void Device::RemoveUnsuitableExtensions() {
 
     // VK_KHR_workgroup_memory_explicit_layout
     extensions.workgroup_memory_explicit_layout =
-        features.features.shaderInt16 &&
         features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess &&
-        features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess &&
         features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayoutScalarBlockLayout;
     RemoveExtensionFeatureIfUnsuitable(extensions.workgroup_memory_explicit_layout,
                                        features.workgroup_memory_explicit_layout,

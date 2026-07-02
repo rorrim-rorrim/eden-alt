@@ -371,7 +371,7 @@ Id CasFunction(EmitContext& ctx, Operation operation, Id value_type) {
 Id CasLoop(EmitContext& ctx, Operation operation, Id array_pointer, Id element_pointer,
            Id value_type, Id memory_type, spv::Scope scope) {
     const bool is_shared{scope == spv::Scope::Workgroup};
-    const bool is_struct{!is_shared || ctx.profile.support_explicit_workgroup_layout};
+    const bool is_struct{!is_shared || ctx.uses_explicit_workgroup_layout};
     const Id cas_func{CasFunction(ctx, operation, value_type)};
     const Id zero{ctx.u32_zero_value};
     const Id scope_id{ctx.Const(static_cast<u32>(scope))};
@@ -620,7 +620,11 @@ void EmitContext::DefineSharedMemory(const IR::Program& program) {
 
         return std::make_tuple(variable, element_pointer, pointer);
     }};
-    if (profile.support_explicit_workgroup_layout) {
+    uses_explicit_workgroup_layout =
+        profile.support_explicit_workgroup_layout &&
+        (!program.info.uses_int8 || profile.support_workgroup_layout_8bit_access) &&
+        (!program.info.uses_int16 || profile.support_workgroup_layout_16bit_access);
+    if (uses_explicit_workgroup_layout) {
         AddExtension("SPV_KHR_workgroup_memory_explicit_layout");
         AddCapability(spv::Capability::WorkgroupMemoryExplicitLayoutKHR);
         if (program.info.uses_int8) {

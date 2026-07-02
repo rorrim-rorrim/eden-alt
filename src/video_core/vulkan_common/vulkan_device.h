@@ -488,6 +488,18 @@ FN_MAX_LIMIT_LIST
         return extensions.workgroup_memory_explicit_layout;
     }
 
+    /// Returns true if the device supports 8-bit accesses to workgroup explicit layout memory.
+    bool IsWorkgroupMemoryExplicitLayout8BitSupported() const {
+        return extensions.workgroup_memory_explicit_layout &&
+               features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout8BitAccess;
+    }
+
+    /// Returns true if the device supports 16-bit accesses to workgroup explicit layout memory.
+    bool IsWorkgroupMemoryExplicitLayout16BitSupported() const {
+        return extensions.workgroup_memory_explicit_layout && features.features.shaderInt16 &&
+               features.workgroup_memory_explicit_layout.workgroupMemoryExplicitLayout16BitAccess;
+    }
+
     /// Returns true if the device supports VK_KHR_image_format_list.
     bool IsKhrImageFormatListSupported() const {
         return extensions.image_format_list || instance_version >= VK_API_VERSION_1_2;
@@ -716,9 +728,16 @@ FN_MAX_LIMIT_LIST
                features.provoking_vertex.transformFeedbackPreservesProvokingVertex;
     }
 
-    /// Returns true if the device supports VK_KHR_shader_atomic_int64.
+    /// Returns true if the device supports int64 atomics on storage buffers.
     bool IsExtShaderAtomicInt64Supported() const {
-        return extensions.shader_atomic_int64;
+        return extensions.shader_atomic_int64 &&
+               features.shader_atomic_int64.shaderBufferInt64Atomics;
+    }
+
+    /// Returns true if the device supports int64 atomics on workgroup (shared) memory.
+    bool IsSharedInt64AtomicsSupported() const {
+        return extensions.shader_atomic_int64 &&
+               features.shader_atomic_int64.shaderSharedInt64Atomics;
     }
 
     bool IsExtConditionalRendering() const {

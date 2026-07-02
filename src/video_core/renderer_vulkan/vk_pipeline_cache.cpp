@@ -420,6 +420,10 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
             float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE &&
             !has_broken_sz_inf_nan,
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
+        .support_workgroup_layout_8bit_access =
+            device.IsWorkgroupMemoryExplicitLayout8BitSupported(),
+        .support_workgroup_layout_16bit_access =
+            device.IsWorkgroupMemoryExplicitLayout16BitSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .supported_subgroup_stages = supported_subgroup_stages,
         .support_viewport_index_layer_non_geometry =
@@ -429,6 +433,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_demote_to_helper_invocation =
             device.IsExtShaderDemoteToHelperInvocationSupported(),
         .support_int64_atomics = device.IsExtShaderAtomicInt64Supported(),
+        .support_shared_int64_atomics = device.IsSharedInt64AtomicsSupported(),
         .support_derivative_control = true,
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_native_ndc = device.IsExtDepthClipControlSupported(),
