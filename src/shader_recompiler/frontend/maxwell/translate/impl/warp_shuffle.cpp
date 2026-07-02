@@ -36,9 +36,7 @@ enum class ShuffleMode : u64 {
     }
 }
 
-// SHFL mask encoding for quad-constrained operations:
-// bits [0:4] = clamp = 3, bits [8:12] = seg_mask = 28 (0x1C)
-constexpr u32 QUAD_MASK = (28u << 8) | 3u; // 0x1C03
+constexpr u32 QUAD_MASK = (28u << 8) | 3u;
 
 void Shuffle(TranslatorVisitor& v, u64 insn, const IR::U32& index, const IR::U32& mask,
              bool index_is_imm, u32 index_imm, bool mask_is_imm, u32 mask_imm) {
@@ -50,15 +48,15 @@ void Shuffle(TranslatorVisitor& v, u64 insn, const IR::U32& index, const IR::U32
         BitField<48, 3, IR::Pred> pred;
     } const shfl{insn};
 
-    if (mask_is_imm && mask_imm == QUAD_MASK && index_is_imm) {
+    const bool is_quad_candidate{mask_is_imm && mask_imm == QUAD_MASK && index_is_imm &&
+                                  v.env.ShaderStage() == Stage::Fragment};
+    if (is_quad_candidate) {
         if (shfl.mode == ShuffleMode::IDX && index_imm <= 3) {
-            // SHFL IDX with lane 0-3 in a quad → QuadBroadcast
             v.X(shfl.dest_reg, v.ir.QuadBroadcast(v.X(shfl.src_reg), v.ir.Imm32(index_imm)));
             v.ir.SetPred(shfl.pred, v.ir.Imm1(true));
             return;
         }
         if (shfl.mode == ShuffleMode::BFLY && index_imm >= 1 && index_imm <= 3) {
-            // SHFL BFLY index 1/2/3 in a quad → QuadSwap direction 0/1/2
             v.X(shfl.dest_reg, v.ir.QuadSwap(v.X(shfl.src_reg), v.ir.Imm32(index_imm - 1)));
             v.ir.SetPred(shfl.pred, v.ir.Imm1(true));
             return;
