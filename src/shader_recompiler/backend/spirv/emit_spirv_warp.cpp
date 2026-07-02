@@ -228,7 +228,8 @@ Id EmitQuadBroadcast(EmitContext& ctx, Id value, Id lane) {
 }
 
 Id EmitQuadSwap(EmitContext& ctx, Id value, Id direction) {
-    return ctx.OpGroupNonUniformQuadSwap(ctx.U32[1], SubgroupScope(ctx), value, direction);
+    const Id xor_mask{ctx.OpIAdd(ctx.U32[1], direction, ctx.Const(1u))};
+    return ctx.OpGroupNonUniformShuffleXor(ctx.U32[1], SubgroupScope(ctx), value, xor_mask);
 }
 
 Id EmitFSwizzleAdd(EmitContext& ctx, Id op_a, Id op_b, Id swizzle) {
