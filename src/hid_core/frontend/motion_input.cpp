@@ -148,7 +148,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     }
 
     const auto normal_accel = accel.Normalized();
-    auto rad_gyro = gyro * M_PI * 2;
+    f32 rad_gyro = gyro * (M_PI * 2.f);
     const f32 swap = rad_gyro.x;
     rad_gyro.x = rad_gyro.y;
     rad_gyro.y = -swap;
