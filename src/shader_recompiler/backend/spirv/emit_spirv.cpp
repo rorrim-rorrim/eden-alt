@@ -446,8 +446,10 @@ void SetupCapabilities(const Profile& profile, const Info& info, EmitContext& ct
             ctx.AddCapability(spv::Capability::GroupNonUniformVote);
         }
     }
-    if (info.uses_quad_shuffles && profile.support_quad_shuffles) {
-        ctx.AddCapability(spv::Capability::GroupNonUniformQuad);
+    if (info.uses_quad_shuffles) {
+        if (profile.support_quad_shuffles) {
+            ctx.AddCapability(spv::Capability::GroupNonUniformQuad);
+        }
         ctx.AddCapability(spv::Capability::GroupNonUniformShuffle);
     }
     if (info.uses_int64_bit_atomics && profile.support_int64_atomics) {
