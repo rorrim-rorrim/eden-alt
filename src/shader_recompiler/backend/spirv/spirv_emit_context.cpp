@@ -939,8 +939,11 @@ void EmitContext::DefineWriteStorageCasLoopFunction(const Info& info) {
 }
 
 void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
-    if (!info.uses_global_memory || !profile.support_int64 ||
-        !profile.support_descriptor_aliasing) {
+    if (!info.uses_global_memory || !profile.support_int64) {
+        return;
+    }
+    if (!profile.support_descriptor_aliasing) {
+        DefineGlobalMemoryFunctionsU32Fallback(info);
         return;
     }
     using DefPtr = Id StorageDefinitions::*;
@@ -1018,6 +1021,111 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         define(&StorageDefinitions::U32x2, storage_types.U32x2, U32[2], sizeof(u32[2]));
     std::tie(load_global_func_u32x4, write_global_func_u32x4) =
         define(&StorageDefinitions::U32x4, storage_types.U32x4, U32[4], sizeof(u32[4]));
+}
+
+void EmitContext::DefineGlobalMemoryFunctionsU32Fallback(const Info& info) {
+    const Id zero{u32_zero_value};
+    const auto define_body{[&](Id addr, u32 num_words, auto&& callback) {
+        AddLabel();
+        const size_t num_buffers{info.storage_buffers_descriptors.size()};
+        for (size_t index = 0; index < num_buffers; ++index) {
+            if (!info.nvn_buffer_used[index]) {
+                continue;
+            }
+            const auto& ssbo{info.storage_buffers_descriptors[index]};
+            const u32 addr_word{ssbo.cbuf_offset / 4};
+            const u32 addr_lo_comp{addr_word % 4};
+            const Id cbuf{cbufs[ssbo.cbuf_index].U32x4};
+            const Id addr_vec_pointer{
+                OpAccessChain(uniform_types.U32x4, cbuf, zero, Const(addr_word / 4))};
+            const Id addr_vec{OpLoad(U32[4], addr_vec_pointer)};
+            const Id addr_lo{OpCompositeExtract(U32[1], addr_vec, addr_lo_comp)};
+            const Id addr_hi{OpCompositeExtract(U32[1], addr_vec, addr_lo_comp + 1U)};
+            const Id unaligned_addr{
+                OpBitcast(U64, OpCompositeConstruct(U32[2], addr_lo, addr_hi))};
+
+            const u64 ssbo_align_mask{~(profile.min_ssbo_alignment - 1U)};
+            const Id ssbo_addr{OpBitwiseAnd(U64, unaligned_addr, Constant(U64, ssbo_align_mask))};
+
+            const u32 size_word{addr_word + 2};
+            Id size_vec{addr_vec};
+            if (size_word / 4 != addr_word / 4) {
+                const Id size_vec_pointer{
+                    OpAccessChain(uniform_types.U32x4, cbuf, zero, Const(size_word / 4))};
+                size_vec = OpLoad(U32[4], size_vec_pointer);
+            }
+            const Id ssbo_size{
+                OpUConvert(U64, OpCompositeExtract(U32[1], size_vec, size_word % 4))};
+            const Id ssbo_end{OpIAdd(U64, ssbo_addr, ssbo_size)};
+            const Id cond{OpLogicalAnd(U1, OpUGreaterThanEqual(U1, addr, ssbo_addr),
+                                       OpULessThan(U1, addr, ssbo_end))};
+            const Id then_label{OpLabel()};
+            const Id else_label{OpLabel()};
+            OpSelectionMerge(else_label, spv::SelectionControlMask::MaskNone);
+            OpBranchConditional(cond, then_label, else_label);
+            AddLabel(then_label);
+            const Id ssbo_id{ssbos[index].U32};
+            const Id ssbo_offset{OpUConvert(U32[1], OpISub(U64, addr, ssbo_addr))};
+            const Id base_word{OpShiftRightLogical(U32[1], ssbo_offset, Const(2U))};
+            std::array<Id, 4> word_pointers{};
+            for (u32 word = 0; word < num_words; ++word) {
+                const Id word_index{word == 0 ? base_word
+                                              : OpIAdd(U32[1], base_word, Const(word))};
+                word_pointers[word] =
+                    OpAccessChain(storage_types.U32.element, ssbo_id, zero, word_index);
+            }
+            callback(word_pointers);
+            AddLabel(else_label);
+        }
+    }};
+    const auto define_load{[&](Id type, u32 num_words) {
+        const Id function_type{TypeFunction(type, U64)};
+        const Id func_id{OpFunction(type, spv::FunctionControlMask::MaskNone, function_type)};
+        const Id addr{OpFunctionParameter(U64)};
+        define_body(addr, num_words, [&](const std::array<Id, 4>& pointers) {
+            std::array<Id, 4> words{};
+            for (u32 word = 0; word < num_words; ++word) {
+                words[word] = OpLoad(U32[1], pointers[word]);
+            }
+            switch (num_words) {
+            case 1:
+                OpReturnValue(words[0]);
+                break;
+            case 2:
+                OpReturnValue(OpCompositeConstruct(type, words[0], words[1]));
+                break;
+            default:
+                OpReturnValue(
+                    OpCompositeConstruct(type, words[0], words[1], words[2], words[3]));
+                break;
+            }
+        });
+        OpReturnValue(ConstantNull(type));
+        OpFunctionEnd();
+        return func_id;
+    }};
+    const auto define_write{[&](Id type, u32 num_words) {
+        const Id function_type{TypeFunction(void_id, U64, type)};
+        const Id func_id{OpFunction(void_id, spv::FunctionControlMask::MaskNone, function_type)};
+        const Id addr{OpFunctionParameter(U64)};
+        const Id data{OpFunctionParameter(type)};
+        define_body(addr, num_words, [&](const std::array<Id, 4>& pointers) {
+            for (u32 word = 0; word < num_words; ++word) {
+                const Id value{num_words == 1 ? data : OpCompositeExtract(U32[1], data, word)};
+                OpStore(pointers[word], value);
+            }
+            OpReturn();
+        });
+        OpReturn();
+        OpFunctionEnd();
+        return func_id;
+    }};
+    load_global_func_u32 = define_load(U32[1], 1);
+    load_global_func_u32x2 = define_load(U32[2], 2);
+    load_global_func_u32x4 = define_load(U32[4], 4);
+    write_global_func_u32 = define_write(U32[1], 1);
+    write_global_func_u32x2 = define_write(U32[2], 2);
+    write_global_func_u32x4 = define_write(U32[4], 4);
 }
 
 void EmitContext::DefineRescalingInput(const Info& info) {

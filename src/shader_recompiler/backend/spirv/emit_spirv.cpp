@@ -332,6 +332,9 @@ void DefineEntryPoint(const IR::Program& program, EmitContext& ctx, Id main) {
 void SetupDenormControl(const Profile& profile, const IR::Program& program, EmitContext& ctx,
                         Id main_func) {
     const Info& info{program.info};
+    if (profile.has_broken_fp16_float_controls && info.uses_fp16) {
+        return;
+    }
     if (info.uses_fp32_denorms_flush && info.uses_fp32_denorms_preserve) {
         LOG_DEBUG(Shader_SPIRV, "Fp32 denorm flush and preserve on the same shader");
     } else if (info.uses_fp32_denorms_flush) {
