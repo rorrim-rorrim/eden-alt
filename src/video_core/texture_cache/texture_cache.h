@@ -1915,13 +1915,16 @@ void TextureCache<P>::TrimInactiveSamplers(size_t budget) {
         ankerl::unordered_dense::set<SamplerId> active_sampler_ids;
         for (auto const& e : channel_state->sampler_ids)
             active_sampler_ids.insert(e.second);
+        if constexpr (requires { runtime.Finish(); }) {
+            runtime.Finish();
+        }
         // Elements in the map must be necesarily valid
         size_t removed = 0;
         for (auto it = channel_state->samplers.begin(); it != channel_state->samplers.end();) {
             const SamplerId sampler_id = it->second;
             if (!sampler_id || sampler_id == CORRUPT_ID) {
                 it = channel_state->samplers.erase(it);
-            } else if (std::ranges::find(active_sampler_ids, sampler_id) != active_sampler_ids.end()) {
+            } else if (active_sampler_ids.contains(sampler_id)) {
                 ++it;
             } else {
                 slot_samplers.erase(sampler_id);

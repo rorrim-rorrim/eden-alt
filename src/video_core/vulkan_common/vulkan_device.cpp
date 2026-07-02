@@ -644,7 +644,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     if (is_turnip || is_qualcomm) {
         LOG_WARNING(Render_Vulkan, "Driver requires higher-than-reported binding limits");
-        properties.properties.limits.maxVertexInputBindings = 32;
+        properties.properties.limits.maxVertexInputBindings =
+            (std::max)(properties.properties.limits.maxVertexInputBindings, 32U);
     }
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
