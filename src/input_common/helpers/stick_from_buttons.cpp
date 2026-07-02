@@ -19,7 +19,7 @@ public:
     // Using a value one lower from the maximum emulates real stick behavior.
     static constexpr float MAX_RANGE = 32766.0f / 32767.0f;
     // Use wider angle to ease the transition.
-    static constexpr float APERTURE = M_PI_2 * 0.15f;
+    static constexpr float APERTURE = float(M_PI_2) * 0.15f;
 
     using Button = std::unique_ptr<Common::Input::InputDevice>;
 
