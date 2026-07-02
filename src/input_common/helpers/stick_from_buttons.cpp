@@ -68,13 +68,13 @@ public:
     bool IsAngleGreater(float old_angle, float new_angle) const {
         const float top_limit = new_angle + APERTURE;
         return (old_angle > new_angle && old_angle <= top_limit) ||
-               (old_angle + M_PI_2 > new_angle && old_angle + M_PI_2 <= top_limit);
+               (old_angle + f32(M_PI_2) > new_angle && old_angle + f32(M_PI_2) <= top_limit);
     }
 
     bool IsAngleSmaller(float old_angle, float new_angle) const {
         const float bottom_limit = new_angle - APERTURE;
         return (old_angle >= bottom_limit && old_angle < new_angle) ||
-               (old_angle - M_PI_2 >= bottom_limit && old_angle - M_PI_2 < new_angle);
+               (old_angle - f32(M_PI_2) >= bottom_limit && old_angle - f32(M_PI_2) < new_angle);
     }
 
     float GetAngle(std::chrono::time_point<std::chrono::steady_clock> now) const {
@@ -89,16 +89,16 @@ public:
 
         if (IsAngleGreater(new_angle, goal_angle)) {
             new_angle -= modifier_angle * time_difference;
-            if (new_angle < 0) {
-                new_angle += M_PI_2;
+            if (new_angle < 0.f) {
+                new_angle += f32(M_PI_2);
             }
             if (!IsAngleGreater(new_angle, goal_angle)) {
                 return goal_angle;
             }
         } else if (IsAngleSmaller(new_angle, goal_angle)) {
             new_angle += modifier_angle * time_difference;
-            if (new_angle >= M_PI_2) {
-                new_angle -= M_PI_2;
+            if (new_angle >= f32(M_PI_2)) {
+                new_angle -= f32(M_PI_2);
             }
             if (!IsAngleSmaller(new_angle, goal_angle)) {
                 return goal_angle;
@@ -110,45 +110,14 @@ public:
     }
 
     void SetGoalAngle(bool r, bool l, bool u, bool d) {
-        // Move to the right
-        if (r && !u && !d) {
-            goal_angle = M_PI * 1.00f;
-        }
-
-        // Move to the upper right
-        if (r && u && !d) {
-            goal_angle = M_PI * 0.25f;
-        }
-
-        // Move up
-        if (u && !l && !r) {
-            goal_angle = M_PI * 0.50f;
-        }
-
-        // Move to the upper left
-        if (l && u && !d) {
-            goal_angle = M_PI * 0.75f;
-        }
-
-        // Move to the left
-        if (l && !u && !d) {
-            goal_angle = M_PI * 1.00f;
-        }
-
-        // Move to the bottom left
-        if (l && !u && d) {
-            goal_angle = M_PI * 1.25f;
-        }
-
-        // Move down
-        if (d && !l && !r) {
-            goal_angle = M_PI * 1.50f;
-        }
-
-        // Move to the bottom right
-        if (r && !u && d) {
-            goal_angle = M_PI * 1.75f;
-        }
+        if (r && !u && !d) goal_angle = f32(M_PI) * 0.00f; //right
+        if (r && u && !d)  goal_angle = f32(M_PI) * 0.25f; //upper right
+        if (u && !l && !r) goal_angle = f32(M_PI) * 0.50f; //up
+        if (l && u && !d)  goal_angle = f32(M_PI) * 0.75f; //upper left
+        if (l && !u && !d) goal_angle = f32(M_PI) * 1.00f; //left
+        if (l && !u && d)  goal_angle = f32(M_PI) * 1.25f; //bottom left
+        if (d && !l && !r) goal_angle = f32(M_PI) * 1.50f; //down
+        if (r && !u && d)  goal_angle = f32(M_PI) * 1.75f; //bottom right
     }
 
     void UpdateUpButtonStatus(const Common::Input::CallbackStatus& button_callback) {
