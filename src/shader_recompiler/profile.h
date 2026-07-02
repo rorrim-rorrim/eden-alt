@@ -29,6 +29,8 @@ struct Profile {
     bool support_fp32_signed_zero_nan_preserve{};
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
+    bool support_shader_quad_control{};
+    bool support_quad_shuffles{};
     bool support_vote{};
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};
