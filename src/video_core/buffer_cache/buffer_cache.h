@@ -657,6 +657,9 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
         normalized_copies.push_back(second_copy);
     }
     runtime.PostCopyBarrier();
+    if (Settings::values.enable_gpu_buffer_readback.GetValue()) {
+        runtime.Flush();
+    }
     pending_downloads.emplace_back(std::move(normalized_copies));
     async_buffers.emplace_back(download_staging);
 }
@@ -1634,17 +1637,6 @@ bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, DAddr device_addr, u32 si
     if (total_size_bytes == 0) {
         return true;
     }
-    if (Settings::values.enable_gpu_buffer_readback.GetValue()) {
-        u64 min_offset = (std::numeric_limits<u64>::max)();
-        u64 max_offset = 0;
-        for (const auto& copy : upload_copies) {
-            min_offset = (std::min)(min_offset, copy.dst_offset);
-            max_offset = (std::max)(max_offset, copy.dst_offset + copy.size);
-        }
-        const DAddr sync_addr = buffer.CpuAddr() + min_offset;
-        const u64 sync_size = max_offset - min_offset;
-        DownloadBufferMemory(buffer, sync_addr, sync_size);
-    }
     const std::span<BufferCopy> copies_span(upload_copies.data(), upload_copies.size());
     UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
     any_buffer_uploaded = true;
@@ -1697,6 +1689,9 @@ void BufferCache<P>::MappedUploadMemory([[maybe_unused]] Buffer& buffer,
         for (BufferCopy& copy : copies) {
             u8* const src_pointer = staging_pointer.data() + copy.src_offset;
             const DAddr device_addr = buffer.CpuAddr() + copy.dst_offset;
+            if (Settings::values.enable_gpu_buffer_readback.GetValue()) {
+                DownloadBufferMemory(buffer, device_addr, copy.size);
+            }
             device_memory.ReadBlockUnsafe(device_addr, src_pointer, copy.size);
             // Apply the staging offset
             copy.src_offset += upload_staging.offset;

@@ -90,7 +90,11 @@ public:
                     std::span<const VideoCommon::BufferCopy> copies, bool);
 
     void PreCopyBarrier();
+
     void PostCopyBarrier();
+
+    void Flush();
+
     void Finish();
 
     void TickFrame(Common::SlotVector<Buffer>&) noexcept {}

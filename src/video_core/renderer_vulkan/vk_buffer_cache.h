@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -87,6 +87,8 @@ public:
                                 DescriptorPool& descriptor_pool);
 
     void TickFrame(Common::SlotVector<Buffer>& slot_buffers) noexcept;
+
+    void Flush();
 
     void Finish();
 

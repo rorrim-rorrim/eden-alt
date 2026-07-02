@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -204,6 +204,10 @@ void BufferCacheRuntime::PreCopyBarrier() {
 
 void BufferCacheRuntime::PostCopyBarrier() {
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+}
+
+void BufferCacheRuntime::Flush() {
+    glFlush();
 }
 
 void BufferCacheRuntime::Finish() {

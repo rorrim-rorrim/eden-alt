@@ -388,6 +388,11 @@ void BufferCacheRuntime::TickFrame(Common::SlotVector<Buffer>& slot_buffers) noe
     }
 }
 
+void BufferCacheRuntime::Flush() {
+    const u64 tick = scheduler.Flush();
+    scheduler.Wait(tick);
+}
+
 void BufferCacheRuntime::Finish() {
     scheduler.Finish();
 }
