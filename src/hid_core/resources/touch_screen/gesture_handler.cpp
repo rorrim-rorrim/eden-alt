@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: Copyright 2024 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <numbers>
 #include "common/math_util.h"
 #include "hid_core/resources/touch_screen/gesture_handler.h"
 
@@ -214,7 +215,7 @@ void GestureHandler::UpdatePanEvent(GestureState& next_state, GestureType& type)
     if (std::abs(angle_between_two_lines) > AngleThreshold) {
         type = GestureType::Rotate;
         next_state.scale = 0;
-        next_state.rotation_angle = angle_between_two_lines * 180.0f / float(M_PI);
+        next_state.rotation_angle = angle_between_two_lines * 180.0f / float(std::numbers::pi_v<float>);
     }
 }
 

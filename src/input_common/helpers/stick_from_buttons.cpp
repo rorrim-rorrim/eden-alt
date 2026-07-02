@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <numbers>
 #include "common/math_util.h"
 #include "common/settings.h"
 #include "input_common/helpers/stick_from_buttons.h"
@@ -19,7 +20,7 @@ public:
     // Using a value one lower from the maximum emulates real stick behavior.
     static constexpr float MAX_RANGE = 32766.0f / 32767.0f;
     // Use wider angle to ease the transition.
-    static constexpr float APERTURE = float(M_PI_2) * 0.15f;
+    static constexpr float APERTURE = float((std::numbers::pi_v<float> / 2.f)) * 0.15f;
 
     using Button = std::unique_ptr<Common::Input::InputDevice>;
 
@@ -68,13 +69,13 @@ public:
     bool IsAngleGreater(float old_angle, float new_angle) const {
         const float top_limit = new_angle + APERTURE;
         return (old_angle > new_angle && old_angle <= top_limit) ||
-               (old_angle + f32(M_PI_2) > new_angle && old_angle + f32(M_PI_2) <= top_limit);
+               (old_angle + f32((std::numbers::pi_v<float> / 2.f)) > new_angle && old_angle + f32((std::numbers::pi_v<float> / 2.f)) <= top_limit);
     }
 
     bool IsAngleSmaller(float old_angle, float new_angle) const {
         const float bottom_limit = new_angle - APERTURE;
         return (old_angle >= bottom_limit && old_angle < new_angle) ||
-               (old_angle - f32(M_PI_2) >= bottom_limit && old_angle - f32(M_PI_2) < new_angle);
+               (old_angle - f32((std::numbers::pi_v<float> / 2.f)) >= bottom_limit && old_angle - f32((std::numbers::pi_v<float> / 2.f)) < new_angle);
     }
 
     float GetAngle(std::chrono::time_point<std::chrono::steady_clock> now) const {
@@ -90,15 +91,15 @@ public:
         if (IsAngleGreater(new_angle, goal_angle)) {
             new_angle -= modifier_angle * time_difference;
             if (new_angle < 0.f) {
-                new_angle += f32(M_PI_2);
+                new_angle += f32((std::numbers::pi_v<float> / 2.f));
             }
             if (!IsAngleGreater(new_angle, goal_angle)) {
                 return goal_angle;
             }
         } else if (IsAngleSmaller(new_angle, goal_angle)) {
             new_angle += modifier_angle * time_difference;
-            if (new_angle >= f32(M_PI_2)) {
-                new_angle -= f32(M_PI_2);
+            if (new_angle >= f32((std::numbers::pi_v<float> / 2.f))) {
+                new_angle -= f32((std::numbers::pi_v<float> / 2.f));
             }
             if (!IsAngleSmaller(new_angle, goal_angle)) {
                 return goal_angle;
@@ -110,14 +111,14 @@ public:
     }
 
     void SetGoalAngle(bool r, bool l, bool u, bool d) {
-        if (r && !u && !d) goal_angle = f32(M_PI) * 0.00f; //right
-        if (r && u && !d)  goal_angle = f32(M_PI) * 0.25f; //upper right
-        if (u && !l && !r) goal_angle = f32(M_PI) * 0.50f; //up
-        if (l && u && !d)  goal_angle = f32(M_PI) * 0.75f; //upper left
-        if (l && !u && !d) goal_angle = f32(M_PI) * 1.00f; //left
-        if (l && !u && d)  goal_angle = f32(M_PI) * 1.25f; //bottom left
-        if (d && !l && !r) goal_angle = f32(M_PI) * 1.50f; //down
-        if (r && !u && d)  goal_angle = f32(M_PI) * 1.75f; //bottom right
+        if (r && !u && !d) goal_angle = f32(std::numbers::pi_v<float>) * 0.00f; //right
+        if (r && u && !d)  goal_angle = f32(std::numbers::pi_v<float>) * 0.25f; //upper right
+        if (u && !l && !r) goal_angle = f32(std::numbers::pi_v<float>) * 0.50f; //up
+        if (l && u && !d)  goal_angle = f32(std::numbers::pi_v<float>) * 0.75f; //upper left
+        if (l && !u && !d) goal_angle = f32(std::numbers::pi_v<float>) * 1.00f; //left
+        if (l && !u && d)  goal_angle = f32(std::numbers::pi_v<float>) * 1.25f; //bottom left
+        if (d && !l && !r) goal_angle = f32(std::numbers::pi_v<float>) * 1.50f; //down
+        if (r && !u && d)  goal_angle = f32(std::numbers::pi_v<float>) * 1.75f; //bottom right
     }
 
     void UpdateUpButtonStatus(const Common::Input::CallbackStatus& button_callback) {
