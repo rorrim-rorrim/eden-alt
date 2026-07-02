@@ -322,7 +322,8 @@ void DefineEntryPoint(const IR::Program& program, EmitContext& ctx, Id main) {
         if (ctx.runtime_info.force_early_z) {
             ctx.AddExecutionMode(main, spv::ExecutionMode::EarlyFragmentTests);
         }
-        if (ctx.profile.support_shader_quad_control && program.info.uses_derivatives) {
+        if (ctx.profile.support_shader_quad_control &&
+            (program.info.uses_derivatives || program.info.uses_quad_shuffles)) {
             ctx.AddExtension("SPV_KHR_quad_control");
             ctx.AddCapability(spv::Capability::QuadControlKHR);
             ctx.AddExecutionMode(main, spv::ExecutionMode::RequireFullQuadsKHR);
