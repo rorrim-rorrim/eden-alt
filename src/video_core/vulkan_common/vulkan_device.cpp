@@ -441,6 +441,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if (!is_suitable)
         LOG_WARNING(Render_Vulkan, "Unsuitable driver - continuing anyways");
@@ -654,6 +655,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_turnip || is_qualcomm) {
         LOG_WARNING(Render_Vulkan, "Driver requires higher-than-reported binding limits");
         properties.properties.limits.maxVertexInputBindings = 32;
+    }
+
+    if (is_arm && SupportsMultiViewport()) {
+        LOG_WARNING(Render_Vulkan, "ARM driver requires setting multiple viewports on command buffer reuse");
+        requires_setting_multi_viewports_on_cmdbuf_reuse = true;
     }
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();

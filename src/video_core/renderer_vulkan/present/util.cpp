@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
+#include <array>
 #include <ranges>
 #include <vulkan/vulkan_core.h>
 #include "video_core/renderer_vulkan/present/util.h"
@@ -408,14 +409,14 @@ static vk::Pipeline CreateWrappedPipelineImpl(
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
         .primitiveRestartEnable = device.IsMoltenVK() ? VK_TRUE : VK_FALSE,
     };
-
-    constexpr VkPipelineViewportStateCreateInfo viewport_state_ci{
+    const u32 viewport_count = device.GetViewportCount();
+    const VkPipelineViewportStateCreateInfo viewport_state_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .viewportCount = 1,
+        .viewportCount = viewport_count,
         .pViewports = nullptr,
-        .scissorCount = 1,
+        .scissorCount = viewport_count,
         .pScissors = nullptr,
     };
 
@@ -669,8 +670,8 @@ void ClearColorImage(vk::CommandBuffer& cmdbuf, VkImage image) {
     cmdbuf.ClearColorImage(image, VK_IMAGE_LAYOUT_GENERAL, {}, subresources);
 }
 
-void BeginRenderPass(vk::CommandBuffer& cmdbuf, VkRenderPass render_pass, VkFramebuffer framebuffer,
-                     VkExtent2D extent) {
+void BeginRenderPass(const Device& device, vk::CommandBuffer& cmdbuf, VkRenderPass render_pass,
+                     VkFramebuffer framebuffer, VkExtent2D extent) {
     const VkRenderPassBeginInfo renderpass_bi{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
@@ -697,8 +698,11 @@ void BeginRenderPass(vk::CommandBuffer& cmdbuf, VkRenderPass render_pass, VkFram
         .offset = {0, 0},
         .extent = extent,
     };
-    cmdbuf.SetViewport(0, viewport);
-    cmdbuf.SetScissor(0, scissor);
+    const u32 viewport_count = device.GetViewportCount();
+    const std::array<VkViewport, 2> viewports{viewport, viewport};
+    const std::array<VkRect2D, 2> scissors{scissor, scissor};
+    cmdbuf.SetViewport(0, vk::Span<VkViewport>(viewports.data(), viewport_count));
+    cmdbuf.SetScissor(0, vk::Span<VkRect2D>(scissors.data(), viewport_count));
 }
 
 } // namespace Vulkan

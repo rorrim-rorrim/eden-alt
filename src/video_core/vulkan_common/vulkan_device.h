@@ -834,6 +834,10 @@ public:
         return features2.features.multiViewport;
     }
 
+    u32 GetViewportCount() const noexcept {
+        return requires_setting_multi_viewports_on_cmdbuf_reuse ? 2U : 1U;
+    }
+
     /// Returns true if the device supports VK_KHR_maintenance1.
     bool IsKhrMaintenance1Supported() const {
         return extensions.maintenance1;
@@ -1046,6 +1050,7 @@ private:
     bool supports_d24_depth{};                 ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                     ///< Does not support MSAA<->MSAA blitting.
     bool must_emulate_scaled_formats{};        ///< Requires scaled vertex format emulation
+    bool requires_setting_multi_viewports_on_cmdbuf_reuse{}; ///< ARM workaround to always set 2+ viewports.
     bool dynamic_state3_blending{};            ///< Has blending features of dynamic_state3.
     bool dynamic_state3_enables{};             ///< Has at least one enable feature of dynamic_state3.
     bool dynamic_state3_depth_clamp_enable{};

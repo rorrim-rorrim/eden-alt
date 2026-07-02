@@ -59,7 +59,7 @@ vk::Sampler CreateBilinearSampler(const Device& device);
 vk::Sampler CreateNearestNeighborSampler(const Device& device);
 vk::Sampler CreateCubicSampler(const Device& device, VkCubicFilterWeightsQCOM qcom_weights);
 
-void BeginRenderPass(vk::CommandBuffer& cmdbuf, VkRenderPass render_pass, VkFramebuffer framebuffer,
-                     VkExtent2D extent);
+void BeginRenderPass(const Device& device, vk::CommandBuffer& cmdbuf, VkRenderPass render_pass,
+                     VkFramebuffer framebuffer, VkExtent2D extent);
 
 } // namespace Vulkan

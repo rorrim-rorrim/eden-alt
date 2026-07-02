@@ -237,10 +237,10 @@ void SMAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, 
     UpdateDescriptorSets(device, *inout_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=, this](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([=, this, &device](vk::CommandBuffer cmdbuf) {
         TransitionImageLayout(cmdbuf, input_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, edges_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, *m_renderpasses[EdgeDetection], edge_detection_framebuffer,
+        BeginRenderPass(device, cmdbuf, *m_renderpasses[EdgeDetection], edge_detection_framebuffer,
                         m_extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_pipelines[EdgeDetection]);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -251,7 +251,7 @@ void SMAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, 
 
         TransitionImageLayout(cmdbuf, edges_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, blend_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, *m_renderpasses[BlendingWeightCalculation],
+        BeginRenderPass(device, cmdbuf, *m_renderpasses[BlendingWeightCalculation],
                         blending_weight_calculation_framebuffer, m_extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS,
                             *m_pipelines[BlendingWeightCalculation]);
@@ -263,7 +263,7 @@ void SMAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, 
 
         TransitionImageLayout(cmdbuf, blend_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, *m_renderpasses[NeighborhoodBlending],
+        BeginRenderPass(device, cmdbuf, *m_renderpasses[NeighborhoodBlending],
                         neighborhood_blending_framebuffer, m_extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *m_pipelines[NeighborhoodBlending]);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS,

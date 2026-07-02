@@ -183,10 +183,10 @@ VkImageView FSR::Draw(const Device& device, Scheduler& scheduler, size_t image_i
     UpdateDescriptorSets(device, source_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([=, &device](vk::CommandBuffer cmdbuf) {
         TransitionImageLayout(cmdbuf, source_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, easu_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, renderpass, easu_framebuffer, extent);
+        BeginRenderPass(device, cmdbuf, renderpass, easu_framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, easu_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
                                   easu_descriptor_set, {});
@@ -196,7 +196,7 @@ VkImageView FSR::Draw(const Device& device, Scheduler& scheduler, size_t image_i
 
         TransitionImageLayout(cmdbuf, easu_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, rcas_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, renderpass, rcas_framebuffer, extent);
+        BeginRenderPass(device, cmdbuf, renderpass, rcas_framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, rcas_pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
                                   rcas_descriptor_set, {});

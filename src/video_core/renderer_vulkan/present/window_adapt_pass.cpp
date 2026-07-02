@@ -69,7 +69,7 @@ void WindowAdaptPass::Draw(const Device& device, RasterizerVulkan& rasterizer, S
         layer_it++;
     }
 
-    scheduler.Record([=](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([=, &device](vk::CommandBuffer cmdbuf) {
         const f32 bg_red = Settings::values.bg_red.GetValue() / 255.0f;
         const f32 bg_green = Settings::values.bg_green.GetValue() / 255.0f;
         const f32 bg_blue = Settings::values.bg_blue.GetValue() / 255.0f;
@@ -91,7 +91,7 @@ void WindowAdaptPass::Draw(const Device& device, RasterizerVulkan& rasterizer, S
             .layerCount = 1,
         };
 
-        BeginRenderPass(cmdbuf, renderpass, host_framebuffer, render_area);
+        BeginRenderPass(device, cmdbuf, renderpass, host_framebuffer, render_area);
         cmdbuf.ClearAttachments({clear_attachment}, {clear_rect});
 
         for (size_t i = 0; i < layer_count; i++) {

@@ -129,10 +129,10 @@ void FXAA::Draw(const Device& device, Scheduler& scheduler, size_t image_index, 
     UpdateDescriptorSets(device, *inout_image_view, image_index);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([=](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([=, &device](vk::CommandBuffer cmdbuf) {
         TransitionImageLayout(cmdbuf, input_image, VK_IMAGE_LAYOUT_GENERAL);
         TransitionImageLayout(cmdbuf, output_image, VK_IMAGE_LAYOUT_GENERAL);
-        BeginRenderPass(cmdbuf, renderpass, framebuffer, extent);
+        BeginRenderPass(device, cmdbuf, renderpass, framebuffer, extent);
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptor_set, {});
         cmdbuf.Draw(3, 1, 0, 0);
