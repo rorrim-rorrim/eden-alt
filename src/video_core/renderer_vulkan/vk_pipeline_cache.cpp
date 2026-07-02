@@ -378,6 +378,7 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
       serialization_thread(1, "VkPipelineSerialization") {
     const auto& float_control{device.FloatControlProperties()};
     const VkDriverId driver_id{device.GetDriverID()};
+    const bool has_broken_sz_inf_nan{driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY};
     const VkShaderStageFlags subgroup_stages{device.GetSubgroupSupportedStages()};
     const auto subgroup_stage_bit{[subgroup_stages](VkShaderStageFlags flag, Shader::Stage stage) {
         return (subgroup_stages & flag) != 0 ? (1u << static_cast<u32>(stage)) : 0u;
@@ -410,11 +411,14 @@ PipelineCache::PipelineCache(Tegra::MaxwellDeviceMemoryManager& device_memory_,
         .support_fp16_denorm_flush = float_control.shaderDenormFlushToZeroFloat16 != VK_FALSE,
         .support_fp32_denorm_flush = float_control.shaderDenormFlushToZeroFloat32 != VK_FALSE,
         .support_fp16_signed_zero_nan_preserve =
-            float_control.shaderSignedZeroInfNanPreserveFloat16 != VK_FALSE,
+            float_control.shaderSignedZeroInfNanPreserveFloat16 != VK_FALSE &&
+            !has_broken_sz_inf_nan,
         .support_fp32_signed_zero_nan_preserve =
-            float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE,
+            float_control.shaderSignedZeroInfNanPreserveFloat32 != VK_FALSE &&
+            !has_broken_sz_inf_nan,
         .support_fp64_signed_zero_nan_preserve =
-            float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE,
+            float_control.shaderSignedZeroInfNanPreserveFloat64 != VK_FALSE &&
+            !has_broken_sz_inf_nan,
         .support_explicit_workgroup_layout = device.IsKhrWorkgroupMemoryExplicitLayoutSupported(),
         .support_vote = device.IsSubgroupFeatureSupported(VK_SUBGROUP_FEATURE_VOTE_BIT),
         .supported_subgroup_stages = supported_subgroup_stages,
