@@ -754,7 +754,7 @@ struct Memory::Impl {
         };
         auto& gpu = system.GPU();
         gpu_device_memory->ApplyOpOnPointer(p, scratch_buffers[core], [&](DAddr addr) {
-            if (flush) {
+            if (flush && gpu.MustFlushRegion(addr, size)) {
                 void(gpu.OnCPURead(addr, size));
             }
             gpu.InvalidateRegion(addr, size);
