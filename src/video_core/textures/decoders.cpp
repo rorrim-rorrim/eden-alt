@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
@@ -36,17 +36,62 @@ void incrpdep(u32& value) {
     value = ((value | ~mask) + swizzled_incr) & mask;
 }
 
+static constexpr u32 GOB_ROW_BASE[GOB_SIZE_Y] = {0, 16, 64, 80, 128, 144, 192, 208};
+
+inline void UploadGOBFull(u8* __restrict__ dst_gob,
+                                                  const u8* __restrict__ src_linear, u32 pitch,
+                                                  u32 valid_rows) {
+    for (u32 gy = 0; gy < valid_rows; ++gy) {
+        const u32 base = GOB_ROW_BASE[gy];
+        const u8* const lin = src_linear + static_cast<u64>(gy) * pitch;
+        std::memcpy(dst_gob + base,       lin,      16);
+        std::memcpy(dst_gob + base +  32, lin + 16, 16);
+        std::memcpy(dst_gob + base + 256, lin + 32, 16);
+        std::memcpy(dst_gob + base + 288, lin + 48, 16);
+    }
+}
+
+inline void DownloadGOBFull(u8* __restrict__ dst_linear,
+                                                    const u8* __restrict__ src_gob, u32 pitch,
+                                                    u32 valid_rows) {
+    for (u32 gy = 0; gy < valid_rows; ++gy) {
+        const u32 base = GOB_ROW_BASE[gy];
+        u8* const lin = dst_linear + static_cast<u64>(gy) * pitch;
+        std::memcpy(lin,      src_gob + base,       16);
+        std::memcpy(lin + 16, src_gob + base +  32, 16);
+        std::memcpy(lin + 32, src_gob + base + 256, 16);
+        std::memcpy(lin + 48, src_gob + base + 288, 16);
+    }
+}
+
+template <bool TO_LINEAR, u32 BPP>
+inline void ProcessGOBGeneric(u8* __restrict__ dst_gob,
+                                                      const u8* __restrict__ src_linear,
+                                                      u8* __restrict__ dst_linear,
+                                                      const u8* __restrict__ src_gob, u32 pitch,
+                                                      u32 valid_rows, u32 valid_bytes) {
+    for (u32 gy = 0; gy < valid_rows; ++gy) {
+        const u32 row_base = GOB_ROW_BASE[gy];
+        if constexpr (TO_LINEAR) {
+            const u8* const lin = src_linear + static_cast<u64>(gy) * pitch;
+            for (u32 gx = 0; gx < valid_bytes; gx += BPP) {
+                const u32 ax = (gx >= 32 ? 256u : 0u) | ((gx % 32) >= 16 ? 32u : 0u) | (gx % 16);
+                std::memcpy(dst_gob + row_base + ax, lin + gx, BPP);
+            }
+        } else {
+            u8* const lin = dst_linear + static_cast<u64>(gy) * pitch;
+            for (u32 gx = 0; gx < valid_bytes; gx += BPP) {
+                const u32 ax = (gx >= 32 ? 256u : 0u) | ((gx % 32) >= 16 ? 32u : 0u) | (gx % 16);
+                std::memcpy(lin + gx, src_gob + row_base + ax, BPP);
+            }
+        }
+    }
+}
+
 template <bool TO_LINEAR, u32 BYTES_PER_PIXEL>
 void SwizzleImpl(std::span<u8> output, std::span<const u8> input, u32 width, u32 height, u32 depth,
                  u32 block_height, u32 block_depth, u32 stride) {
-    // The origin of the transformation can be configured here, leave it as zero as the current API
-    // doesn't expose it.
-    static constexpr u32 origin_x = 0;
-    static constexpr u32 origin_y = 0;
-    static constexpr u32 origin_z = 0;
-
-    // We can configure here a custom pitch
-    // As it's not exposed 'width * BYTES_PER_PIXEL' will be the expected pitch.
+    // Just a different approach to iterate over the GOBs, but it should be faster than the previous one.
     const u32 pitch = width * BYTES_PER_PIXEL;
 
     const u32 gobs_in_x = Common::DivCeilLog2(stride, GOB_SIZE_X_SHIFT);
@@ -58,34 +103,48 @@ void SwizzleImpl(std::span<u8> output, std::span<const u8> input, u32 width, u32
     const u32 block_depth_mask = (1U << block_depth) - 1;
     const u32 x_shift = GOB_SIZE_SHIFT + block_height + block_depth;
 
+    const u32 num_gob_x = gobs_in_x;
+    const u32 num_gob_y = (height + GOB_SIZE_Y - 1) >> GOB_SIZE_Y_SHIFT;
+
+    u8* const out = output.data();
+    const u8* const in = input.data();
+
     for (u32 slice = 0; slice < depth; ++slice) {
-        const u32 z = slice + origin_z;
-        const u32 offset_z = (z >> block_depth) * slice_size +
-                             ((z & block_depth_mask) << (GOB_SIZE_SHIFT + block_height));
-        for (u32 line = 0; line < height; ++line) {
-            const u32 y = line + origin_y;
-            const u32 swizzled_y = pdep<SWIZZLE_Y_BITS>(y);
+        const u32 offset_z = (slice >> block_depth) * slice_size +
+                             ((slice & block_depth_mask) << (GOB_SIZE_SHIFT + block_height));
 
-            const u32 block_y = y >> GOB_SIZE_Y_SHIFT;
-            const u32 offset_y = (block_y >> block_height) * block_size +
-                                 ((block_y & block_height_mask) << GOB_SIZE_SHIFT);
+        for (u32 gob_y = 0; gob_y < num_gob_y; ++gob_y) {
+            const u32 offset_y = (gob_y >> block_height) * block_size +
+                                 ((gob_y & block_height_mask) << GOB_SIZE_SHIFT);
 
-            u32 swizzled_x = pdep<SWIZZLE_X_BITS>(origin_x * BYTES_PER_PIXEL);
-            for (u32 column = 0; column < width;
-                 ++column, incrpdep<SWIZZLE_X_BITS, BYTES_PER_PIXEL>(swizzled_x)) {
-                const u32 x = (column + origin_x) * BYTES_PER_PIXEL;
-                const u32 offset_x = (x >> GOB_SIZE_X_SHIFT) << x_shift;
+            const u32 linear_row0 = gob_y * GOB_SIZE_Y;
+            const u32 valid_rows =
+                linear_row0 + GOB_SIZE_Y <= height ? GOB_SIZE_Y : height - linear_row0;
 
-                const u32 base_swizzled_offset = offset_z + offset_y + offset_x;
-                const u32 swizzled_offset = base_swizzled_offset + (swizzled_x | swizzled_y);
+            for (u32 gob_x = 0; gob_x < num_gob_x; ++gob_x) {
+                const u32 gob_base = offset_z + offset_y + (gob_x << x_shift);
+                const u32 linear_col0 = gob_x * GOB_SIZE_X;
 
-                const u32 unswizzled_offset =
-                    slice * pitch * height + line * pitch + column * BYTES_PER_PIXEL;
+                if (linear_col0 >= pitch) [[unlikely]] {
+                    continue; // padding column
+                }
 
-                u8* const dst = &output[TO_LINEAR ? swizzled_offset : unswizzled_offset];
-                const u8* const src = &input[TO_LINEAR ? unswizzled_offset : swizzled_offset];
+                const u64 lin_base = static_cast<u64>(slice) * height * pitch +
+                                     static_cast<u64>(linear_row0) * pitch + linear_col0;
 
-                std::memcpy(dst, src, BYTES_PER_PIXEL);
+                if constexpr (BYTES_PER_PIXEL == 16) {
+                    if constexpr (TO_LINEAR) {
+                        UploadGOBFull(out + gob_base, in + lin_base, pitch, valid_rows);
+                    } else {
+                        DownloadGOBFull(out + lin_base, in + gob_base, pitch, valid_rows);
+                    }
+                } else {
+                    const u32 valid_bytes =
+                        linear_col0 + GOB_SIZE_X <= pitch ? GOB_SIZE_X : pitch - linear_col0;
+                    ProcessGOBGeneric<TO_LINEAR, BYTES_PER_PIXEL>(
+                        out + gob_base, in + lin_base, out + lin_base, in + gob_base,
+                        pitch, valid_rows, valid_bytes);
+                }
             }
         }
     }
