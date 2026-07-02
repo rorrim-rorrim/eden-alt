@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <cstring>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -23,6 +24,7 @@ extern "C" {
 #endif
 
 #include <libavutil/hwcontext.h>
+#include <libavutil/log.h>
 }
 
 namespace FFmpeg {
@@ -88,8 +90,8 @@ std::string AVError(int errnum) {
 }
 
 #ifdef __ANDROID__
-// Match a 3- or 4-byte annex-B start code at `i`. Returns its length, or 0.
-size_t MatchStartCode(std::span<const u8> data, size_t i) {
+// Match a 3- or 4-byte annex-B NAL start code at `i`. Returns its length, or 0.
+size_t FindNalStartCode(std::span<const u8> data, size_t i) {
     const size_t n = data.size();
     if (i + 3 < n && data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1) {
         return 4;
@@ -103,12 +105,12 @@ size_t MatchStartCode(std::span<const u8> data, size_t i) {
 // Pull SPS (NAL type 7) + PPS (NAL type 8) out of an annex-B frame into an
 // extradata buffer, each prefixed with a 4-byte start code. Eden synthesizes
 // these inline into the very first frame; h264_mediacodec wants them at open.
-std::vector<u8> ExtractH264AnnexBExtradata(std::span<const u8> packet) {
+std::vector<u8> ExtractH264ParameterSetExtradata(std::span<const u8> packet) {
     std::vector<u8> extradata;
     const size_t size = packet.size();
     size_t i = 0;
     while (i < size) {
-        const size_t sc = MatchStartCode(packet, i);
+        const size_t sc = FindNalStartCode(packet, i);
         if (sc == 0) {
             ++i;
             continue;
@@ -120,7 +122,7 @@ std::vector<u8> ExtractH264AnnexBExtradata(std::span<const u8> packet) {
         const u8 nal_type = packet[nal_start] & 0x1F;
 
         size_t j = nal_start + 1;
-        while (j < size && MatchStartCode(packet, j) == 0) {
+        while (j < size && FindNalStartCode(packet, j) == 0) {
             ++j;
         }
 
@@ -368,6 +370,7 @@ void DecodeApi::Reset() {
     m_decoder_context.reset();
     m_decoder.reset();
     m_opened = false;
+    m_defer_android_mediacodec_open = false;
     m_needs_h264_extradata = false;
     m_next_pts = 0;
     while (!m_pending_offsets.empty()) {
@@ -389,11 +392,17 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
     }
 
 #ifdef __ANDROID__
-    // h264_mediacodec needs SPS/PPS in extradata at open. We pull them from
-    // the first frame's bitstream in SendPacket.
-    m_needs_h264_extradata = m_decoder->GetCodec() &&
-                             std::string_view(m_decoder->GetCodec()->name) == "h264_mediacodec";
-    if (m_needs_h264_extradata) {
+    const std::string_view decoder_name = m_decoder->GetCodec() ? m_decoder->GetCodec()->name : "";
+
+    // MediaCodec decoders need the frame dimensions before avcodec_open2().
+    m_defer_android_mediacodec_open = decoder_name == "h264_mediacodec" ||
+                                      decoder_name == "vp8_mediacodec" ||
+                                      decoder_name == "vp9_mediacodec";
+
+    // h264_mediacodec also needs SPS/PPS in extradata at open. We pull them
+    // from the first frame's bitstream in SendPacket.
+    m_needs_h264_extradata = decoder_name == "h264_mediacodec";
+    if (m_defer_android_mediacodec_open) {
         return true;
     }
 #endif
@@ -412,17 +421,22 @@ bool DecodeApi::SendPacket(std::span<const u8> packet_data, const FrameOffsets& 
     if (!m_opened) {
         std::vector<u8> extradata;
 #ifdef __ANDROID__
-        if (m_needs_h264_extradata) {
-            extradata = ExtractH264AnnexBExtradata(packet_data);
-            if (extradata.empty()) {
+        if (m_defer_android_mediacodec_open) {
+            if (!dimensions) {
                 return true;
             }
-            if (dimensions) {
-                auto* ctx = m_decoder_context->GetCodecContext();
-                ctx->width = dimensions->width;
-                ctx->height = dimensions->height;
-                ctx->coded_width = dimensions->width;
-                ctx->coded_height = dimensions->height;
+
+            auto* ctx = m_decoder_context->GetCodecContext();
+            ctx->width = dimensions->width;
+            ctx->height = dimensions->height;
+            ctx->coded_width = dimensions->width;
+            ctx->coded_height = dimensions->height;
+        }
+
+        if (m_needs_h264_extradata) {
+            extradata = ExtractH264ParameterSetExtradata(packet_data);
+            if (extradata.empty()) {
+                return true;
             }
         }
 #endif

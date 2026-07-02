@@ -79,7 +79,6 @@ public:
     std::tuple<u64, u64> GetProgressiveOffsets() override;
     std::tuple<u64, u64, u64, u64> GetInterlacedOffsets() override;
     bool IsInterlaced() override;
-    std::optional<FFmpeg::FrameDimensions> GetFrameDimensions() override;
 
     std::string_view GetCurrentCodecName() const override {
         return "H264";

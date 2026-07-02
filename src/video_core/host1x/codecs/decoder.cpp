@@ -20,6 +20,14 @@ Decoder::Decoder(Host1x::Host1x& host1x_, s32 id_, const Host1x::NvdecCommon::Nv
 
 Decoder::~Decoder() = default;
 
+void Decoder::SetFrameDimensions(s32 width, s32 height) {
+    if (width <= 0 || height <= 0) {
+        frame_dimensions.reset();
+        return;
+    }
+    frame_dimensions = FFmpeg::FrameDimensions{width, height};
+}
+
 void Decoder::Decode() {
     if (!initialized) {
         return;
@@ -30,10 +38,10 @@ void Decoder::Decode() {
     offsets.hidden = vp9_hidden_frame;
     offsets.interlaced = IsInterlaced();
     if (offsets.interlaced) {
-        std::tie(offsets.luma, offsets.luma_bottom, offsets.chroma, offsets.chroma_bottom) =
+        std::tie(offsets.luma, offsets.luma_bottom, std::ignore, std::ignore) =
             GetInterlacedOffsets();
     } else {
-        std::tie(offsets.luma, offsets.chroma) = GetProgressiveOffsets();
+        std::tie(offsets.luma, std::ignore) = GetProgressiveOffsets();
     }
 
     if (!decode_api.SendPacket(packet_data, offsets, GetFrameDimensions())) {
