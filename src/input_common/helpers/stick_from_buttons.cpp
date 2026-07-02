@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 // SPDX-FileCopyrightText: 2017 Citra Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
@@ -15,9 +18,8 @@ public:
     // do not play nicely with the theoretical maximum range.
     // Using a value one lower from the maximum emulates real stick behavior.
     static constexpr float MAX_RANGE = 32766.0f / 32767.0f;
-    static constexpr float TAU = Common::PI * 2.0f;
     // Use wider angle to ease the transition.
-    static constexpr float APERTURE = TAU * 0.15f;
+    static constexpr float APERTURE = M_PI_2 * 0.15f;
 
     using Button = std::unique_ptr<Common::Input::InputDevice>;
 
@@ -66,13 +68,13 @@ public:
     bool IsAngleGreater(float old_angle, float new_angle) const {
         const float top_limit = new_angle + APERTURE;
         return (old_angle > new_angle && old_angle <= top_limit) ||
-               (old_angle + TAU > new_angle && old_angle + TAU <= top_limit);
+               (old_angle + M_PI_2 > new_angle && old_angle + M_PI_2 <= top_limit);
     }
 
     bool IsAngleSmaller(float old_angle, float new_angle) const {
         const float bottom_limit = new_angle - APERTURE;
         return (old_angle >= bottom_limit && old_angle < new_angle) ||
-               (old_angle - TAU >= bottom_limit && old_angle - TAU < new_angle);
+               (old_angle - M_PI_2 >= bottom_limit && old_angle - M_PI_2 < new_angle);
     }
 
     float GetAngle(std::chrono::time_point<std::chrono::steady_clock> now) const {
@@ -88,15 +90,15 @@ public:
         if (IsAngleGreater(new_angle, goal_angle)) {
             new_angle -= modifier_angle * time_difference;
             if (new_angle < 0) {
-                new_angle += TAU;
+                new_angle += M_PI_2;
             }
             if (!IsAngleGreater(new_angle, goal_angle)) {
                 return goal_angle;
             }
         } else if (IsAngleSmaller(new_angle, goal_angle)) {
             new_angle += modifier_angle * time_difference;
-            if (new_angle >= TAU) {
-                new_angle -= TAU;
+            if (new_angle >= M_PI_2) {
+                new_angle -= M_PI_2;
             }
             if (!IsAngleSmaller(new_angle, goal_angle)) {
                 return goal_angle;
@@ -115,37 +117,37 @@ public:
 
         // Move to the upper right
         if (r && u && !d) {
-            goal_angle = Common::PI * 0.25f;
+            goal_angle = M_PI * 0.25f;
         }
 
         // Move up
         if (u && !l && !r) {
-            goal_angle = Common::PI * 0.5f;
+            goal_angle = M_PI * 0.5f;
         }
 
         // Move to the upper left
         if (l && u && !d) {
-            goal_angle = Common::PI * 0.75f;
+            goal_angle = M_PI * 0.75f;
         }
 
         // Move to the left
         if (l && !u && !d) {
-            goal_angle = Common::PI;
+            goal_angle = M_PI;
         }
 
         // Move to the bottom left
         if (l && !u && d) {
-            goal_angle = Common::PI * 1.25f;
+            goal_angle = M_PI * 1.25f;
         }
 
         // Move down
         if (d && !l && !r) {
-            goal_angle = Common::PI * 1.5f;
+            goal_angle = M_PI * 1.5f;
         }
 
         // Move to the bottom right
         if (r && !u && d) {
-            goal_angle = Common::PI * 1.75f;
+            goal_angle = M_PI * 1.75f;
         }
     }
 
