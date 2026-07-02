@@ -10,6 +10,8 @@
 
 namespace Shader {
 
+enum class Stage : u32;
+
 struct Profile {
     u32 supported_spirv{0x00010000};
     bool unified_descriptor_binding{};
@@ -30,6 +32,8 @@ struct Profile {
     bool support_fp64_signed_zero_nan_preserve{};
     bool support_explicit_workgroup_layout{};
     bool support_vote{};
+    /// Bitmask over Shader::Stage of stages where the host supports subgroup operations
+    u32 supported_subgroup_stages{0x7F};
     bool support_viewport_index_layer_non_geometry{};
     bool support_viewport_mask{};
     bool support_typeless_image_loads{};
@@ -93,6 +97,10 @@ struct Profile {
 
     u64 min_ssbo_alignment{};
     u32 max_user_clip_distances{};
+
+    bool SupportsSubgroupStage(Stage stage) const {
+        return (supported_subgroup_stages & (1u << static_cast<u32>(stage))) != 0;
+    }
 };
 
 } // namespace Shader
