@@ -4,7 +4,8 @@
 // SPDX-FileCopyrightText: Copyright 2020 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <cmath>
+// MSVC is stupid and wont define M_PI
+#include <math.h>
 
 #include "common/math_util.h"
 #include "hid_core/frontend/motion_input.h"
@@ -148,7 +149,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     }
 
     const auto normal_accel = accel.Normalized();
-    f32 rad_gyro = gyro * (M_PI * 2.f);
+    auto rad_gyro = gyro * float(M_PI * 2.f);
     const f32 swap = rad_gyro.x;
     rad_gyro.x = rad_gyro.y;
     rad_gyro.y = -swap;
@@ -275,7 +276,7 @@ Common::Vec3f MotionInput::GetEulerAngles() const {
 
     return {
         std::atan2(sinr_cosp, cosr_cosp),
-        2 * std::atan2(sinp, cosp) - M_PI / 2,
+        2 * std::atan2(sinp, cosp) - float(M_PI) / 2,
         std::atan2(siny_cosp, cosy_cosp),
     };
 }

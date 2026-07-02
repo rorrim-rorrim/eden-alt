@@ -214,7 +214,7 @@ void GestureHandler::UpdatePanEvent(GestureState& next_state, GestureType& type)
     if (std::abs(angle_between_two_lines) > AngleThreshold) {
         type = GestureType::Rotate;
         next_state.scale = 0;
-        next_state.rotation_angle = angle_between_two_lines * 180.0f / M_PI;
+        next_state.rotation_angle = angle_between_two_lines * 180.0f / float(M_PI);
     }
 }
 

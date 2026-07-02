@@ -112,7 +112,7 @@ public:
     void SetGoalAngle(bool r, bool l, bool u, bool d) {
         // Move to the right
         if (r && !u && !d) {
-            goal_angle = 0.0f;
+            goal_angle = M_PI * 1.00f;
         }
 
         // Move to the upper right
@@ -122,7 +122,7 @@ public:
 
         // Move up
         if (u && !l && !r) {
-            goal_angle = M_PI * 0.5f;
+            goal_angle = M_PI * 0.50f;
         }
 
         // Move to the upper left
@@ -132,7 +132,7 @@ public:
 
         // Move to the left
         if (l && !u && !d) {
-            goal_angle = M_PI;
+            goal_angle = M_PI * 1.00f;
         }
 
         // Move to the bottom left
@@ -142,7 +142,7 @@ public:
 
         // Move down
         if (d && !l && !r) {
-            goal_angle = M_PI * 1.5f;
+            goal_angle = M_PI * 1.50f;
         }
 
         // Move to the bottom right

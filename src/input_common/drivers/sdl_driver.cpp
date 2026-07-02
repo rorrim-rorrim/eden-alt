@@ -146,9 +146,9 @@ public:
             break;
         }
         case SDL_SENSOR_GYRO: {
-            motion.gyro_x = event.data[0] / (M_PI * 2);
-            motion.gyro_y = -event.data[2] / (M_PI * 2);
-            motion.gyro_z = event.data[1] / (M_PI * 2);
+            motion.gyro_x = event.data[0] / (float(M_PI) * 2);
+            motion.gyro_y = -event.data[2] / (float(M_PI) * 2);
+            motion.gyro_z = event.data[1] / (float(M_PI) * 2);
             break;
         }
         }
