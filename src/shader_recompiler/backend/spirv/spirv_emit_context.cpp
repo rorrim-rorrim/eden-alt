@@ -939,7 +939,8 @@ void EmitContext::DefineWriteStorageCasLoopFunction(const Info& info) {
 }
 
 void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
-    if (!info.uses_global_memory || !profile.support_int64) {
+    if (!info.uses_global_memory || !profile.support_int64 ||
+        !profile.support_descriptor_aliasing) {
         return;
     }
     using DefPtr = Id StorageDefinitions::*;
