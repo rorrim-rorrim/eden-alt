@@ -441,13 +441,13 @@ static void* ChooseVirtualBase(size_t virtual_size) {
 
 #else
 
-static void* ChooseVirtualBase(size_t virtual_size, int prot, int flags) {
+static void* ChooseVirtualBase(size_t virtual_size) {
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__sun__) || defined(__HAIKU__) || defined(__managarm__) || defined(__AIX__)
-    void* virtual_base = mmap(nullptr, virtual_size, prot, flags | MAP_ANONYMOUS | MAP_ALIGNED_SUPER, -1, 0);
+    void* virtual_base = mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_ALIGNED_SUPER, -1, 0);
     if (virtual_base != MAP_FAILED)
         return virtual_base;
 #endif
-    return mmap(nullptr, virtual_size, prot, flags | MAP_ANONYMOUS, -1, 0);
+    return mmap(nullptr, virtual_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
 }
 
 #endif
@@ -539,29 +539,29 @@ public:
                 use_anon = true;
             }
         }
-        int flags = MAP_PRIVATE;
         if (use_anon) {
-            flags |= MAP_ANONYMOUS;
-            LOG_WARNING(Common_Memory, "Using anonymous mappings");
-            if (fd > 0) close(fd);
-            fd = -1;
+            LOG_WARNING(Common_Memory, "Using private mappings instead of shared ones");
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+            if (fd > 0) {
+                fd = -1;
+                close(fd);
+            }
+        } else {
+            backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
         }
-        backing_base = static_cast<u8*>(mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, flags, fd, 0));
         if (backing_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
             return false;
         }
 
         // Virtual memory initialization
-        virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size, PROT_READ | PROT_WRITE, flags));
+        virtual_base = virtual_map_base = static_cast<u8*>(ChooseVirtualBase(virtual_size));
         if (virtual_base == MAP_FAILED) {
             LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
             return false;
         }
 #if defined(__linux__)
         madvise(virtual_base, virtual_size, MADV_HUGEPAGE);
-#elif defined(__FreeBSD__)
-        madvise(virtual_base, virtual_size, MADV_WILLNEED);
 #endif
         free_manager.SetAddressSpace(virtual_base, virtual_size);
         return true;
@@ -588,7 +588,8 @@ public:
         if (True(perms & MemoryPermission::Execute))
             prot_flags |= PROT_EXEC;
 #endif
-        void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, MAP_PRIVATE | MAP_FIXED, fd, host_offset);
+        int flags = (fd >= 0 ? MAP_SHARED : MAP_PRIVATE) | MAP_FIXED;
+        void* ret = mmap(virtual_base + virtual_offset, length, prot_flags, flags, fd, host_offset);
         ASSERT_MSG(ret != MAP_FAILED, "mmap: {} {}", strerror(errno), fd);
     }
 
