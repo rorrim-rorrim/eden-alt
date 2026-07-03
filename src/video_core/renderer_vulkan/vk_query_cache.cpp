@@ -922,19 +922,31 @@ private:
             return;
         }
         has_flushed_end_pending = false;
-                                                               
+
         // Refresh buffer state before ending transform feedback to ensure counters_count is up-to-date.
         UpdateBuffers();
+        static constexpr VkMemoryBarrier XFB_OUTPUT_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
+            .dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VK_ACCESS_TRANSFER_READ_BIT,
+        };
         if (buffers_count == 0) {
             LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with no counters (buffers_count=0)");
             scheduler.Record([](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr);
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+                                      vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER, 0,
+                                      XFB_OUTPUT_BARRIER);
             });
         } else {
             LOG_DEBUG(Render_Vulkan, "EndTransformFeedbackEXT called with counters (buffers_count={})", buffers_count);
             scheduler.Record([this,
                               total = static_cast<u32>(buffers_count)](vk::CommandBuffer cmdbuf) {
                 cmdbuf.EndTransformFeedbackEXT(0, total, counter_buffers.data(), offsets.data());
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+                                      vk::PIPELINE_STAGE_GRAPHICS_COMPUTE_TRANSFER, 0,
+                                      XFB_OUTPUT_BARRIER);
             });
         }
     }
