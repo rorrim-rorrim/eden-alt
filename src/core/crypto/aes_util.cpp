@@ -56,7 +56,7 @@ static inline const std::string GetCipherName(Mode mode, u32 key_size) {
 };
 
 static EVP_CIPHER *GetCipher(Mode mode, u32 key_size) {
-    auto const fetch_cipher = [](Mode m, u32 k) {
+    static auto const fetch_cipher = [](Mode m, u32 k) {
         return EVP_CIPHER_fetch(nullptr, GetCipherName(m, k).c_str(), nullptr);
     };
     static const struct {
