@@ -659,7 +659,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     runtime.PostCopyBarrier();
     pending_downloads.emplace_back(std::move(normalized_copies));
     async_buffers.emplace_back(download_staging);
-    if (Settings::values.enable_gpu_buffer_readback.GetValue() && async_buffers.Size() > 5) {
+    if (Settings::values.enable_gpu_buffer_readback.GetValue() && async_buffers.size() > 5) {
         runtime.Flush();
     }
 }
