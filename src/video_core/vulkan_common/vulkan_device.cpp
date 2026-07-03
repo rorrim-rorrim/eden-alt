@@ -1375,6 +1375,11 @@ void Device::RemoveUnsuitableExtensions() {
     // VK_KHR_maintenance8
     extensions.maintenance8 = loaded_extensions.contains(VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
     RemoveExtensionIfUnsuitable(extensions.maintenance8, VK_KHR_MAINTENANCE_8_EXTENSION_NAME);
+
+    // VK_KHR_synchronization2
+    extensions.synchronization2 = features.synchronization2.synchronization2;
+    RemoveExtensionFeatureIfUnsuitable(extensions.synchronization2, features.synchronization2,
+                                       VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME);
 }
 
 void Device::SetupFamilies(VkSurfaceKHR surface) {

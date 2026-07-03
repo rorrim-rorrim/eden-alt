@@ -43,7 +43,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE(EXT, ShaderDemoteToHelperInvocation, SHADER_DEMOTE_TO_HELPER_INVOCATION,               \
             shader_demote_to_helper_invocation)                                                    \
     FEATURE(EXT, SubgroupSizeControl, SUBGROUP_SIZE_CONTROL, subgroup_size_control)                \
-    FEATURE(KHR, Maintenance4, MAINTENANCE_4, maintenance4)
+    FEATURE(KHR, Maintenance4, MAINTENANCE_4, maintenance4)                                        \
+    FEATURE(KHR, Synchronization2, SYNCHRONIZATION_2, synchronization2)
 
 #define FOR_EACH_VK_FEATURE_1_4(FEATURE)
 
@@ -180,6 +181,7 @@ VK_DEFINE_HANDLE(VmaAllocator)
     FEATURE_NAME(robustness2, nullDescriptor)                                                      \
     FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
     FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
+    FEATURE_NAME(synchronization2, synchronization2)                                               \
     FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
     FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
@@ -721,6 +723,11 @@ FN_MAX_LIMIT_LIST
     }
 
     bool HasTimelineSemaphore() const;
+
+    /// Returns true if the device supports VK_KHR_synchronization2.
+    bool HasSynchronization2() const {
+        return extensions.synchronization2;
+    }
 
     /// Returns the minimum supported version of SPIR-V.
     u32 SupportedSpirvVersion() const {
