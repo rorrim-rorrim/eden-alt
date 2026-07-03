@@ -657,11 +657,11 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
         normalized_copies.push_back(second_copy);
     }
     runtime.PostCopyBarrier();
-    if (Settings::values.enable_gpu_buffer_readback.GetValue()) {
-        runtime.Flush();
-    }
     pending_downloads.emplace_back(std::move(normalized_copies));
     async_buffers.emplace_back(download_staging);
+    if (Settings::values.enable_gpu_buffer_readback.GetValue() && async_buffers.Size() > 5) {
+        runtime.Flush();
+    }
 }
 
 template <class P>
