@@ -203,7 +203,7 @@
         "version": "1.10.0"
     },
     "openssl": {
-        "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
+        "hash": "2405891660b67e4cc01c7868e100f2766e1c6290120213ae62f775ef3d9610c3527bdc43d4c831260417450c74353b0693ae3e24cca3e99b02e4daa548b93904",
         "min_version": "3.0.0",
         "package": "OpenSSL",
         "patches": [
@@ -211,7 +211,7 @@
         ],
         "repo": "openssl/openssl",
         "tag": "openssl-%VERSION%",
-        "version": "3.6.2"
+        "version": "4.0.1"
     },
     "openssl-ci": {
         "ci": true,
@@ -223,7 +223,7 @@
     },
     "openssl-cmake": {
         "bundled": true,
-        "hash": "2cc185c924fd70e7d886257ca0caa42b3b8f7f712f2052b4f94dde74759e27022de76178460e18c9bdfc57c366583999e198fbb6052d4e7d91c099d15a0ca63e",
+        "hash": "bc73a6c035f299711bb90e20b16fa3521e8ffdab32d8d17f9e7f5cde1ff5def37ec6f9e03de25c3466d18885815c0874331f56e592b8a2f7deeb484c69c5c621",
         "options": [
             "OPENSSL_CONFIGURE_OPTIONS threads"
         ],
@@ -235,7 +235,7 @@
         ],
         "repo": "jimmy-park/openssl-cmake",
         "tag": "%VERSION%",
-        "version": "3.6.2"
+        "version": "4.0.1"
     },
     "opus": {
         "find_args": "MODULE",
@@ -371,11 +371,11 @@
         "version": "1.4.341.0"
     },
     "xbyak": {
-        "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
+        "hash": "03d870f63741ff8c00501329bf9947bdf58e7cc4c3884e3de9b827f31942438887555f601a5f80d405946854eb54ab907b4e2a3ad955ca4ad890a243917dd4ae",
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "version": "7.35.2"
+        "version": "7.37.3"
     },
     "zlib": {
         "hash": "16fea4df307a68cf0035858abe2fd550250618a97590e202037acd18a666f57afc10f8836cbbd472d54a0e76539d0e558cb26f059d53de52ff90634bbf4f47d4",
