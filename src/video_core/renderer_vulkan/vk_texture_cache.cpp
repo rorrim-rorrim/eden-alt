@@ -229,7 +229,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 }
 
 [[nodiscard]] vk::ImageView MakeStorageView(const vk::Device& device, u32 level, VkImage image,
-                                            VkFormat format) {
+                                            VkFormat format,
+                                            VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY) {
     static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -240,7 +241,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .pNext = &storage_image_view_usage_create_info,
         .flags = 0,
         .image = image,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+        .viewType = view_type,
         .format = format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -1625,6 +1626,8 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         flags |= VideoCommon::ImageFlagBits::CostlyLoad;
     }
     if (!IsPixelFormatASTC(info.format) && !IsPixelFormatBCn(info.format) &&
+        VideoCore::Surface::GetFormatType(info.format) ==
+            VideoCore::Surface::SurfaceType::ColorTexture &&
         (info.type == ImageType::e2D || info.type == ImageType::e3D ||
          info.type == ImageType::Linear)) {
         if (IsUnswizzleStorageFormatSupported(runtime->device,
@@ -1649,8 +1652,14 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         const auto& device = runtime->device.GetLogical();
         const VkFormat storage_format =
             UnswizzleStorageFormat(VideoCore::Surface::BytesPerBlock(info.format));
+        const VkImageViewType storage_view_type = info.type == ImageType::e3D
+                                                       ? VK_IMAGE_VIEW_TYPE_3D
+                                                   : info.type == ImageType::Linear
+                                                       ? VK_IMAGE_VIEW_TYPE_2D
+                                                       : VK_IMAGE_VIEW_TYPE_2D_ARRAY;
         for (s32 level = 0; level < info.resources.levels; ++level) {
-            storage_image_views[level] = MakeStorageView(device, level, *original_image, storage_format);
+            storage_image_views[level] =
+                MakeStorageView(device, level, *original_image, storage_format, storage_view_type);
         }
     }
 }
