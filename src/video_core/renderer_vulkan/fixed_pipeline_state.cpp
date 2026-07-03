@@ -39,6 +39,24 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
     POLYGON, // Patches
 };
 
+constexpr std::array TOPOLOGY_CLASS_REPRESENTATIVE_LUT = {
+    Maxwell::PrimitiveTopology::Points,              // Points
+    Maxwell::PrimitiveTopology::Lines,               // Lines
+    Maxwell::PrimitiveTopology::LineLoop,            // LineLoop
+    Maxwell::PrimitiveTopology::LineStrip,           // LineStrip
+    Maxwell::PrimitiveTopology::Triangles,           // Triangles
+    Maxwell::PrimitiveTopology::Triangles,           // TriangleStrip
+    Maxwell::PrimitiveTopology::Triangles,           // TriangleFan
+    Maxwell::PrimitiveTopology::Triangles,           // Quads
+    Maxwell::PrimitiveTopology::Triangles,           // QuadStrip
+    Maxwell::PrimitiveTopology::Triangles,           // Polygon
+    Maxwell::PrimitiveTopology::LinesAdjacency,      // LinesAdjacency
+    Maxwell::PrimitiveTopology::LinesAdjacency,      // LineStripAdjacency
+    Maxwell::PrimitiveTopology::TrianglesAdjacency,  // TrianglesAdjacency
+    Maxwell::PrimitiveTopology::TrianglesAdjacency,  // TriangleStripAdjacency
+    Maxwell::PrimitiveTopology::Patches,             // Patches
+};
+
 void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& regs) {
     std::ranges::transform(regs.transform_feedback.controls, state.layouts.begin(),
                            [](const auto& layout) {
@@ -71,7 +89,11 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
-    topology.Assign(topology_);
+    const bool can_collapse_topology_class =
+        features.has_extended_dynamic_state && features.has_extended_dynamic_state_2;
+    topology.Assign(can_collapse_topology_class
+                        ? TOPOLOGY_CLASS_REPRESENTATIVE_LUT[static_cast<size_t>(topology_)]
+                        : topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
 
     raw2 = 0;
