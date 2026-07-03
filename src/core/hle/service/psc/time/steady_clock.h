@@ -32,8 +32,6 @@ public:
     Result GetInternalOffset(Out<s64> out_internal_offset);
 
 private:
-    Core::System& m_system;
-
     StandardSteadyClockCore& m_clock_core;
     bool m_can_write_steady_clock;
     bool m_can_write_uninitialized_clock;
