@@ -213,9 +213,19 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
-[[nodiscard]] bool IsUnswizzleStorageFormatSupported(u32 bytes_per_block) {
-    return bytes_per_block == 1 || bytes_per_block == 2 || bytes_per_block == 4 ||
-           bytes_per_block == 8 || bytes_per_block == 16;
+[[nodiscard]] bool IsUnswizzleStorageFormatSupported(const Device& device, u32 bytes_per_block) {
+    switch (bytes_per_block) {
+    case 1:
+        return device.IsStorageBuffer8BitAccessSupported();
+    case 2:
+        return device.IsStorageBuffer16BitAccessSupported();
+    case 4:
+    case 8:
+    case 16:
+        return true;
+    default:
+        return false;
+    }
 }
 
 [[nodiscard]] vk::ImageView MakeStorageView(const vk::Device& device, u32 level, VkImage image,
@@ -924,11 +934,8 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
             view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
         } else if (!IsPixelFormatASTC(image_format) && !IsPixelFormatBCn(image_format)) {
-            // Generic block-linear/pitch accelerated unswizzle needs an alternate UINT
-            // storage view registered up-front so MakeImage() enables mutable format +
-            // storage usage for these images (see Image::Image / storage_image_views below).
             const u32 bpp = VideoCore::Surface::BytesPerBlock(image_format);
-            if (IsUnswizzleStorageFormatSupported(bpp)) {
+            if (IsUnswizzleStorageFormatSupported(device, bpp)) {
                 view_formats[index_a].push_back(UnswizzleStorageFormat(bpp));
             }
         }
@@ -1617,13 +1624,12 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         flags |= VideoCommon::ImageFlagBits::Converted;
         flags |= VideoCommon::ImageFlagBits::CostlyLoad;
     }
-    if (!IsPixelFormatASTC(info.format) && !IsPixelFormatBCn(info.format)) {
-        if (info.type == ImageType::e2D || info.type == ImageType::e3D) {
+    if (!IsPixelFormatASTC(info.format) && !IsPixelFormatBCn(info.format) &&
+        (info.type == ImageType::e2D || info.type == ImageType::e3D ||
+         info.type == ImageType::Linear)) {
+        if (IsUnswizzleStorageFormatSupported(runtime->device,
+                                              VideoCore::Surface::BytesPerBlock(info.format))) {
             flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
-        } else if (info.type == ImageType::Linear) {
-            if (IsUnswizzleStorageFormatSupported(VideoCore::Surface::BytesPerBlock(info.format))) {
-                flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
-            }
         }
     }
     if (runtime->device.HasDebuggingToolAttached()) {
