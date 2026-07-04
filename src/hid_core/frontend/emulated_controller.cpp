@@ -10,6 +10,7 @@
 
 #include <ranges>
 #include "common/thread.h"
+#include "common/assert.h"
 #include "hid_core/frontend/emulated_controller.h"
 #include "hid_core/frontend/input_converter.h"
 #include "hid_core/hid_util.h"
@@ -1887,21 +1888,18 @@ void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npa
     }
 }
 
-std::size_t EmulatedController::SetCallback(ControllerUpdateCallback update_callback) {
+int EmulatedController::SetCallback(ControllerUpdateCallback update_callback) {
     std::unique_lock lock{callback_mutex};
     ++last_callback_key;
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
     return last_callback_key;
 }
 
-void EmulatedController::DeleteCallback(std::size_t key) {
+void EmulatedController::DeleteCallback(int key) {
     std::unique_lock lock{callback_mutex};
     auto const it = callback_list.find(key);
-    if (it != callback_list.end()) {
-        callback_list.erase(it);
-    } else {
-        LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
-    }
+    ASSERT_MSG(it != callback_list.end(), "Tried to delete non-existent callback {}", key);
+    callback_list.erase(it);
 }
 
 void EmulatedController::StatusUpdate() {

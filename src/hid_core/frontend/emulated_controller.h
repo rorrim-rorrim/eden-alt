@@ -464,13 +464,13 @@ public:
      * @param update_callback A ConsoleUpdateCallback that will be triggered
      * @return an unique key corresponding to the callback index in the list
      */
-    std::size_t SetCallback(ControllerUpdateCallback update_callback);
+    int SetCallback(ControllerUpdateCallback update_callback);
 
     /**
      * Removes a callback from the list stopping any future events to this object
      * @param key Key corresponding to the callback index in the list
      */
-    void DeleteCallback(std::size_t key);
+    void DeleteCallback(int key);
 
     /// Swaps the state of the turbo buttons and updates motion input
     void StatusUpdate();
@@ -636,8 +636,8 @@ private:
     ControllerMotionDevices virtual_motion_devices;
 
     mutable std::mutex callback_mutex;
-    ankerl::unordered_dense::map<std::size_t, ControllerUpdateCallback> callback_list;
-    std::size_t last_callback_key = 0;
+    ankerl::unordered_dense::map<int, ControllerUpdateCallback> callback_list;
+    int last_callback_key = 0;
 
     // Stores the current status of all controller input
     ControllerStatus controller;
