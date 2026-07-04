@@ -1126,7 +1126,7 @@ void EmitContext::DefineConstantBuffers(const Info& info, u32& binding) {
     }
     IR::Type types{info.used_constant_buffer_types | info.used_indirect_cbuf_types};
     if (True(types & IR::Type::U8)) {
-        if (profile.support_int8) {
+        if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit) {
             DefineConstBuffers(*this, info, &UniformDefinitions::U8, binding, U8, 'u', sizeof(u8));
             DefineConstBuffers(*this, info, &UniformDefinitions::S8, binding, S8, 's', sizeof(s8));
         } else {
