@@ -162,6 +162,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetStencilTestEnableEXT);
     X(vkCmdSetVertexInputEXT);
     X(vkCmdSetColorWriteMaskEXT);
+    X(vkCmdSetColorWriteEnableEXT);
     X(vkCmdSetColorBlendEnableEXT);
     X(vkCmdSetColorBlendEquationEXT);
     X(vkCmdResolveImage);

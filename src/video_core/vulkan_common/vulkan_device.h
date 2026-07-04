@@ -50,6 +50,8 @@ VK_DEFINE_HANDLE(VmaAllocator)
 
 // Define all features which may be used by the implementation and require an extension here.
 #define FOR_EACH_VK_FEATURE_EXT(FEATURE)                                                           \
+    FEATURE(EXT, BorderColorSwizzle, BORDER_COLOR_SWIZZLE, border_color_swizzle)                   \
+    FEATURE(EXT, ColorWriteEnable, COLOR_WRITE_ENABLE, color_write_enable)                         \
     FEATURE(EXT, CustomBorderColor, CUSTOM_BORDER_COLOR, custom_border_color)                      \
     FEATURE(EXT, DepthBiasControl, DEPTH_BIAS_CONTROL, depth_bias_control)                         \
     FEATURE(EXT, DepthClipControl, DEPTH_CLIP_CONTROL, depth_clip_control)                         \
@@ -582,6 +584,21 @@ FN_MAX_LIMIT_LIST
     /// Returns true if customBorderColorWithoutFormat feature is available.
     bool IsCustomBorderColorWithoutFormatSupported() const {
         return features.custom_border_color.customBorderColorWithoutFormat;
+    }
+
+    /// Returns true if the device supports VK_EXT_color_write_enable.
+    bool IsExtColorWriteEnableSupported() const {
+        return extensions.color_write_enable;
+    }
+
+    /// Returns true if the device supports VK_EXT_border_color_swizzle.
+    bool IsExtBorderColorSwizzleSupported() const {
+        return extensions.border_color_swizzle;
+    }
+
+    /// Returns true if borderColorSwizzleFromImage is available.
+    bool IsBorderColorSwizzleFromImageSupported() const {
+        return features.border_color_swizzle.borderColorSwizzleFromImage;
     }
 
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.

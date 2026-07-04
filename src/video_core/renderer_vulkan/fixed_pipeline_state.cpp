@@ -80,6 +80,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     extended_dynamic_state_2_logic_op.Assign(features.has_extended_dynamic_state_2_logic_op ? 1 : 0);
     extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
     extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
+    color_write_enable_dynamic.Assign(features.has_color_write_enable ? 1 : 0);
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
@@ -209,6 +210,15 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             maxwell3d.dirty.flags[Dirty::Blending] = false;
             for (size_t index = 0; index < attachments.size(); ++index) {
                 attachments[index].Refresh(regs, index);
+                auto& attachment = attachments[index];
+                if (color_write_enable_dynamic && attachment.mask_r == 0 &&
+                    attachment.mask_g == 0 && attachment.mask_b == 0 &&
+                    attachment.mask_a == 0) {
+                    attachment.mask_r.Assign(1);
+                    attachment.mask_g.Assign(1);
+                    attachment.mask_b.Assign(1);
+                    attachment.mask_a.Assign(1);
+                }
             }
         }
     }

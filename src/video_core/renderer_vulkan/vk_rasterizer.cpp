@@ -1080,6 +1080,8 @@ void RasterizerVulkan::UpdateDynamicStates() {
 
     if (device.IsExtExtendedDynamicState3BlendingSupported()) {
         UpdateBlending(regs);
+    } else if (device.IsExtColorWriteEnableSupported()) {
+        UpdateColorWriteEnable(regs);
     }
 
     if (device.IsExtVertexInputDynamicStateSupported()) {
@@ -1094,7 +1096,6 @@ void RasterizerVulkan::HandleTransformFeedback() {
 
     const auto& regs = maxwell3d->regs;
     if (!device.IsExtTransformFeedbackSupported()) {
-        // If the guest enabled transform feedback, warn once that the device lacks support.
         if (regs.transform_feedback_enabled != 0) {
             std::call_once(warn_unsupported, [&] {
                 LOG_WARNING(Render_Vulkan, "Transform feedback requested by guest but VK_EXT_transform_feedback is unavailable; queries disabled");
@@ -1772,6 +1773,20 @@ void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
             cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
         });
     }
+}
+
+void RasterizerVulkan::UpdateColorWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchColorMask()) {
+        return;
+    }
+    std::array<VkBool32, Maxwell::NumRenderTargets> setup_enables{};
+    for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+        const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
+        setup_enables[index] = (mask.R || mask.G || mask.B || mask.A) ? VK_TRUE : VK_FALSE;
+    }
+    scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetColorWriteEnableEXT(0, setup_enables);
+    });
 }
 
 void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
