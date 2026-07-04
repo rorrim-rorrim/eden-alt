@@ -464,7 +464,7 @@ public:
      * @param update_callback A ConsoleUpdateCallback that will be triggered
      * @return an unique key corresponding to the callback index in the list
      */
-    std::size_t SetCallback(ControllerUpdateCallback&& update_callback);
+    std::size_t SetCallback(ControllerUpdateCallback update_callback);
 
     /**
      * Removes a callback from the list stopping any future events to this object

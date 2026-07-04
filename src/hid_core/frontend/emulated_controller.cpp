@@ -1887,7 +1887,7 @@ void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npa
     }
 }
 
-std::size_t EmulatedController::SetCallback(ControllerUpdateCallback&& update_callback) {
+std::size_t EmulatedController::SetCallback(ControllerUpdateCallback update_callback) {
     std::unique_lock lock{callback_mutex};
     ++last_callback_key;
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
