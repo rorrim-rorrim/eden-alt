@@ -2244,7 +2244,12 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
     if (image_handle) {
         if (image_format == Shader::ImageFormat::Typeless) {
-            return Handle(texture_type);
+            if (!typeless_storage_view) {
+                const auto& info =
+                    MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+                typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT);
+            }
+            return *typeless_storage_view;
         }
         const bool is_signed = image_format == Shader::ImageFormat::R8_SINT
             || image_format == Shader::ImageFormat::R16_SINT;
