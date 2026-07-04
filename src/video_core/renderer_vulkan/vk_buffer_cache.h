@@ -167,7 +167,11 @@ public:
 
 private:
     void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
-        guest_descriptor_queue.AddBuffer(buffer, offset, size);
+        if (buffer == VK_NULL_HANDLE) {
+            guest_descriptor_queue.AddBuffer(buffer, 0, VK_WHOLE_SIZE);
+        } else {
+            guest_descriptor_queue.AddBuffer(buffer, offset, size);
+        }
     }
 
     void ReserveNullBuffer();
