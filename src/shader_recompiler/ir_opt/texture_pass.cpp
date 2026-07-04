@@ -686,6 +686,21 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
         program.info.image_descriptors,
     };
     const u32 sampled_dynamic_cap = DynamicSampledTextureCap(program.info, host_info, DynamicSampledTextureArrayCount(to_replace));
+    bool has_last_is_integer{false};
+    u32 last_cbuf_index{};
+    u32 last_cbuf_offset{};
+    bool last_is_integer{false};
+    const auto is_texture_pixel_format_integer{[&](const ConstBufferAddr& cbuf_addr) {
+        if (has_last_is_integer && last_cbuf_index == cbuf_addr.index &&
+            last_cbuf_offset == cbuf_addr.offset) {
+            return last_is_integer;
+        }
+        last_is_integer = IsTexturePixelFormatIntegerCached(env, cbuf_addr);
+        last_cbuf_index = cbuf_addr.index;
+        last_cbuf_offset = cbuf_addr.offset;
+        has_last_is_integer = true;
+        return last_is_integer;
+    }};
     for (TextureInst& texture_inst : to_replace) {
         // TODO: Handle arrays
         IR::Inst* const inst{texture_inst.inst};
@@ -750,7 +765,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
             }
             const bool is_written{inst->GetOpcode() != IR::Opcode::ImageRead};
             const bool is_read{inst->GetOpcode() != IR::Opcode::ImageWrite};
-            const bool is_integer{IsTexturePixelFormatIntegerCached(env, cbuf)};
+            const bool is_integer{is_texture_pixel_format_integer(cbuf)};
             if (flags.type == TextureType::Buffer) {
                 index = descriptors.Add(ImageBufferDescriptor{
                     .format = flags.image_format,
@@ -792,7 +807,7 @@ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo
                 });
             } else {
                 count = std::min(count, sampled_dynamic_cap);
-                const bool is_integer{IsTexturePixelFormatIntegerCached(env, cbuf)};
+                const bool is_integer{is_texture_pixel_format_integer(cbuf)};
                 index = descriptors.Add(TextureDescriptor{
                     .type = flags.type,
                     .is_depth = flags.is_depth != 0,
