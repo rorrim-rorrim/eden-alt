@@ -246,32 +246,7 @@ Shader::RuntimeInfo MakeRuntimeInfo(std::span<const Shader::IR::Program> program
             key.state.UnpackComparisonOp(key.state.alpha_test_func.Value()));
         info.alpha_test_reference = std::bit_cast<float>(key.state.alpha_test_ref);
 
-        // Check for dual source blending
-        const auto& blend0 = key.state.attachments[0];
-        if (blend0.enable != 0) {
-            using F = Maxwell::Blend::Factor;
-            const auto src_rgb = blend0.SourceRGBFactor();
-            const auto dst_rgb = blend0.DestRGBFactor();
-            const auto src_a = blend0.SourceAlphaFactor();
-            const auto dst_a = blend0.DestAlphaFactor();
-            info.dual_source_blend =
-                src_rgb == F::Source1Color_D3D || src_rgb == F::OneMinusSource1Color_D3D ||
-                src_rgb == F::Source1Alpha_D3D || src_rgb == F::OneMinusSource1Alpha_D3D ||
-                src_rgb == F::Source1Color_GL || src_rgb == F::OneMinusSource1Color_GL ||
-                src_rgb == F::Source1Alpha_GL || src_rgb == F::OneMinusSource1Alpha_GL ||
-                dst_rgb == F::Source1Color_D3D || dst_rgb == F::OneMinusSource1Color_D3D ||
-                dst_rgb == F::Source1Alpha_D3D || dst_rgb == F::OneMinusSource1Alpha_D3D ||
-                dst_rgb == F::Source1Color_GL || dst_rgb == F::OneMinusSource1Color_GL ||
-                dst_rgb == F::Source1Alpha_GL || dst_rgb == F::OneMinusSource1Alpha_GL ||
-                src_a == F::Source1Color_D3D || src_a == F::OneMinusSource1Color_D3D ||
-                src_a == F::Source1Alpha_D3D || src_a == F::OneMinusSource1Alpha_D3D ||
-                src_a == F::Source1Color_GL || src_a == F::OneMinusSource1Color_GL ||
-                src_a == F::Source1Alpha_GL || src_a == F::OneMinusSource1Alpha_GL ||
-                dst_a == F::Source1Color_D3D || dst_a == F::OneMinusSource1Color_D3D ||
-                dst_a == F::Source1Alpha_D3D || dst_a == F::OneMinusSource1Alpha_D3D ||
-                dst_a == F::Source1Color_GL || dst_a == F::OneMinusSource1Color_GL ||
-                dst_a == F::Source1Alpha_GL || dst_a == F::OneMinusSource1Alpha_GL;
-        }
+        info.dual_source_blend = key.state.attachment0_dual_source_blend != 0;
 
         if (device.IsMoltenVK()) {
             for (size_t i = 0; i < 8; ++i) {

@@ -57,6 +57,37 @@ constexpr std::array TOPOLOGY_CLASS_REPRESENTATIVE_LUT = {
     Maxwell::PrimitiveTopology::Patches,             // Patches
 };
 
+bool IsDualSourceBlendFactor(Maxwell::Blend::Factor factor) {
+    using F = Maxwell::Blend::Factor;
+    switch (factor) {
+    case F::Source1Color_D3D:
+    case F::OneMinusSource1Color_D3D:
+    case F::Source1Alpha_D3D:
+    case F::OneMinusSource1Alpha_D3D:
+    case F::Source1Color_GL:
+    case F::OneMinusSource1Color_GL:
+    case F::Source1Alpha_GL:
+    case F::OneMinusSource1Alpha_GL:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool ComputeAttachment0DualSourceBlend(const Maxwell& regs) {
+    if (!regs.blend.enable[0]) {
+        return false;
+    }
+    const auto uses_dual_source = [](const auto& blend) {
+        return IsDualSourceBlendFactor(blend.color_source) ||
+               IsDualSourceBlendFactor(blend.color_dest) ||
+               IsDualSourceBlendFactor(blend.alpha_source) ||
+               IsDualSourceBlendFactor(blend.alpha_dest);
+    };
+    return regs.blend_per_target_enabled ? uses_dual_source(regs.blend_per_target[0])
+                                         : uses_dual_source(regs.blend);
+}
+
 void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& regs) {
     std::ranges::transform(regs.transform_feedback.controls, state.layouts.begin(),
                            [](const auto& layout) {
@@ -96,6 +127,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
                         ? TOPOLOGY_CLASS_REPRESENTATIVE_LUT[static_cast<size_t>(topology_)]
                         : topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
+    attachment0_dual_source_blend.Assign(ComputeAttachment0DualSourceBlend(regs) ? 1 : 0);
 
     raw2 = 0;
 
