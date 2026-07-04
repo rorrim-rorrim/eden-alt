@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
@@ -127,6 +127,10 @@ public:
 
     void BindVertexBuffers(VideoCommon::HostBindings<Buffer>& bindings);
 
+    void SetVertexInputDynamicState(bool is_active) {
+        vertex_input_dynamic_state_active = is_active;
+    }
+
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 
     void BindTransformFeedbackBuffers(VideoCommon::HostBindings<Buffer>& bindings);
@@ -185,6 +189,8 @@ private:
 
     bool limit_dynamic_storage_buffers = false;
     u32 max_dynamic_storage_buffers = (std::numeric_limits<u32>::max)();
+
+    bool vertex_input_dynamic_state_active = false;
 };
 
 struct BufferCacheParams {
