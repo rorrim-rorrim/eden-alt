@@ -9,7 +9,7 @@
     "boost": {
         "artifact": "%TAG%-cmake.tar.xz",
         "find_args": "CONFIG OPTIONAL_COMPONENTS headers context system fiber filesystem",
-        "hash": "6ae6e94664fe7f2fb01976b59b276ac5df8085c7503fa829d810fbfe495960cfec44fa2c36e2cb23480bc19c956ed199d4952b02639a00a6c07625d4e7130c2d",
+        "hash": "935b3d516e996f6d25948ba8a54c1b7f70f7f0e3f517e36481fdf0196c2c5cfc2841f86e891f3df9517746b7fb605db47cdded1b8ff78d9482ddaa621db43a34",
         "min_version": "1.57",
         "package": "Boost",
         "patches": [
@@ -17,17 +17,17 @@
         ],
         "repo": "boostorg/boost",
         "tag": "boost-%VERSION%",
-        "version": "1.90.0"
+        "version": "1.91.0"
     },
     "boost_headers": {
         "bundled": true,
-        "hash": "4ef845775e2277a8104ded6ddf749aa262ce52cf8438042869a048f9a0156dd772fbbcfa74efa1378fecef339b7286f6fe4b4feb5c45d49966b35d08e3e83507",
+        "hash": "c5fa2cd72f6e6666b7963b97bc359c75284b8fb540c30f3629a028b85270c9bc66c8a051383964f2bd4c1e005a4691593d15696e7ef39ea87cf6cff9e5691fb2",
         "repo": "boostorg/headers",
         "tag": "boost-%VERSION%",
-        "version": "1.90.0"
+        "version": "1.91.0"
     },
     "catch2": {
-        "hash": "7eea385d79d88a5690cde131fe7ccda97d5c54ea09d6f515000d7bf07c828809d61c1ac99912c1ee507cf933f61c1c47ecdcc45df7850ffa82714034b0fccf35",
+        "hash": "2e32d3d41e4ef84d927eaaaff0a75eba8fd1e47a5ddeb6007b73934f9d1ac747bf9818d02d2cdfb6343830b5091ba4f3d66efc281fc376a4f0716753dd7c9a97",
         "min_version": "3.0.1",
         "package": "Catch2",
         "patches": [
@@ -35,7 +35,7 @@
         ],
         "repo": "catchorg/Catch2",
         "tag": "v%VERSION%",
-        "version": "3.13.0"
+        "version": "3.15.1"
     },
     "cpp-jwt": {
         "find_args": "CONFIG",
@@ -96,11 +96,11 @@
         "version": "8.0.1-c7b5f1537d"
     },
     "fmt": {
-        "hash": "f0da82c545b01692e9fd30fdfb613dbb8dd9716983dcd0ff19ac2a8d36f74beb5540ef38072fdecc1e34191b3682a8542ecbf3a61ef287dbba0a2679d4e023f2",
+        "hash": "5ac2ba0f54a484999ed5407d82b77aad170cea49a267decd2c0eedadf3b14413e2a83fcc8e9ca9c16640595e019b8636e160f72314d8be50653324e82ac745eb",
         "min_version": "8",
         "repo": "fmtlib/fmt",
         "tag": "%VERSION%",
-        "version": "12.1.0"
+        "version": "12.2.0"
     },
     "frozen": {
         "hash": "b8dfe741c82bc178dfc9749d4ab5a130cee718d9ee7b71d9b547cf5f7f23027ed0152ad250012a8546399fcc1e12187efc68d89d6731256c4d2df7d04eef8d5c",
@@ -119,7 +119,7 @@
     },
     "httplib": {
         "find_args": "MODULE GLOBAL",
-        "hash": "159ed94965018f2a371d45a3bfc1961e5fb1549e501ded70a6b4532d7fe99d0579c18b5195aff6e35f96f399b426cea2650ec9fb75ef80d4c9edeccb51f2e6c9",
+        "hash": "5c8a151d0d40dd413975e12e4bbfd790a087c7e9c96bf86db31ce43921cbccece01a5cca78e47a8cfd12370f97e174a158aa8a826781e12fa256b157665e1310",
         "options": [
             "HTTPLIB_REQUIRE_OPENSSL ON",
             "HTTPLIB_DISABLE_MACOSX_AUTOMATIC_ROOT_CERTIFICATES ON"
@@ -129,7 +129,7 @@
         ],
         "repo": "yhirose/cpp-httplib",
         "tag": "v%VERSION%",
-        "version": "0.46.0"
+        "version": "0.49.0"
     },
     "lagoon": {
         "hash": "b9380f99c6effaeccc6d8f81d4942e852c11ad28613df637e155451556ae5826f93765bee57a5c87a9740d2bd1db463ad0f55a947772fe9d57eeabae3efa373e",
@@ -148,13 +148,13 @@
     },
     "libusb": {
         "find_args": "MODULE",
-        "hash": "98c5f7940ff06b25c9aa65aa98e23de4c79a4c1067595f4c73cc145af23a1c286639e1ba11185cd91bab702081f307b973f08a4c9746576dc8d01b3620a3aeb5",
+        "hash": "3251c9f41e900efa13caf981483f46886c8434bf4c30f3fd3073921b06be9977cebcf4a18f7bc46db86e33d7f19752296377be9050abfb8d887ffeb377864647",
         "patches": [
             "0001-netbsd-gettime.patch"
         ],
         "repo": "libusb/libusb",
         "tag": "v%VERSION%",
-        "version": "1.0.29"
+        "version": "1.0.30"
     },
     "llvm-mingw": {
         "artifact": "clang-rt-builtins.tar.zst",
@@ -203,7 +203,7 @@
         "version": "1.10.0"
     },
     "openssl": {
-        "hash": "29002ce50cb95a4f4f1d0e9d3f684401fbd4eac34203dc2eef3b6334af5d44aa46bf788b63a6f5c139c383eafb7269ae87a58a9a3ad5912903b9773e545ccc0a",
+        "hash": "2405891660b67e4cc01c7868e100f2766e1c6290120213ae62f775ef3d9610c3527bdc43d4c831260417450c74353b0693ae3e24cca3e99b02e4daa548b93904",
         "min_version": "3.0.0",
         "package": "OpenSSL",
         "patches": [
@@ -211,7 +211,7 @@
         ],
         "repo": "openssl/openssl",
         "tag": "openssl-%VERSION%",
-        "version": "3.6.2"
+        "version": "4.0.1"
     },
     "openssl-ci": {
         "ci": true,
@@ -223,7 +223,7 @@
     },
     "openssl-cmake": {
         "bundled": true,
-        "hash": "2cc185c924fd70e7d886257ca0caa42b3b8f7f712f2052b4f94dde74759e27022de76178460e18c9bdfc57c366583999e198fbb6052d4e7d91c099d15a0ca63e",
+        "hash": "bc73a6c035f299711bb90e20b16fa3521e8ffdab32d8d17f9e7f5cde1ff5def37ec6f9e03de25c3466d18885815c0874331f56e592b8a2f7deeb484c69c5c621",
         "options": [
             "OPENSSL_CONFIGURE_OPTIONS threads"
         ],
@@ -235,7 +235,7 @@
         ],
         "repo": "jimmy-park/openssl-cmake",
         "tag": "%VERSION%",
-        "version": "3.6.2"
+        "version": "4.0.1"
     },
     "opus": {
         "find_args": "MODULE",
@@ -268,12 +268,12 @@
         "version": "1.5"
     },
     "sdl3": {
-        "hash": "df5a323af7ac366661a3c0e887969c72584d232f3cc211419d59b0487b620b6b2859d4549c9e8df002ee489290062e466fcfddf7edc0872a37b1f2845e81c0f3",
+        "hash": "fc0a55ca01c32f613b9cd8c6cffad17ee0855ee542f03fa455632043c99a0a259599557a46c7c636032444260e64476867d9af43a1da689837f99c22942cd863",
         "min_version": "3.2.10",
         "package": "SDL3",
         "repo": "libsdl-org/SDL",
         "tag": "release-%VERSION%",
-        "version": "3.4.8"
+        "version": "3.4.12"
     },
     "sdl3-ci": {
         "ci": true,
@@ -285,11 +285,11 @@
     },
     "simpleini": {
         "find_args": "MODULE",
-        "hash": "b937c18a7b6277d77ca7ebfb216af4984810f77af4c32d101b7685369a4bd5eb61406223f82698e167e6311a728d07415ab59639fdf19eff71ad6dc2abfda989",
+        "hash": "a62c5748efe2473aae5bddab96ba9114d981a72f5b0d1a44d563daa085d5c231ed8c447794691d9bd67e1e0c6bfb44e4a8736be75fee59967d0c67ce3a59bb6e",
         "package": "SimpleIni",
         "repo": "brofield/simpleini",
         "tag": "v%VERSION%",
-        "version": "4.25"
+        "version": "4.26"
     },
     "sirit": {
         "artifact": "sirit-source-%VERSION%.tar.zst",
@@ -340,42 +340,42 @@
         "version": "4.8.1"
     },
     "vulkan-headers": {
-        "hash": "d2846ea228415772645eea4b52a9efd33e6a563043dd3de059e798be6391a8f0ca089f455ae420ff22574939ed0f48ed7c6ff3d5a9987d5231dbf3b3f89b484b",
+        "hash": "2c336c163cc184f1aad147f8829dedabdffe0a801e1636c1ae8445feca76a64fc71815d63a69a85db6f5c485ecb6ff3197d94aef63b06f7f9daac0260f7853a0",
         "min_version": "1.4.317",
         "package": "VulkanHeaders",
         "repo": "KhronosGroup/Vulkan-Headers",
         "tag": "v%VERSION%",
-        "version": "1.4.345"
+        "version": "1.4.356"
     },
     "vulkan-memory-allocator": {
         "find_args": "CONFIG",
-        "hash": "deb5902ef8db0e329fbd5f3f4385eb0e26bdd9f14f3a2334823fb3fe18f36bc5d235d620d6e5f6fe3551ec3ea7038638899db8778c09f6d5c278f5ff95c3344b",
+        "hash": "563acbcd8912d10d92c23715eba7acf0e7c1683af36021f415b36f359c2cce065f3906e395c32282a8410ec5c8179fbcb6412935c6629a49357475d4b4410e2a",
         "package": "VulkanMemoryAllocator",
         "repo": "GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator",
         "tag": "v%VERSION%",
-        "version": "3.3.0"
+        "version": "3.4.0"
     },
     "vulkan-utility-libraries": {
-        "hash": "114f6b237a6dcba923ccc576befb5dea3f1c9b3a30de7dc741f234a831d1c2d52d8a224afb37dd57dffca67ac0df461eaaab6a5ab5e503b393f91c166680c3e1",
+        "hash": "e35d715529aa96f82f2080e29c2f6da8da63ded70ff76edadf77e1f33b0f752ca4372d11478014d876d91c9313323c7a49c4e10bda35a324923ace0048dc91d5",
         "package": "VulkanUtilityLibraries",
         "repo": "KhronosGroup/Vulkan-Utility-Libraries",
         "tag": "v%VERSION%",
-        "version": "1.4.345"
+        "version": "1.4.356"
     },
     "vulkan-validation-layers": {
         "artifact": "android-binaries-%VERSION%.zip",
-        "hash": "8812ae84cbe49e6a3418ade9c458d3be6d74a3dffd319d4502007b564d580998056e8190414368ec11b27bc83993c7a0dad713c31bcc3d9553b51243efee3753",
+        "hash": "1888eaaa4f0ccd7f3d1f0c6485ae5508f39e7b402ea8486d8243756d63073def569ddee75ea40b403cbfcb2ead515c410d2ff16ae48d8a4d6b4fbacbd78e24e4",
         "package": "VVL",
         "repo": "KhronosGroup/Vulkan-ValidationLayers",
         "tag": "vulkan-sdk-%VERSION%",
-        "version": "1.4.341.0"
+        "version": "1.4.350.1"
     },
     "xbyak": {
-        "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
+        "hash": "14a0a8e3a768e6256e220b5edfd783de5e89f36736ef62674c8532f2564df03719311db923a08d2c930491632f2f83e486c8264e9997b6394ef59d32cae3070b",
         "package": "xbyak",
         "repo": "herumi/xbyak",
         "tag": "v%VERSION%",
-        "version": "7.35.2"
+        "version": "7.37.4"
     },
     "zlib": {
         "hash": "16fea4df307a68cf0035858abe2fd550250618a97590e202037acd18a666f57afc10f8836cbbd472d54a0e76539d0e558cb26f059d53de52ff90634bbf4f47d4",
