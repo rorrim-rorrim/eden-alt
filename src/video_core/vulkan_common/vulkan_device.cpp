@@ -494,11 +494,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm) {
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers require scaled vertex format emulation");
         must_emulate_scaled_formats = true;
-        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken CustomBorderColor.");
-        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
-                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
-        RemoveExtensionFeature(extensions.border_color_swizzle, features.border_color_swizzle,
-                               VK_EXT_BORDER_COLOR_SWIZZLE_EXTENSION_NAME);
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken Provoking Vertex.");
         RemoveExtension(extensions.provoking_vertex, VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have slow push descriptor implementation.");
@@ -1176,16 +1171,6 @@ void Device::RemoveUnsuitableExtensions() {
     RemoveExtensionFeatureIfUnsuitable(extensions.color_write_enable, features.color_write_enable,
                                        VK_EXT_COLOR_WRITE_ENABLE_EXTENSION_NAME);
 
-    // VK_EXT_border_color_swizzle
-    if (extensions.border_color_swizzle) {
-        extensions.border_color_swizzle =
-            features.border_color_swizzle.borderColorSwizzle &&
-            features.border_color_swizzle.borderColorSwizzleFromImage;
-    }
-    RemoveExtensionFeatureIfUnsuitable(extensions.border_color_swizzle,
-                                       features.border_color_swizzle,
-                                       VK_EXT_BORDER_COLOR_SWIZZLE_EXTENSION_NAME);
-
     // VK_EXT_custom_border_color
     if (extensions.custom_border_color) {
         extensions.custom_border_color =
@@ -1194,6 +1179,17 @@ void Device::RemoveUnsuitableExtensions() {
     }
     RemoveExtensionFeatureIfUnsuitable(extensions.custom_border_color, features.custom_border_color,
                                        VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+
+    // VK_EXT_border_color_swizzle
+    if (extensions.border_color_swizzle) {
+        extensions.border_color_swizzle =
+            extensions.custom_border_color &&
+            features.border_color_swizzle.borderColorSwizzle &&
+            features.border_color_swizzle.borderColorSwizzleFromImage;
+    }
+    RemoveExtensionFeatureIfUnsuitable(extensions.border_color_swizzle,
+                                       features.border_color_swizzle,
+                                       VK_EXT_BORDER_COLOR_SWIZZLE_EXTENSION_NAME);
 
     // VK_EXT_depth_bias_control
     extensions.depth_bias_control =
