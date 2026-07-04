@@ -1877,12 +1877,9 @@ NpadColor EmulatedController::GetNpadColor(u32 color) {
 
 void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npad_service_update) {
     std::unique_lock lock{callback_mutex};
-    for (const auto& poller_pair : callback_list) {
-        const ControllerUpdateCallback& poller = poller_pair.second;
-        if (!is_npad_service_update && poller.is_npad_service) {
-            continue;
-        }
-        if (poller.on_change) {
+    for (auto const& p : callback_list) {
+        auto const& poller = p.second;
+        if (is_npad_service_update || !poller.is_npad_service) {
             poller.on_change(type);
         }
     }
