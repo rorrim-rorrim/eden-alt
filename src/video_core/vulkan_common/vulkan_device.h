@@ -387,9 +387,14 @@ FN_MAX_LIMIT_LIST
         return features.shader_float16_int8.shaderInt8;
     }
 
-    /// Returns true if the device allows 8-bit integer members
+    /// Returns true if the device allows 8-bit integer members in uniform/storage buffers.
     bool IsUniformAndStorageBuffer8BitAccessSupported() const {
         return features.bit8_storage.uniformAndStorageBuffer8BitAccess;
+    }
+
+    /// Returns true if the device allows 16-bit integer members in uniform/storage buffers.
+    bool IsUniformAndStorageBuffer16BitAccessSupported() const {
+        return features.bit16_storage.uniformAndStorageBuffer16BitAccess;
     }
 
     /// Returns true if the device supports binding multisample images as storage images.

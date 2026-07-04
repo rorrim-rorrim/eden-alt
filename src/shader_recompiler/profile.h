@@ -17,6 +17,7 @@ struct Profile {
     bool support_int8{};
     bool support_uniform_and_storage_buffer_8bit{};
     bool support_int16{};
+    bool support_uniform_and_storage_buffer_16bit{};
     bool support_int64{};
     bool support_vertex_instance_id{};
     bool support_float_controls{};

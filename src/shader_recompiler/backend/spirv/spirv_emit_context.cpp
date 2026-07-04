@@ -1134,7 +1134,7 @@ void EmitContext::DefineConstantBuffers(const Info& info, u32& binding) {
         }
     }
     if (True(types & IR::Type::U16)) {
-        if (profile.support_int16) {
+        if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit) {
             DefineConstBuffers(*this, info, &UniformDefinitions::U16, binding, U16, 'u',
                                sizeof(u16));
             DefineConstBuffers(*this, info, &UniformDefinitions::S16, binding, S16, 's',
@@ -1196,10 +1196,18 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
     IR::Type types{info.used_indirect_cbuf_types};
     bool supports_aliasing = profile.support_descriptor_aliasing;
     if (supports_aliasing && True(types & IR::Type::U8)) {
-        load_const_func_u8 = make_accessor(U8, &UniformDefinitions::U8);
+        if (profile.support_int8 && profile.support_uniform_and_storage_buffer_8bit) {
+            load_const_func_u8 = make_accessor(U8, &UniformDefinitions::U8);
+        } else {
+            types |= IR::Type::U32;
+        }
     }
     if (supports_aliasing && True(types & IR::Type::U16)) {
-        load_const_func_u16 = make_accessor(U16, &UniformDefinitions::U16);
+        if (profile.support_int16 && profile.support_uniform_and_storage_buffer_16bit) {
+            load_const_func_u16 = make_accessor(U16, &UniformDefinitions::U16);
+        } else {
+            types |= IR::Type::U32;
+        }
     }
     if (supports_aliasing && True(types & IR::Type::F32)) {
         load_const_func_f32 = make_accessor(F32[1], &UniformDefinitions::F32);
