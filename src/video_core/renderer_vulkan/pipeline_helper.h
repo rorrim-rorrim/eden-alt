@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 
 #include <boost/container/small_vector.hpp>
 
@@ -21,6 +22,29 @@
 namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
+
+[[nodiscard]] inline std::optional<PixelFormat> PixelFormatFromImageFormat(
+    Shader::ImageFormat format) {
+    switch (format) {
+    case Shader::ImageFormat::Typeless:
+        return std::nullopt;
+    case Shader::ImageFormat::R8_UINT:
+        return PixelFormat::R8_UINT;
+    case Shader::ImageFormat::R8_SINT:
+        return PixelFormat::R8_SINT;
+    case Shader::ImageFormat::R16_UINT:
+        return PixelFormat::R16_UINT;
+    case Shader::ImageFormat::R16_SINT:
+        return PixelFormat::R16_SINT;
+    case Shader::ImageFormat::R32_UINT:
+        return PixelFormat::R32_UINT;
+    case Shader::ImageFormat::R32G32_UINT:
+        return PixelFormat::R32G32_UINT;
+    case Shader::ImageFormat::R32G32B32A32_UINT:
+        return PixelFormat::R32G32B32A32_UINT;
+    }
+    return std::nullopt;
+}
 
 [[nodiscard]] inline u32 NumDescriptorEntries(const Shader::Info& info) {
     return Shader::NumDescriptors(info.constant_buffer_descriptors) +
