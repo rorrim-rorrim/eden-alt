@@ -21,7 +21,6 @@ namespace Vulkan {
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct DynamicFeatures {
-    // See below in FixedPipelineState
     u32 driver_id;
     u32 driver_version;
     bool has_extended_dynamic_state;
@@ -231,10 +230,6 @@ struct FixedPipelineState {
     };
     std::array<u8, Maxwell::NumRenderTargets> color_formats;
 
-    // Some(which?) drivers do not write DRIVER_ID or DRIVER_VERSION
-    // in the raw pipeline data, which leads inevitably to using shader caches
-    // from other drivers. This entirely bans the usage of different shader caches
-    // on different drivers.
     u32 driver_id;
     u32 driver_version;
     u32 alpha_test_ref;
