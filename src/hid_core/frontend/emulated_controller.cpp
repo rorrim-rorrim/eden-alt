@@ -1887,20 +1887,21 @@ void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npa
     }
 }
 
-int EmulatedController::SetCallback(ControllerUpdateCallback update_callback) {
+std::size_t EmulatedController::SetCallback(ControllerUpdateCallback&& update_callback) {
     std::unique_lock lock{callback_mutex};
+    ++last_callback_key;
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
-    return last_callback_key++;
+    return last_callback_key;
 }
 
-void EmulatedController::DeleteCallback(int key) {
+void EmulatedController::DeleteCallback(std::size_t key) {
     std::unique_lock lock{callback_mutex};
-    const auto& iterator = callback_list.find(key);
-    if (iterator == callback_list.end()) {
+    auto const it = callback_list.find(key);
+    if (it != callback_list.end()) {
+        callback_list.erase(it);
+    } else {
         LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
-        return;
     }
-    callback_list.erase(iterator);
 }
 
 void EmulatedController::StatusUpdate() {
