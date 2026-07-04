@@ -497,6 +497,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken CustomBorderColor.");
         RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
                                VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        RemoveExtensionFeature(extensions.border_color_swizzle, features.border_color_swizzle,
+                               VK_EXT_BORDER_COLOR_SWIZZLE_EXTENSION_NAME);
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken Provoking Vertex.");
         RemoveExtension(extensions.provoking_vertex, VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have slow push descriptor implementation.");
