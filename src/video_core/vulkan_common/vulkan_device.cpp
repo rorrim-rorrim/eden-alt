@@ -492,17 +492,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
     if (is_qualcomm) {
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers require scaled vertex format emulation");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers require scaled vertex format emulation");
         must_emulate_scaled_formats = true;
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers have broken provoking vertex");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken CustomBorderColor.");
+        RemoveExtension(extensions.custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken Provoking Vertex.");
         RemoveExtension(extensions.provoking_vertex, VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan,
-                    "Qualcomm drivers have slow push descriptor implementation");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have slow push descriptor implementation.");
         RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan,
-                    "Disabling shader float controls and 64-bit integer features on Qualcomm proprietary drivers");
+        LOG_WARNING(Render_Vulkan, "Disabling shader float controls and 64-bit integer features.");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
