@@ -1590,8 +1590,8 @@ public:
         dld->vkCmdSetColorWriteMaskEXT(handle, first, masks.size(), masks.data());
     }
 
-    void SetColorWriteEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {
-        dld->vkCmdSetColorWriteEnableEXT(handle, first, enables.size(), enables.data());
+    void SetColorWriteEnableEXT(Span<VkBool32> enables) const noexcept {
+        dld->vkCmdSetColorWriteEnableEXT(handle, enables.size(), enables.data());
     }
 
     void SetColorBlendEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {

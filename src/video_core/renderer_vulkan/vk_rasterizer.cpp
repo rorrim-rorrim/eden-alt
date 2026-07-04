@@ -1785,7 +1785,7 @@ void RasterizerVulkan::UpdateColorWriteEnable(Tegra::Engines::Maxwell3D::Regs& r
         setup_enables[index] = (mask.R || mask.G || mask.B || mask.A) ? VK_TRUE : VK_FALSE;
     }
     scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetColorWriteEnableEXT(0, setup_enables);
+        cmdbuf.SetColorWriteEnableEXT(setup_enables);
     });
 }
 
