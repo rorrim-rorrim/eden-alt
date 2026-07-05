@@ -523,7 +523,6 @@ FN_MAX_LIMIT_LIST
     }
 
     /// Returns true if the device supports VK_EXT_shader_stencil_export.
-    /// Note: Most Mali/NVIDIA drivers don't support this. Use hardware blits as fallback.
     bool IsExtShaderStencilExportSupported() const {
         return extensions.shader_stencil_export;
     }
@@ -558,6 +557,11 @@ FN_MAX_LIMIT_LIST
     /// Returns true if the device supports VK_EXT_subgroup_size_control.
     bool IsExtSubgroupSizeControlSupported() const {
         return extensions.subgroup_size_control;
+    }
+
+    /// Returns true if vkResetQueryPool (host-side query reset) is supported.
+    bool IsHostQueryResetSupported() const {
+        return features.host_query_reset.hostQueryReset != VK_FALSE;
     }
 
     /// Returns true if the device supports VK_EXT_transform_feedback.
