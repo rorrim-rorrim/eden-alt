@@ -140,12 +140,13 @@ uvec4 ReplicateByteTo16(uvec4 value) {
 
 // sRGB EOTF (decode: encoded value -> linear). Only used on the Vulkan path, where the
 // destination image is a linear float format with no format-level sRGB tag of its own.
-float SRGBToLinear(float c) {
-    return (c <= 0.04045) ? (c / 12.92) : pow((c + 0.055) / 1.055, 2.4);
-}
-
+// Vectorized (single vec3 overload, no per-component scalar ternary) to match the style
+// already used elsewhere in this file (see the HDR Mt piecewise selection) rather than the
+// float/vec3 overload pair this replaces.
 vec3 SRGBToLinear(vec3 c) {
-    return vec3(SRGBToLinear(c.x), SRGBToLinear(c.y), SRGBToLinear(c.z));
+    const vec3 lo = c / 12.92;
+    const vec3 hi = pow(max((c + 0.055) / 1.055, vec3(0.0)), vec3(2.4));
+    return mix(hi, lo, lessThanEqual(c, vec3(0.04045)));
 }
 
 uint ReplicateBitTo7(uint value) {
@@ -1406,8 +1407,7 @@ void DecompressBlock(ivec3 coord) {
                     vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
                 p = Cf / 65535.0f;
 #ifdef VULKAN
-                // if (is_srgb != 0u)
-                if (false) {
+                if (is_srgb != 0u) {
                     p.yzw = SRGBToLinear(p.yzw);
                 }
 #endif
