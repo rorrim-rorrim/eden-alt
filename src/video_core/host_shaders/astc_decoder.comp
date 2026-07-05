@@ -608,9 +608,7 @@ ivec4 BlueContract(int a, int r, int g, int b) {
 }
 
 bool IsHDRColorEndpointMode(uint cem) {
-    // return cem == 2u || cem == 3u || cem == 7u || cem == 11u || cem == 14u || cem == 15u;
-    // once this test is done.
-    return false;
+    return cem == 2u || cem == 3u || cem == 7u || cem == 11u || cem == 14u || cem == 15u;
 }
 
 // Sign-extends the low nbits of value (a 2's complement field packed into the bottom of an
