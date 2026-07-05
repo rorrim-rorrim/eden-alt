@@ -1586,7 +1586,9 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
       runtime{&runtime_},
       original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
-                               runtime->ViewFormats(info.format),
+                               WillUseAcceleratedAstcDecode(runtime_.device, info)
+                                   ? std::span<const VkFormat>{}
+                                   : runtime->ViewFormats(info.format),
                                WillUseAcceleratedAstcDecode(runtime_.device, info)
                                    ? std::make_optional(VK_FORMAT_R16G16B16A16_SFLOAT)
                                    : std::nullopt)),
