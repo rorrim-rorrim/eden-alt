@@ -102,6 +102,11 @@ Buffer::Buffer(BufferCacheRuntime& runtime, DAddr cpu_addr_, u64 size_bytes_)
     }
 }
 
+void Buffer::MarkUsage(u64 offset, u64 size) noexcept {
+    tracker.Track(offset, size);
+    last_usage_tick = scheduler->CurrentTick();
+}
+
 VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat format) {
     if (!device) {
         // Null buffer supported, return a null descriptor

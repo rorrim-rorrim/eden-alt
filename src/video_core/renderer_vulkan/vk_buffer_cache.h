@@ -43,10 +43,7 @@ public:
         return tracker.IsUsed(offset, size);
     }
 
-    void MarkUsage(u64 offset, u64 size) noexcept {
-        tracker.Track(offset, size);
-        last_usage_tick = scheduler->CurrentTick();
-    }
+    void MarkUsage(u64 offset, u64 size) noexcept;
 
     void ResetUsageTracking() noexcept {
         tracker.Reset();
