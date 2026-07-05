@@ -1976,8 +1976,11 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
 VkImageView Image::StorageImageView(s32 level) noexcept {
     auto& view = storage_image_views[level];
     if (!view) {
-        const auto format_info =
+        auto format_info =
             MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, true, info.format);
+        if (WillUseAcceleratedAstcDecode(runtime->device, info)) {
+            format_info.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+        }
         view = MakeStorageView(runtime->device.GetLogical(), level, *(this->*current_image),
                                format_info.format);
     }
@@ -2144,7 +2147,11 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             SanitizeDepthStencilSwizzle(swizzle, device->SupportsDepthStencilSwizzleOne());
         }
     }
-    const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+    uses_accelerated_astc_decode = WillUseAcceleratedAstcDecode(*device, image.info);
+    auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+    if (uses_accelerated_astc_decode) {
+        format_info.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    }
     const VkImageUsageFlags requested_view_usage = ImageUsageFlags(format_info, format);
     const VkImageUsageFlags image_usage = image.UsageFlags();
     const VkImageUsageFlags clamped_view_usage = requested_view_usage & image_usage;
@@ -2279,8 +2286,10 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
     if (image_handle) {
         if (image_format == Shader::ImageFormat::Typeless) {
             if (!typeless_storage_view) {
-                const auto& info =
-                    MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+                auto info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+                if (uses_accelerated_astc_decode) {
+                    info.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+                }
                 typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT);
             }
             return *typeless_storage_view;
