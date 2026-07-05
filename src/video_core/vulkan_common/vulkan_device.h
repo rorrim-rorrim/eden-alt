@@ -352,6 +352,9 @@ FN_MAX_LIMIT_LIST
 
     /// Returns true if ASTC is natively supported, including HDR-profile (non-LDR-only)
     bool IsOptimalAstcSupported() const {
+        if (IsNvidia() || IsAmd()) {
+            return features.features.textureCompressionASTC_LDR;
+        }
         return features.features.textureCompressionASTC_LDR &&
                features.texture_compression_astc_hdr.textureCompressionASTC_HDR;
     }
@@ -947,6 +950,12 @@ FN_MAX_LIMIT_LIST
 
     bool IsNvidia() const noexcept {
         return properties.driver.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
+    }
+
+    bool IsAmd() const noexcept {
+        return properties.driver.driverID == VK_DRIVER_ID_AMD_PROPRIETARY ||
+               properties.driver.driverID == VK_DRIVER_ID_AMD_OPEN_SOURCE ||
+               properties.driver.driverID == VK_DRIVER_ID_MESA_RADV;
     }
 
     bool IsMoltenVK() const noexcept {
