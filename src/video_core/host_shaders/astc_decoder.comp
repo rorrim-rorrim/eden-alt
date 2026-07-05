@@ -1406,10 +1406,8 @@ void DecompressBlock(ivec3 coord) {
                     vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
                 p = Cf / 65535.0f;
 #ifdef VULKAN
-                // Destination is always linear RGBA16F on this path; apply the sRGB curve
-                // ourselves since there's no sRGB-tagged format left to do it automatically.
-                // p is (A,R,G,B); alpha (p.x) is never gamma-encoded.
-                if (is_srgb != 0u) {
+                // if (is_srgb != 0u)
+                if (false) {
                     p.yzw = SRGBToLinear(p.yzw);
                 }
 #endif
