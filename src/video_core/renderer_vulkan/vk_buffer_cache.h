@@ -45,10 +45,15 @@ public:
 
     void MarkUsage(u64 offset, u64 size) noexcept {
         tracker.Track(offset, size);
+        last_usage_tick = scheduler->CurrentTick();
     }
 
     void ResetUsageTracking() noexcept {
         tracker.Reset();
+    }
+
+    [[nodiscard]] u64 LastUsageTick() const noexcept {
+        return last_usage_tick;
     }
 
     operator VkBuffer() const noexcept {
@@ -64,9 +69,11 @@ private:
     };
 
     const Device* device{};
+    Scheduler* scheduler{};
     vk::Buffer buffer;
     std::vector<BufferView> views;
     VideoCommon::UsageTracker tracker;
+    u64 last_usage_tick{};
     bool is_null{};
 };
 
