@@ -223,7 +223,9 @@ void Maxwell3D::ProcessMacro(Core::System& system, u32 method, const u32* base_s
 }
 
 void Maxwell3D::RefreshParametersImpl() {
-    // Temporary change
+    if (!Settings::IsGPULevelHigh()) {
+        return;
+    }
     size_t current_index = 0;
     for (auto& segment : macro_segments) {
         if (segment.first == 0) {
