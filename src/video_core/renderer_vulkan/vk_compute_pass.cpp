@@ -26,6 +26,7 @@
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
 #include "video_core/host_shaders/block_linear_unswizzle_3d_bcn_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
+#include "video_core/surface.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -220,6 +221,7 @@ struct AstcPushConstants {
     u32 x_shift;
     u32 block_height;
     u32 block_height_mask;
+    u32 is_srgb;
 };
 
 struct QueriesPrefixScanPushConstants {
@@ -563,6 +565,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         VideoCore::Surface::DefaultBlockWidth(image.info.format),
         VideoCore::Surface::DefaultBlockHeight(image.info.format),
     };
+    const bool is_srgb = VideoCore::Surface::IsPixelFormatSRGB(image.info.format);
     scheduler.RequestOutsideRenderPassOperationContext();
     const VkPipeline vk_pipeline = *pipeline;
     const VkImageAspectFlags aspect_mask = image.AspectMask();
@@ -612,7 +615,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         ASSERT(params.destination == (std::array<s32, 3>{0, 0, 0}));
         ASSERT(params.bytes_per_block_log2 == 4);
         scheduler.Record([this, num_dispatches_x, num_dispatches_y, num_dispatches_z, block_dims,
-                          params, descriptor_data](vk::CommandBuffer cmdbuf) {
+                          params, descriptor_data, is_srgb](vk::CommandBuffer cmdbuf) {
             const AstcPushConstants uniforms{
                 .blocks_dims = block_dims,
                 .layer_stride = params.layer_stride,
@@ -620,6 +623,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                 .x_shift = params.x_shift,
                 .block_height = params.block_height,
                 .block_height_mask = params.block_height_mask,
+                .is_srgb = is_srgb ? 1u : 0u,
             };
             const VkDescriptorSet set = descriptor_allocator.Commit();
             device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);

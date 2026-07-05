@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
 #include <span>
 #include <memory>
 #include <vector>
@@ -128,9 +129,34 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return usage;
 }
 
-[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
-    const auto format_info =
+// Whether an ASTC texture will be decoded via the GPU compute pass (ASTCDecoderPass /
+// astc_decoder.comp) rather than the CPU ConvertImage path. Must stay the single source of
+// truth for this decision: both the destination image's real format (below) and the
+// AcceleratedUpload flag (Image::Image()) key off of it, and they must never disagree --
+// the compute shader's declared storage image format has to match what was actually allocated.
+[[nodiscard]] bool WillUseAcceleratedAstcDecode(const Device& device, const ImageInfo& info) {
+    if (!IsPixelFormatASTC(info.format) || device.IsOptimalAstcSupported()) {
+        return false;
+    }
+    if (Settings::values.accelerate_astc.GetValue() != Settings::AstcDecodeMode::Gpu) {
+        return false;
+    }
+    return Settings::values.astc_recompression.GetValue() ==
+              Settings::AstcRecompression::Uncompressed &&
+          info.size.depth == 1;
+}
+
+[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info,
+                                                    std::optional<VkFormat> format_override = {}) {
+    auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
+    if (format_override) {
+        // Accelerated ASTC HDR decode target: real (unclamped) values need a linear float
+        // format, not whatever the guest ASTC pixel format would normally map to.
+        format_info.format = *format_override;
+        format_info.attachable = false;
+        format_info.storage = true;
+    }
     VkImageCreateFlags flags{};
     if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
         info.size.width == info.size.height && !device.HasBrokenCubeImageCompatibility()) {
@@ -164,11 +190,12 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 }
 
 [[nodiscard]] vk::Image MakeImage(const Device& device, const MemoryAllocator& allocator,
-                                  const ImageInfo& info, std::span<const VkFormat> view_formats) {
+                                  const ImageInfo& info, std::span<const VkFormat> view_formats,
+                                  std::optional<VkFormat> format_override = {}) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
-    VkImageCreateInfo image_ci = MakeImageCreateInfo(device, info);
+    VkImageCreateInfo image_ci = MakeImageCreateInfo(device, info, format_override);
     const VkImageFormatListCreateInfo image_format_list = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO,
         .pNext = nullptr,
@@ -1557,15 +1584,17 @@ void TextureCacheRuntime::TickFrame() {}
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
-      runtime{&runtime_}, original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
-                                                   runtime->ViewFormats(info.format))),
+      runtime{&runtime_},
+      original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
+                               runtime->ViewFormats(info.format),
+                               WillUseAcceleratedAstcDecode(runtime_.device, info)
+                                   ? std::make_optional(VK_FORMAT_R16G16B16A16_SFLOAT)
+                                   : std::nullopt)),
       aspect_mask(ImageAspectMask(info.format)) {
     if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         switch (Settings::values.accelerate_astc.GetValue()) {
         case Settings::AstcDecodeMode::Gpu:
-            if (Settings::values.astc_recompression.GetValue() ==
-                    Settings::AstcRecompression::Uncompressed &&
-                info.size.depth == 1) {
+            if (WillUseAcceleratedAstcDecode(runtime->device, info)) {
                 flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
             }
             break;
@@ -1591,9 +1620,12 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         Settings::values.astc_recompression.GetValue() ==
             Settings::AstcRecompression::Uncompressed) {
         const auto& device = runtime->device.GetLogical();
+        const VkFormat storage_format = WillUseAcceleratedAstcDecode(runtime->device, info)
+                                            ? VK_FORMAT_R16G16B16A16_SFLOAT
+                                            : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
         for (s32 level = 0; level < info.resources.levels; ++level) {
             storage_image_views[level] =
-                MakeStorageView(device, level, *original_image, VK_FORMAT_A8B8G8R8_UNORM_PACK32);
+                MakeStorageView(device, level, *original_image, storage_format);
         }
     }
 }
