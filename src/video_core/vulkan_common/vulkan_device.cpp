@@ -494,12 +494,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm) {
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers require scaled vertex format emulation");
         must_emulate_scaled_formats = true;
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken CustomBorderColor.");
+        RemoveExtensionFeature(extensions.custom_border_color, features.custom_border_color,
+                               VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
         LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken Provoking Vertex.");
         RemoveExtension(extensions.provoking_vertex, VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have slow push descriptor implementation.");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken push descriptor.");
         RemoveExtension(extensions.push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-        LOG_WARNING(Render_Vulkan, "Disabling shader float controls and 64-bit integer features.");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken shader float controls.");
         RemoveExtension(extensions.shader_float_controls, VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken shader atomic int64.");
         RemoveExtensionFeature(extensions.shader_atomic_int64, features.shader_atomic_int64,
                                VK_KHR_SHADER_ATOMIC_INT64_EXTENSION_NAME);
         features.shader_atomic_int64.shaderBufferInt64Atomics = false;
@@ -557,7 +561,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             features.shader_float16_int8.shaderFloat16 = false;
         }
 
-        // Mali/ NVIDIA proprietary drivers: Shader stencil export not supported
         // Use hardware depth/stencil blits instead when available
         if (!extensions.shader_stencil_export) {
             LOG_INFO(Render_Vulkan,
@@ -653,14 +656,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     const auto dyna_state = Settings::values.dyna_state.GetValue();
-
-    // Base dynamic states (VIEWPORT, SCISSOR, DEPTH_BIAS, etc.) are ALWAYS active in vk_graphics_pipeline.cpp
-    // This slider controls EXTENDED dynamic states with accumulative levels per Vulkan specs:
-    //   Level 0 = Core Dynamic States only (Vulkan 1.0)
-    //   Level 1 = Core + VK_EXT_extended_dynamic_state
-    //   Level 2 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2
-    //   Level 3 = Core + VK_EXT_extended_dynamic_state + VK_EXT_extended_dynamic_state2 + VK_EXT_extended_dynamic_state3
-
     switch (dyna_state) {
     case Settings::ExtendedDynamicState::Disabled:
         // Level 0: Disable all extended dynamic state extensions
@@ -695,8 +690,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         break;
     }
 
-    // VK_EXT_vertex_input_dynamic_state is independent from EDS
-    // It can be enabled even without extended_dynamic_state
+    // VK_EXT_vertex_input_dynamic_state
     if (!Settings::values.vertex_input_dynamic_state.GetValue()) {
         RemoveExtensionFeature(extensions.vertex_input_dynamic_state, features.vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME);
     }
