@@ -1459,12 +1459,9 @@ BufferId BufferCache<P>::FindBuffer(DAddr device_addr, u32 size) {
 template <class P>
 void BufferCache<P>::WaitForGpuFenceIfNeeded(Buffer& buffer) {
     if constexpr (!IS_OPENGL) {
-        const bool gpu_fence_default = Settings::IsGPUFenceBehaviorDefault();
         const bool gpu_fence_delayed = Settings::IsGPUFenceBehaviorDelayed();
         const bool gpu_fence_strict = Settings::IsGPUFenceBehaviorStrict();
-        const bool gpu_level_high = Settings::IsGPULevelHigh();
-        const bool delay_fence = gpu_fence_default ? gpu_level_high : gpu_fence_delayed || gpu_fence_strict;
-        if (delay_fence) {
+        if (gpu_fence_delayed || gpu_fence_strict) {
             const u64 gpu_tick_delay = gpu_fence_strict ? 0 : 3;
             const u64 buffer_tick = buffer.getWriteTick();
             const u64 gpu_tick = runtime.KnownGpuTick();

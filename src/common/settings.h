@@ -880,6 +880,7 @@ bool IsDMALevelDefault();
 bool IsDMALevelSafe();
 
 bool IsGPUFenceBehaviorDefault();
+bool IsGPUFenceBehaviorBalanced();
 bool IsGPUFenceBehaviorDelayed();
 bool IsGPUFenceBehaviorStrict();
 
