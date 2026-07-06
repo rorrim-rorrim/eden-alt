@@ -252,7 +252,8 @@ macro(cpm_find_program)
     # Windows needs additional paths for some utilities.
     if (CMAKE_HOST_WIN32)
         find_package(Git QUIET)
-        if(GIT_EXECUTABLE)
+        if(Git_FOUND)
+            echo("Git found")
             # Search within the Git for Windows paths.
             get_filename_component(extra_search_path
                 ${GIT_EXECUTABLE} DIRECTORY)
@@ -273,7 +274,6 @@ macro(cpm_find_program)
             endforeach()
 
             find_program(${ARGN} HINTS ${hints})
-            return()
         endif()
 
         # If no Git is found, continue as normal
@@ -284,14 +284,10 @@ endmacro()
 
 # Apply patches to a directory.
 function(apply_patches patches dir)
-    message(STATUS "apply_patches ${patches} ${dir}")
     cpm_find_program(PATCH_EXE patch)
-    message(STATUS "PATCH_EXE: ${PATCH_EXE}")
     if (NOT PATCH_EXE)
         fatal("Could not find patch executable")
     endif()
-
-    message(STATUS "Found patch_exe")
 
     foreach(patch ${patches})
         get_filename_component(patch_name ${patch} NAME)
@@ -305,7 +301,6 @@ endfunction()
 
 # Fetches a file to the CPM source cache.
 function(fetch_package)
-    message(STATUS "fetch_package")
     set(oneValueArgs
         URL
         HASH
@@ -344,8 +339,6 @@ function(fetch_package)
     else()
         return()
     endif()
-
-    message(STATUS "passed")
 
     # Temporary directory.
     mktempdir(TMP)
@@ -450,8 +443,6 @@ function(needs_refetch path patch_key out)
     else()
         set(${out} FALSE PARENT_SCOPE)
     endif()
-
-    message(STATUS "current: ${current_patch_key} expected: ${patch_key}")
 endfunction()
 
 # Message
