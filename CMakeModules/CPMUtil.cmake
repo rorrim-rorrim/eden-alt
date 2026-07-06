@@ -284,6 +284,7 @@ endmacro()
 
 # Apply patches to a directory.
 function(apply_patches patches dir)
+    message(STATUS "apply_patches ${patches} ${dir}")
     cpm_find_program(PATCH_EXE patch)
     if (NOT PATCH_EXE)
         fatal("Could not find patch executable")
@@ -338,13 +339,13 @@ function(fetch_package)
     # refetch if cache is invalid or forced
     needs_refetch(${ARG_PATH} "${ARG_PATCH_KEY}" CACHE_INVALID)
 
-    message(STATUS "invalid: ${CACHE_INVALID}")
-
     if (ARG_FORCE OR CACHE_INVALID)
         file(REMOVE_RECURSE ${ARG_PATH})
     else()
         return()
     endif()
+
+    message(STATUS "passed")
 
     # Temporary directory.
     mktempdir(TMP)
