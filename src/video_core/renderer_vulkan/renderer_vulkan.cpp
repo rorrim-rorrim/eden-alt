@@ -169,6 +169,7 @@ try
 }
 
 RendererVulkan::~RendererVulkan() {
+    scheduler.WaitWorker();
     scheduler.RegisterOnSubmit([] {});
     void(device.GetLogical().WaitIdle());
 }
