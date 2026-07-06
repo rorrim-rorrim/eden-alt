@@ -62,12 +62,17 @@ macro(cpm_set_policies)
   # being relative to the parent project's remote
   cmake_policy(SET CMP0150 NEW)
   set(CMAKE_POLICY_DEFAULT_CMP0150 NEW)
+
+  # Disable sub-build nonsense
+  cmake_policy(SET CMP0168 NEW)
+  set(CMAKE_POLICY_DEFAULT_CMP0168 NEW)
 endmacro()
 
 cpm_set_policies()
 
-option(CPM_DONT_UPDATE_MODULE_PATH "Don't update the module path to allow using find_package"
-       $ENV{CPM_DONT_UPDATE_MODULE_PATH})
+option(CPM_DONT_UPDATE_MODULE_PATH
+  "Don't update the module path to allow using find_package"
+  $ENV{CPM_DONT_UPDATE_MODULE_PATH})
 
 set(CPM_FILE
     ${CMAKE_CURRENT_LIST_FILE}
@@ -75,45 +80,43 @@ set(CPM_FILE
 
 set(CPM_PACKAGES "" CACHE INTERNAL "")
 
+if(NOT CPM_DONT_UPDATE_MODULE_PATH
+   AND NOT DEFINED CMAKE_FIND_PACKAGE_REDIRECTS_DIR)
+  set(CPM_MODULE_PATH "${CMAKE_BINARY_DIR}/CPM_modules" CACHE INTERNAL "")
+  # remove old modules
+  file(REMOVE_RECURSE ${CPM_MODULE_PATH})
+  file(MAKE_DIRECTORY ${CPM_MODULE_PATH})
+  # locally added CPM modules should override global packages
+  set(CMAKE_MODULE_PATH "${CPM_MODULE_PATH};${CMAKE_MODULE_PATH}")
+endif()
+
 include(FetchContent)
-
-# compute a hash of all patch file contents
-# if there are no patches, returns none
-function(cpm_compute_patch_key patches patch_key_out)
-  if(NOT patches)
-    set("${patch_key_out}" "none" PARENT_SCOPE)
-    return()
-  endif()
-
-  set(combined "")
-  foreach(PATCH ${patches})
-    file(READ "${PATCH}" contents)
-    string(APPEND combined "${contents}")
-  endforeach()
-
-  string(SHA512 key "${combined}")
-  set("${patch_key_out}" "${key}" PARENT_SCOPE)
-endfunction()
 
 # Create a custom FindXXX.cmake module for a CPM package.
 # This prevents `find_package(NAME)` from finding the system library
 function(cpm_create_module_file Name)
   if(NOT CPM_DONT_UPDATE_MODULE_PATH)
-    # Redirect find_package calls to the CPM package.
-    # This is what FetchContent does when you set
-    # OVERRIDE_FIND_PACKAGE. The CMAKE_FIND_PACKAGE_REDIRECTS_DIR works for
-    # find_package in CONFIG mode, unlike the Find${Name}.cmake fallback.
-    # CMAKE_FIND_PACKAGE_REDIRECTS_DIR is not defined in script mode
-    # https://cmake.org/cmake/help/latest/module/FetchContent.html#fetchcontent-find-package-integration-examples
-    string(TOLOWER ${Name} NameLower)
-    file(WRITE ${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/${NameLower}-config.cmake
-      "include(\"\${CMAKE_CURRENT_LIST_DIR}/${NameLower}-extra.cmake\" OPTIONAL)\n"
-      "include(\"\${CMAKE_CURRENT_LIST_DIR}/${Name}Extra.cmake\" OPTIONAL)\n")
+    if(DEFINED CMAKE_FIND_PACKAGE_REDIRECTS_DIR)
+      # Redirect find_package calls to the CPM package.
+      # This is what FetchContent does when you set
+      # OVERRIDE_FIND_PACKAGE. The CMAKE_FIND_PACKAGE_REDIRECTS_DIR works for
+      # find_package in CONFIG mode, unlike the Find${Name}.cmake fallback.
+      # CMAKE_FIND_PACKAGE_REDIRECTS_DIR is not defined in script mode
+      # https://cmake.org/cmake/help/latest/module/FetchContent.html
+      string(TOLOWER ${Name} NameLower)
+      file(WRITE ${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/${NameLower}-config.cmake
+        "include(\"\${CMAKE_CURRENT_LIST_DIR}/${NameLower}-extra.cmake\" \
+          OPTIONAL)\n"
+        "include(\"\${CMAKE_CURRENT_LIST_DIR}/${Name}Extra.cmake\" OPTIONAL)\n")
 
-    file(WRITE
-      ${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/${NameLower}-config-version.cmake
-      "set(PACKAGE_VERSION_COMPATIBLE TRUE)\n"
-      "set(PACKAGE_VERSION_EXACT TRUE)\n")
+      file(WRITE
+        ${CMAKE_FIND_PACKAGE_REDIRECTS_DIR}/${NameLower}-config-version.cmake
+        "set(PACKAGE_VERSION_COMPATIBLE TRUE)\n"
+        "set(PACKAGE_VERSION_EXACT TRUE)\n")
+    else()
+      file(WRITE ${CPM_MODULE_PATH}/Find${Name}.cmake
+      "include(\"${CPM_FILE}\")\n${ARGN}\nset(${Name}_FOUND TRUE)")
+    endif()
   endif()
 endfunction()
 
@@ -123,7 +126,9 @@ function(cpm_check_if_package_already_added CPM_ARGS_NAME CPM_ARGS_VERSION)
     CPMGetPackageVersion(${CPM_ARGS_NAME} CPM_PACKAGE_VERSION)
     if("${CPM_PACKAGE_VERSION}" VERSION_LESS "${CPM_ARGS_VERSION}")
       message(WARNING
-        "${CPM_INDENT} Requires a newer version of ${CPM_ARGS_NAME} (${CPM_ARGS_VERSION}) than currently included (${CPM_PACKAGE_VERSION}).")
+        "${CPM_INDENT} Requires a newer version of ${CPM_ARGS_NAME} "
+          "(${CPM_ARGS_VERSION}) than currently included "
+          "(${CPM_PACKAGE_VERSION}).")
     endif()
     cpm_get_fetch_properties(${CPM_ARGS_NAME})
     set(${CPM_ARGS_NAME}_ADDED NO)
@@ -132,70 +137,6 @@ function(cpm_check_if_package_already_added CPM_ARGS_NAME CPM_ARGS_VERSION)
   else()
     set(CPM_PACKAGE_ALREADY_ADDED NO PARENT_SCOPE)
   endif()
-endfunction()
-
-# Generate a PATCH_COMMAND for ExternalProject_Add() from a list of patch files. Each file is
-# applied sequentially. Returns the command via a `PATCH_COMMAND` variable in the parent scope.
-function(cpm_add_patches)
-  # Return if no patch files are supplied.
-  if(NOT ARGN)
-    return()
-  endif()
-
-  # Find the patch program.
-  find_program(PATCH_EXECUTABLE patch)
-  if(CMAKE_HOST_WIN32 AND NOT PATCH_EXECUTABLE)
-    # The Windows git executable is distributed with patch.exe.
-    # Find the path to the executable, if it exists, then search
-    # `../usr/bin` and `../../usr/bin` for patch.exe.
-    find_package(Git QUIET)
-    if(GIT_EXECUTABLE)
-      get_filename_component(extra_search_path
-        ${GIT_EXECUTABLE} DIRECTORY)
-      get_filename_component(extra_search_path_1up
-        ${extra_search_path} DIRECTORY)
-      get_filename_component(extra_search_path_2up
-        ${extra_search_path_1up} DIRECTORY)
-      find_program(PATCH_EXECUTABLE patch HINTS
-        "${extra_search_path_1up}/usr/bin"
-        "${extra_search_path_2up}/usr/bin")
-    endif()
-  endif()
-  if(NOT PATCH_EXECUTABLE)
-    message(FATAL_ERROR
-      "Couldn't find `patch` executable to use with PATCHES keyword.")
-  endif()
-
-  # Ensure each file exists (or error out) and add it to the list.
-  set(patch_args "")
-  set(first_item True)
-  foreach(PATCH_FILE ${ARGN})
-    # Make sure the patch file exists, if we can't find it,
-    # try again in the current directory.
-    if(NOT EXISTS "${PATCH_FILE}")
-      if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/${PATCH_FILE}")
-        message(FATAL_ERROR "Couldn't find patch file: '${PATCH_FILE}'")
-      endif()
-      set(PATCH_FILE "${CMAKE_CURRENT_LIST_DIR}/${PATCH_FILE}")
-    endif()
-
-    # Convert to absolute path for use with patch file command.
-    get_filename_component(PATCH_FILE "${PATCH_FILE}" ABSOLUTE)
-
-    # The first patch entry must be preceded by "PATCH_COMMAND"
-    # while the following items are preceded by "COMMAND".
-    if(first_item)
-      set(first_item False)
-      list(APPEND patch_args "PATCH_COMMAND")
-    else()
-      list(APPEND patch_args "COMMAND")
-    endif()
-
-    # Add the patch command to the list
-    list(APPEND patch_args "${PATCH_EXECUTABLE}" "-p1" "-i" "${PATCH_FILE}")
-  endforeach()
-
-  set(PATCH_COMMAND ${patch_args} PARENT_SCOPE)
 endfunction()
 
 function(CPMAddPackage)
@@ -207,11 +148,9 @@ function(CPMAddPackage)
       SOURCE_DIR
       SYSTEM
       EXCLUDE_FROM_ALL
-      SOURCE_SUBDIR
-      CUSTOM_CACHE_KEY
-      URL_HASH)
+      SOURCE_SUBDIR)
 
-  set(multiValueArgs URL OPTIONS PATCHES)
+  set(multiValueArgs OPTIONS)
 
   cmake_parse_arguments(CPM_ARGS
     ""
@@ -219,22 +158,23 @@ function(CPMAddPackage)
     "${multiValueArgs}"
     "${ARGN}")
 
+  if (NOT DEFINED CPM_ARGS_SOURCE_DIR)
+    message(FATAL_ERROR "${CPM_INDENT} SOURCE_DIR is required")
+  endif()
+
   if(CPM_ARGS_DOWNLOAD_ONLY)
     set(DOWNLOAD_ONLY ${CPM_ARGS_DOWNLOAD_ONLY})
   else()
-    set(DOWNLOAD_ONLY NO)
+    # Default to DOWNLOAD_ONLY in script mode.
+    set(DOWNLOAD_ONLY ${CMAKE_SCRIPT_MODE_FILE})
   endif()
 
   if(NOT DEFINED CPM_ARGS_NAME)
     message(FATAL_ERROR "${CPM_INDENT} NAME is required")
   endif()
 
-  if(NOT DEFINED CPM_ARGS_VERSION AND NOT DEFINED CPM_ARGS_SOURCE_DIR)
+  if(NOT DEFINED CPM_ARGS_VERSION)
     message(FATAL_ERROR "${CPM_INDENT} VERSION is required")
-  endif()
-
-  if(NOT DEFINED CPM_ARGS_CUSTOM_CACHE_KEY AND NOT DEFINED CPM_ARGS_SOURCE_DIR)
-    message(FATAL_ERROR "${CPM_INDENT} CUSTOM_CACHE_KEY is required")
   endif()
 
   cpm_check_if_package_already_added(${CPM_ARGS_NAME} "${CPM_ARGS_VERSION}")
@@ -270,112 +210,23 @@ function(CPMAddPackage)
     set(CPM_FETCHCONTENT_BASE_DIR ${CMAKE_BINARY_DIR}/_deps)
   endif()
 
-  # Build patch command if any patches are specified
-  set(fetchContentPatchArgs "")
-  if(CPM_ARGS_PATCHES)
-    cpm_add_patches(${CPM_ARGS_PATCHES})
-    if(DEFINED PATCH_COMMAND)
-      list(APPEND fetchContentPatchArgs ${PATCH_COMMAND})
-    endif()
-  endif()
-
+  # Subbuild, etc
   string(TOLOWER ${CPM_ARGS_NAME} lower_case_name)
 
-  if(DEFINED CPM_ARGS_SOURCE_DIR)
-    set(fetch_source_dir ${CPM_ARGS_SOURCE_DIR})
-    if(NOT IS_ABSOLUTE ${CPM_ARGS_SOURCE_DIR})
-      get_filename_component(
-        fetch_source_dir ${CPM_ARGS_SOURCE_DIR}
-        REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
-    endif()
-    if(NOT EXISTS ${fetch_source_dir})
-      file(REMOVE_RECURSE
-        "${CPM_FETCHCONTENT_BASE_DIR}/${lower_case_name}-subbuild")
-    endif()
-  else()
-    set(download_directory
-        ${CPM_SOURCE_CACHE}/${lower_case_name}/${CPM_ARGS_CUSTOM_CACHE_KEY})
-    get_filename_component(download_directory ${download_directory} ABSOLUTE)
-    set(fetch_source_dir ${download_directory})
+  set(fetch_source_dir ${CPM_ARGS_SOURCE_DIR})
+  if(NOT IS_ABSOLUTE ${CPM_ARGS_SOURCE_DIR})
+    get_filename_component(
+      fetch_source_dir ${CPM_ARGS_SOURCE_DIR}
+      REALPATH BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
   endif()
 
-  # compute expected patch key
-  cpm_compute_patch_key("${CPM_ARGS_PATCHES}" expected_patch_key)
-  set(patch_key_file "${download_directory}/.cpm_patch_key")
-
-  # source is already fetched and verified
-  if(NOT DEFINED CPM_ARGS_SOURCE_DIR AND EXISTS ${download_directory})
-    # read current patch key from stamp
-    if(EXISTS "${patch_key_file}")
-      file(READ "${patch_key_file}" current_patch_key)
-    else()
-      set(current_patch_key "")
-    endif()
-
-    # if the patch key file is missing, either patches have changed or download
-    # failed; in either case refetch
-    if(NOT current_patch_key STREQUAL expected_patch_key)
-      message(DEBUG "${CPM_INDENT} Package ${CPM_ARGS_NAME} missing "
-        "or mismatched patch key, refetching")
-      file(REMOVE_RECURSE "${download_directory}")
-      file(REMOVE_RECURSE
-        "${CMAKE_BINARY_DIR}/CMakeFiles/fc-stamp/${lower_case_name}")
-    else()
-      file(LOCK ${download_directory}/../cmake.lock RELEASE)
-
-      cpm_store_fetch_properties(
-        ${CPM_ARGS_NAME} "${download_directory}"
-        "${CPM_FETCHCONTENT_BASE_DIR}/${lower_case_name}-build")
-
-      cpm_get_fetch_properties("${CPM_ARGS_NAME}")
-
-      if(CPM_ARGS_OPTIONS AND NOT DOWNLOAD_ONLY)
-        foreach(OPTION ${CPM_ARGS_OPTIONS})
-          cpm_parse_option("${OPTION}")
-          set(${OPTION_KEY} "${OPTION_VALUE}")
-        endforeach()
-      endif()
-
-      if(NOT "${DOWNLOAD_ONLY}")
-        cpm_create_module_file(${CPM_ARGS_NAME})
-      endif()
-
-      if(NOT DOWNLOAD_ONLY)
-        set(source_subdir ${download_directory})
-
-        if(DEFINED CPM_ARGS_SOURCE_SUBDIR)
-          set(source_subdir ${source_subdir}/${CPM_ARGS_SOURCE_SUBDIR})
-        endif()
-
-        if(EXISTS ${source_subdir}/CMakeLists.txt)
-          set(addSubdirectoryExtraArgs "")
-          if(${CPM_ARGS_EXCLUDE_FROM_ALL})
-            list(APPEND addSubdirectoryExtraArgs EXCLUDE_FROM_ALL)
-          endif()
-
-          if(CPM_ARGS_SYSTEM)
-            list(APPEND addSubdirectoryExtraArgs SYSTEM)
-          endif()
-
-          add_subdirectory(
-            ${source_subdir}
-            ${CPM_FETCHCONTENT_BASE_DIR}/${lower_case_name}-build
-            ${addSubdirectoryExtraArgs})
-        endif()
-      endif()
-
-      set(${CPM_ARGS_NAME}_ADDED YES)
-      cpm_export_variables(${CPM_ARGS_NAME})
-      return()
-    endif()
-  endif()
-
+  # FetchContent args
   set(fetchContentDeclareExtraArgs "")
   if(${CPM_ARGS_EXCLUDE_FROM_ALL})
     list(APPEND fetchContentDeclareExtraArgs EXCLUDE_FROM_ALL)
   endif()
 
-  if(${CPM_ARGS_SYSTEM})
+  if(CPM_ARGS_SYSTEM)
     list(APPEND fetchContentDeclareExtraArgs SYSTEM)
   endif()
 
@@ -391,50 +242,24 @@ function(CPMAddPackage)
     endforeach()
   endif()
 
-  set(fetchContentURLArgs "")
-  if(DEFINED CPM_ARGS_URL)
-    list(APPEND fetchContentURLArgs URL ${CPM_ARGS_URL})
-  endif()
-
-  if(DEFINED CPM_ARGS_URL_HASH)
-    list(APPEND fetchContentURLArgs URL_HASH ${CPM_ARGS_URL_HASH})
-  endif()
-
-  if(NOT DEFINED CPM_ARGS_SOURCE_DIR)
-    file(REMOVE_RECURSE
-      ${CPM_FETCHCONTENT_BASE_DIR}/${lower_case_name}-subbuild)
-    file(LOCK ${download_directory}/../cmake.lock)
-  endif()
-
-  if(NOT "${DOWNLOAD_ONLY}")
-    cpm_create_module_file(${CPM_ARGS_NAME})
+  if(NOT DOWNLOAD_ONLY)
+    cpm_create_module_file(${CPM_ARGS_NAME} "CPMAddPackage(\"${ARGN}\")")
   endif()
 
   FetchContent_Declare(${CPM_ARGS_NAME}
     ${fetchContentDeclareExtraArgs}
-    ${fetchContentURLArgs}
-    ${fetchContentPatchArgs}
     SOURCE_DIR ${fetch_source_dir}
     DOWNLOAD_NO_PROGRESS TRUE)
 
   if(DOWNLOAD_ONLY)
     FetchContent_Populate(${CPM_ARGS_NAME}
-      ${fetchContentURLArgs}
+      ${fetchContentDeclareExtraArgs}
       SOURCE_DIR "${fetch_source_dir}"
       BINARY_DIR "${CPM_FETCHCONTENT_BASE_DIR}/${lower_case_name}-build"
       SUBBUILD_DIR "${CPM_FETCHCONTENT_BASE_DIR}/${lower_case_name}-subbuild"
       DOWNLOAD_NO_PROGRESS TRUE)
   else()
     FetchContent_MakeAvailable(${CPM_ARGS_NAME})
-  endif()
-
-  # Write patch key.
-  if(NOT DEFINED CPM_ARGS_SOURCE_DIR AND EXISTS ${download_directory})
-    file(WRITE "${patch_key_file}" "${expected_patch_key}")
-  endif()
-
-  if(NOT DEFINED CPM_ARGS_SOURCE_DIR)
-    file(LOCK ${download_directory}/../cmake.lock RELEASE)
   endif()
 
   FetchContent_GetProperties(${CPM_ARGS_NAME})
@@ -461,45 +286,26 @@ endmacro()
 # registers a package that has been added to CPM
 function(CPMRegisterPackage PACKAGE VERSION)
   list(APPEND CPM_PACKAGES ${PACKAGE})
-  set(CPM_PACKAGES
-      ${CPM_PACKAGES}
-      CACHE INTERNAL ""
-  )
-  set("CPM_PACKAGE_${PACKAGE}_VERSION"
-      ${VERSION}
-      CACHE INTERNAL ""
-  )
+  set(CPM_PACKAGES ${CPM_PACKAGES} CACHE INTERNAL "")
+  set("CPM_PACKAGE_${PACKAGE}_VERSION" ${VERSION}CACHE INTERNAL "")
 endfunction()
 
 # retrieve the current version of the package to ${OUTPUT}
 function(CPMGetPackageVersion PACKAGE OUTPUT)
-  set(${OUTPUT}
-      "${CPM_PACKAGE_${PACKAGE}_VERSION}"
-      PARENT_SCOPE
-  )
+  set(${OUTPUT} "${CPM_PACKAGE_${PACKAGE}_VERSION}" PARENT_SCOPE)
 endfunction()
 
-
 function(cpm_get_fetch_properties PACKAGE)
-  set(${PACKAGE}_SOURCE_DIR
-      "${CPM_PACKAGE_${PACKAGE}_SOURCE_DIR}"
-      PARENT_SCOPE
-  )
-  set(${PACKAGE}_BINARY_DIR
-      "${CPM_PACKAGE_${PACKAGE}_BINARY_DIR}"
-      PARENT_SCOPE
-  )
+  set(${PACKAGE}_SOURCE_DIR "${CPM_PACKAGE_${PACKAGE}_SOURCE_DIR}"
+    PARENT_SCOPE)
+
+  set(${PACKAGE}_BINARY_DIR "${CPM_PACKAGE_${PACKAGE}_BINARY_DIR}"
+      PARENT_SCOPE)
 endfunction()
 
 function(cpm_store_fetch_properties PACKAGE source_dir binary_dir)
-  set(CPM_PACKAGE_${PACKAGE}_SOURCE_DIR
-      "${source_dir}"
-      CACHE INTERNAL ""
-  )
-  set(CPM_PACKAGE_${PACKAGE}_BINARY_DIR
-      "${binary_dir}"
-      CACHE INTERNAL ""
-  )
+  set(CPM_PACKAGE_${PACKAGE}_SOURCE_DIR "${source_dir}" CACHE INTERNAL "")
+  set(CPM_PACKAGE_${PACKAGE}_BINARY_DIR "${binary_dir}" CACHE INTERNAL "")
 endfunction()
 
 # splits a package option
@@ -507,6 +313,7 @@ function(cpm_parse_option OPTION)
   string(REGEX MATCH "^[^ ]+" OPTION_KEY "${OPTION}")
   string(LENGTH "${OPTION}" OPTION_LENGTH)
   string(LENGTH "${OPTION_KEY}" OPTION_KEY_LENGTH)
+
   if(OPTION_KEY_LENGTH STREQUAL OPTION_LENGTH)
     # no value for key provided, assume user wants to set option to "ON"
     set(OPTION_VALUE "ON")
@@ -514,12 +321,7 @@ function(cpm_parse_option OPTION)
     math(EXPR OPTION_KEY_LENGTH "${OPTION_KEY_LENGTH}+1")
     string(SUBSTRING "${OPTION}" "${OPTION_KEY_LENGTH}" "-1" OPTION_VALUE)
   endif()
-  set(OPTION_KEY
-      "${OPTION_KEY}"
-      PARENT_SCOPE
-  )
-  set(OPTION_VALUE
-      "${OPTION_VALUE}"
-      PARENT_SCOPE
-  )
+
+  set(OPTION_KEY "${OPTION_KEY}" PARENT_SCOPE)
+  set(OPTION_VALUE "${OPTION_VALUE}" PARENT_SCOPE)
 endfunction()
