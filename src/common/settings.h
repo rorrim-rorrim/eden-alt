@@ -881,7 +881,7 @@ bool IsDMALevelSafe();
 
 bool IsGPUFenceBehaviorDefault();
 bool IsGPUFenceBehaviorBalanced();
-bool IsGPUFenceBehaviorDelayed();
+bool IsGPUFenceBehaviorAccurate();
 bool IsGPUFenceBehaviorStrict();
 
 bool IsFastmemEnabled();

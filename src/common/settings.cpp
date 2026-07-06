@@ -176,7 +176,7 @@ bool IsGPUFenceBehaviorBalanced() {
     return values.gpu_fence_behavior.GetValue() == GpuFenceBehavior::Balanced;
 }
 
-bool IsGPUFenceBehaviorDelayed() {
+bool IsGPUFenceBehaviorAccurate() {
     return values.gpu_fence_behavior.GetValue() == GpuFenceBehavior::Delayed;
 }
 
