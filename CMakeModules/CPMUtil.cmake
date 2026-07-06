@@ -338,6 +338,8 @@ function(fetch_package)
     # refetch if cache is invalid or forced
     needs_refetch(${ARG_PATH} "${ARG_PATCH_KEY}" CACHE_INVALID)
 
+    message(STATUS "invalid: ${CACHE_INVALID}")
+
     if (ARG_FORCE OR CACHE_INVALID)
         file(REMOVE_RECURSE ${ARG_PATH})
     else()
@@ -447,6 +449,8 @@ function(needs_refetch path patch_key out)
     else()
         set(${out} FALSE PARENT_SCOPE)
     endif()
+
+    message(STATUS "current: ${current_patch_key} expected: ${patch_key}")
 endfunction()
 
 # Message
@@ -949,7 +953,6 @@ function(AddPackage)
         "Using bundled package ${PKG_ARGS_NAME}@${PKG_ARGS_VERSION}")
 
     # Download/extract package
-    message(STATUS "custom dir: ${${PKG_ARGS_NAME}_CUSTOM_DIR}")
     if (${PKG_ARGS_NAME}_CUSTOM_DIR STREQUAL "")
         if (DEFINED PKG_ARGS_CUSTOM_KEY)
             set(key ${PKG_ARGS_CUSTOM_KEY})
@@ -960,7 +963,6 @@ function(AddPackage)
         # cache path
         get_cache_path(${PKG_ARGS_NAME} ${key} cache_path)
 
-        message(STATUS "fetching package ${PKG_ARGS_NAME}@${key} to ${cache_path}")
         fetch_package(
             URL "${PKG_ARGS_URL}"
             HASH "${PKG_ARGS_HASH}"
