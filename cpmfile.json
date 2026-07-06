@@ -333,11 +333,11 @@
         "version": "v1.4.345"
     },
     "vulkan-validation-layers": {
-        "artifact": "android-binaries-%VERSION%.zip",
+        "artifact": "android-binaries-%NUMERIC_VERSION%.zip",
         "hash": "8812ae84cbe49e6a3418ade9c458d3be6d74a3dffd319d4502007b564d580998056e8190414368ec11b27bc83993c7a0dad713c31bcc3d9553b51243efee3753",
-        "package": "VVL",
+        "numeric_version": "1.4.341.0",
         "repo": "KhronosGroup/Vulkan-ValidationLayers",
-        "version": "1.4.341.0"
+        "version": "vulkan-sdk-%NUMERIC_VERSION%"
     },
     "xbyak": {
         "hash": "b6475276b2faaeb315734ea8f4f8bd87ededcee768961b39679bee547e7f3e98884d8b7851e176d861dab30a80a76e6ea302f8c111483607dde969b4797ea95a",
