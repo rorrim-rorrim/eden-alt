@@ -33,7 +33,6 @@ UNIFORM(3) uint block_size;
 UNIFORM(4) uint x_shift;
 UNIFORM(5) uint block_height;
 UNIFORM(6) uint block_height_mask;
-UNIFORM(7) uint is_srgb;
 END_PUSH_CONSTANTS
 
 struct EncodingData {
@@ -1407,8 +1406,7 @@ void DecompressBlock(ivec3 coord) {
                     vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
                 p = Cf / 65535.0f;
 #ifdef VULKAN
-                // Another test
-                p.yzw = mix(p.yzw, SRGBToLinear(p.yzw), bvec3(is_srgb != 0u));
+                p.yzw = mix(p.yzw, SRGBToLinear(p.yzw), bvec3((block_height_mask & 0x80000000u) != 0u));
 #endif
             }
 
@@ -1438,7 +1436,7 @@ void main() {
     uint offset = 0;
     offset += pos.z * layer_stride;
     offset += (block_y >> block_height) * block_size;
-    offset += (block_y & block_height_mask) << GOB_SIZE_SHIFT;
+    offset += (block_y & (block_height_mask & 0x7FFFFFFFu)) << GOB_SIZE_SHIFT;
     offset += (pos.x >> GOB_SIZE_X_SHIFT) << x_shift;
     offset += swizzle;
 

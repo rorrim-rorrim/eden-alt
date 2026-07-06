@@ -221,7 +221,6 @@ struct AstcPushConstants {
     u32 x_shift;
     u32 block_height;
     u32 block_height_mask;
-    u32 is_srgb;
 };
 
 struct QueriesPrefixScanPushConstants {
@@ -622,8 +621,8 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                 .block_size = params.block_size,
                 .x_shift = params.x_shift,
                 .block_height = params.block_height,
-                .block_height_mask = params.block_height_mask,
-                .is_srgb = is_srgb ? 1u : 0u,
+                .block_height_mask =
+                    params.block_height_mask | (is_srgb ? 0x8000'0000u : 0u),
             };
             const VkDescriptorSet set = descriptor_allocator.Commit();
             device.GetLogical().UpdateDescriptorSet(set, *descriptor_template, descriptor_data);
