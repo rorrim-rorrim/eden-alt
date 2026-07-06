@@ -886,6 +886,10 @@ bool IsGPULevelHigh();
 bool IsDMALevelDefault();
 bool IsDMALevelSafe();
 
+bool IsGPUFenceBehaviorDefault();
+bool IsGPUFenceBehaviorDelayed();
+bool IsGPUFenceBehaviorStrict();
+
 bool IsFastmemEnabled();
 void SetNceEnabled(bool is_64bit);
 bool IsNceEnabled();
