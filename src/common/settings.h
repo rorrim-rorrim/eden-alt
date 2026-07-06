@@ -420,7 +420,7 @@ struct Values {
 #ifdef __ANDROID__
                                                       GpuAccuracy::Low,
 #else
-                                                      GpuAccuracy::Medium,
+                                                      GpuAccuracy::High,
 #endif
                                                       "gpu_accuracy",
                                                       Category::RendererAdvanced,
@@ -428,7 +428,7 @@ struct Values {
                                                       true,
                                                       true};
 
-    GpuAccuracy current_gpu_accuracy{GpuAccuracy::Medium};
+    GpuAccuracy current_gpu_accuracy{GpuAccuracy::High};
 
     SwitchableSetting<DmaAccuracy, true> dma_accuracy{linkage,
                                                       DmaAccuracy::Default,
@@ -437,6 +437,15 @@ struct Values {
                                                       Specialization::Default,
                                                       true,
                                                       true};
+
+    SwitchableSetting<GpuFenceBehavior, true> gpu_fence_behavior{linkage,
+                                                                 GpuFenceBehavior::Default,
+                                                                 GpuFenceBehavior::Default,
+                                                                 GpuFenceBehavior::Delayed,
+                                                                 GpuFenceBehavior::Strict,
+                                                                 "gpu_fence_behavior",
+                                                                 Category::RendererAdvanced,
+                                                                 Specialization::Default,
 
     SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
                                                            VramUsageMode::Conservative,
@@ -871,8 +880,6 @@ extern Values values;
 bool getDebugKnobAt(u8 i);
 
 void UpdateGPUAccuracy();
-bool IsGPULevelLow();
-bool IsGPULevelMedium();
 bool IsGPULevelHigh();
 
 bool IsDMALevelDefault();

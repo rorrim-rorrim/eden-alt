@@ -223,14 +223,14 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
            tr("Controls the quality of texture rendering at oblique angles.\nSafe to set at 16x on "
               "most GPUs."));
     INSERT(Settings, gpu_accuracy, tr("GPU Mode:"),
-           tr("Controls the GPU emulation mode.\nMost games render fine with Fast or Balanced "
-              "modes, but Accurate is still "
+           tr("Controls the GPU emulation mode.\nMost games render fine with Fast, but Accurate is still "
               "required for some.\nParticles tend to only render correctly with Accurate mode."));
     INSERT(Settings, dma_accuracy, tr("DMA Accuracy:"),
-           tr("Controls the DMA precision accuracy. Safe precision fixes issues in some games but "
-              "may degrade performance."));
+           tr("Controls the DMA read mode.\nUnsafe is faster, while Safe is more stable and can fix issues in some games.\nDefault follows the GPU Accuracy setting."));
+    INSERT(Settings, gpu_fence_behavior, tr("GPU Fence Behavior"),
+           tr("Controls the GPU fence synchronization behavior.\nImmediate is faster, while Delayed improves compatibility and may fix issues in some games.\nStrict is slower but can fix issues that require stricter synchronization.\nDefault follows the GPU Accuracy setting."));
     INSERT(Settings, enable_gpu_buffer_readback, tr("Enable GPU buffer readback"),
-           tr("Preserves GPU-modified buffer data by reading it back before uploads.\nSome games require this to render certain effects properly.\nMay cause issues if the hardware cannot handle the additional workload."));
+           tr("Preserves GPU-modified data by reading it back before uploading.\nSome games require this to render certain effects properly."));
     INSERT(Settings, use_asynchronous_shaders, tr("Enable asynchronous shader compilation"),
            tr("May reduce shader stutter."));
     INSERT(Settings, fast_gpu_time, tr("Fast GPU Time"),
@@ -430,7 +430,6 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
     translations->insert({Settings::EnumMetadata<Settings::GpuAccuracy>::Index(),
                           {
                               PAIR(GpuAccuracy, Low, tr("Fast")),
-                              PAIR(GpuAccuracy, Medium, tr("Balanced")),
                               PAIR(GpuAccuracy, High, tr("Accurate")),
                           }});
     translations->insert({Settings::EnumMetadata<Settings::DmaAccuracy>::Index(),
@@ -438,6 +437,13 @@ std::unique_ptr<ComboboxTranslationMap> ComboboxEnumeration(QObject* parent) {
                               PAIR(DmaAccuracy, Default, tr("Default")),
                               PAIR(DmaAccuracy, Unsafe, tr("Unsafe (fast)")),
                               PAIR(DmaAccuracy, Safe, tr("Safe (stable)")),
+                          }});
+    translations->insert({Settings::EnumMetadata<Settings::GpuFenceBehavior>::Index(),
+                          {
+                              PAIR(GpuFenceBehavior, Default, tr("Default")),
+                              PAIR(GpuFenceBehavior, Immediate, tr("Immediate")),
+                              PAIR(GpuFenceBehavior, Delayed, tr("Delayed")),
+                              PAIR(GpuFenceBehavior, Strict, tr("Strict")),
                           }});
     translations->insert(
         {Settings::EnumMetadata<Settings::CpuAccuracy>::Index(),
