@@ -224,7 +224,7 @@ std::unique_ptr<TranslationMap> InitializeTranslations(QObject* parent) {
               "required for some.\nParticles tend to only render correctly with Accurate mode."));
     INSERT(Settings, dma_accuracy, tr("DMA Accuracy:"),
            tr("Controls the DMA read mode.\nUnsafe is faster, while Safe is more stable and can fix issues in some games.\nDefault follows the GPU Accuracy setting."));
-    INSERT(Settings, gpu_fence_behavior, tr("GPU Fence Behavior"),
+    INSERT(Settings, gpu_fence_behavior, tr("GPU Fence Behavior:"),
            tr("Controls the GPU fence synchronization behavior.\nImmediate is faster, while Delayed improves compatibility and may fix issues in some games.\nStrict is slower but can fix issues that require stricter synchronization.\nDefault follows the GPU Accuracy setting."));
     INSERT(Settings, enable_gpu_buffer_readback, tr("Enable GPU buffer readback"),
            tr("Preserves GPU-modified data by reading it back before uploading.\nSome games require this to render certain effects properly."));
