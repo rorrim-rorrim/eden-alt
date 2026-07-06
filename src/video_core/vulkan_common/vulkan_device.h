@@ -430,6 +430,10 @@ FN_MAX_LIMIT_LIST
         return properties.subgroup_properties.supportedOperations & feature;
     }
 
+    VkShaderStageFlags GetSubgroupSupportedStages() const {
+        return properties.subgroup_properties.supportedStages;
+    }
+
     /// Returns the maximum number of push descriptors.
     u32 MaxPushDescriptors() const {
         return properties.push_descriptor.maxPushDescriptors;
