@@ -72,14 +72,13 @@ public:
     }
 
     void SignalFence(std::function<void()>&& func) {
-        const bool antiflicker_enabled = Settings::values.antiflicker.GetValue();
-        const bool delay_fence = Settings::IsGPUFenceBehaviorDefault() ? Settings::IsGPULevelHigh() : Settings::IsGPUFenceBehaviorDelayed() || Settings::IsGPUFenceBehaviorStrict() || antiflicker_enabled;
+        const bool delay_fence = Settings::IsGPUFenceBehaviorDefault() ? Settings::IsGPULevelHigh() : Settings::IsGPUFenceBehaviorDelayed() || Settings::IsGPUFenceBehaviorStrict();
         const bool should_flush = ShouldFlush();
         if constexpr (!can_async_check) {
             TryReleasePendingFences<false>();
         }
         CommitAsyncFlushes();
-        TFence new_fence = CreateFence(!should_flush && !antiflicker_enabled);
+        TFence new_fence = CreateFence(!should_flush);
         if constexpr (can_async_check) {
             guard.lock();
         }
