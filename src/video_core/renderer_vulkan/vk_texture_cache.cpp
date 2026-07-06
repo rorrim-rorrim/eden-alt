@@ -129,11 +129,6 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return usage;
 }
 
-// Whether an ASTC texture will be decoded via the GPU compute pass (ASTCDecoderPass /
-// astc_decoder.comp) rather than the CPU ConvertImage path. Must stay the single source of
-// truth for this decision: both the destination image's real format (below) and the
-// AcceleratedUpload flag (Image::Image()) key off of it, and they must never disagree --
-// the compute shader's declared storage image format has to match what was actually allocated.
 [[nodiscard]] bool WillUseAcceleratedAstcDecode(const Device& device, const ImageInfo& info) {
     if (!IsPixelFormatASTC(info.format) || device.IsOptimalAstcSupported()) {
         return false;
@@ -146,13 +141,16 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
           info.size.depth == 1;
 }
 
+[[nodiscard]] bool WillUseWidenedAstcFormat(const Device& device, const ImageInfo& info) {
+    return WillUseAcceleratedAstcDecode(device, info) &&
+           !VideoCore::Surface::IsPixelFormatSRGB(info.format);
+}
+
 [[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info,
                                                     std::optional<VkFormat> format_override = {}) {
     auto format_info =
         MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, info.format);
     if (format_override) {
-        // Accelerated ASTC HDR decode target: real (unclamped) values need a linear float
-        // format, not whatever the guest ASTC pixel format would normally map to.
         format_info.format = *format_override;
         format_info.attachable = false;
         format_info.storage = true;
@@ -1586,10 +1584,10 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
       runtime{&runtime_},
       original_image(MakeImage(runtime_.device, runtime_.memory_allocator, info,
-                               WillUseAcceleratedAstcDecode(runtime_.device, info)
+                               WillUseWidenedAstcFormat(runtime_.device, info)
                                    ? std::span<const VkFormat>{}
                                    : runtime->ViewFormats(info.format),
-                               WillUseAcceleratedAstcDecode(runtime_.device, info)
+                               WillUseWidenedAstcFormat(runtime_.device, info)
                                    ? std::make_optional(VK_FORMAT_R32G32B32A32_SFLOAT)
                                    : std::nullopt)),
       aspect_mask(ImageAspectMask(info.format)) {
@@ -1622,7 +1620,7 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         Settings::values.astc_recompression.GetValue() ==
             Settings::AstcRecompression::Uncompressed) {
         const auto& device = runtime->device.GetLogical();
-        const VkFormat storage_format = WillUseAcceleratedAstcDecode(runtime->device, info)
+        const VkFormat storage_format = WillUseWidenedAstcFormat(runtime->device, info)
                                             ? VK_FORMAT_R32G32B32A32_SFLOAT
                                             : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
         for (s32 level = 0; level < info.resources.levels; ++level) {
@@ -1979,7 +1977,9 @@ VkImageView Image::StorageImageView(s32 level) noexcept {
         auto format_info =
             MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, true, info.format);
         if (WillUseAcceleratedAstcDecode(runtime->device, info)) {
-            format_info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            format_info.format = WillUseWidenedAstcFormat(runtime->device, info)
+                                     ? VK_FORMAT_R32G32B32A32_SFLOAT
+                                     : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
         }
         view = MakeStorageView(runtime->device.GetLogical(), level, *(this->*current_image),
                                format_info.format);
@@ -2147,9 +2147,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             SanitizeDepthStencilSwizzle(swizzle, device->SupportsDepthStencilSwizzleOne());
         }
     }
-    uses_accelerated_astc_decode = WillUseAcceleratedAstcDecode(*device, image.info);
+    uses_widened_astc_format = WillUseWidenedAstcFormat(*device, image.info);
     auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-    if (uses_accelerated_astc_decode) {
+    if (uses_widened_astc_format) {
         format_info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
     }
     const VkImageUsageFlags requested_view_usage = ImageUsageFlags(format_info, format);
@@ -2287,7 +2287,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         if (image_format == Shader::ImageFormat::Typeless) {
             if (!typeless_storage_view) {
                 auto info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
-                if (uses_accelerated_astc_decode) {
+                if (uses_widened_astc_format) {
                     info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
                 }
                 typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT);

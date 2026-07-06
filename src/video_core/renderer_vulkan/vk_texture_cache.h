@@ -387,7 +387,7 @@ private:
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
     u32 buffer_size = 0;
 
-    bool uses_accelerated_astc_decode = false;
+    bool uses_widened_astc_format = false;
 };
 
 class ImageAlloc : public VideoCommon::ImageAllocBase {};
