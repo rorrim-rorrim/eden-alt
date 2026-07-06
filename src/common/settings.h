@@ -441,11 +441,12 @@ struct Values {
     SwitchableSetting<GpuFenceBehavior, true> gpu_fence_behavior{linkage,
                                                                  GpuFenceBehavior::Default,
                                                                  GpuFenceBehavior::Default,
-                                                                 GpuFenceBehavior::Delayed,
                                                                  GpuFenceBehavior::Strict,
                                                                  "gpu_fence_behavior",
                                                                  Category::RendererAdvanced,
                                                                  Specialization::Default,
+                                                                 true,
+                                                                 true};
 
     SwitchableSetting<VramUsageMode, true> vram_usage_mode{linkage,
                                                            VramUsageMode::Conservative,
