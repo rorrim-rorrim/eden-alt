@@ -290,6 +290,7 @@ function(apply_patches patches dir)
     endif()
 
     message(STATUS "Patches: ${patches}")
+    message(STATUS "patch executable: ${PATCH_EXE}")
 
     foreach(patch ${patches})
         get_filename_component(patch_name ${patch} NAME)
