@@ -130,30 +130,7 @@ public:
     std::optional<ASTCDecoderPass> astc_decoder_pass;
 
     std::optional<BlockLinearUnswizzle3DPass> bl3d_unswizzle_pass;
-    std::optional<BlockLinearUnswizzleImage2DPass> bl_unswizzle_2d_pass;
-    std::optional<BlockLinearUnswizzleImage3DPass> bl_unswizzle_3d_pass;
-    std::optional<PitchUnswizzlePass> pitch_unswizzle_pass;
     std::optional<MSAACopyPass> msaa_copy_pass;
-
-    /// True when the buffer->image unswizzle pass for this image type is active.
-    bool HasUnswizzlePassFor(VideoCommon::ImageType type) const noexcept {
-        switch (type) {
-        case VideoCommon::ImageType::e2D:
-            return bl_unswizzle_2d_pass.has_value();
-        case VideoCommon::ImageType::e3D:
-            return bl_unswizzle_3d_pass.has_value();
-        case VideoCommon::ImageType::Linear:
-            return pitch_unswizzle_pass.has_value();
-        default:
-            return false;
-        }
-    }
-
-    /// True when any buffer->image unswizzle pass is active on this device.
-    bool HasImageUnswizzlePasses() const noexcept {
-        return bl_unswizzle_2d_pass.has_value() || bl_unswizzle_3d_pass.has_value() ||
-               pitch_unswizzle_pass.has_value();
-    }
     const Settings::ResolutionScalingInfo& resolution;
     std::array<std::vector<VkFormat>, VideoCore::Surface::MaxPixelFormat> view_formats;
 

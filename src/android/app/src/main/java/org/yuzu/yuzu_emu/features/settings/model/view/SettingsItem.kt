@@ -725,27 +725,6 @@ abstract class SettingsItem(
                 )
             )
             put(
-                SwitchSetting(
-                    BooleanSetting.GPU_COMPUTE_UNSWIZZLE_2D,
-                    titleId = R.string.gpu_compute_unswizzle_2d,
-                    descriptionId = R.string.gpu_compute_unswizzle_2d_description
-                )
-            )
-            put(
-                SwitchSetting(
-                    BooleanSetting.GPU_COMPUTE_UNSWIZZLE_3D,
-                    titleId = R.string.gpu_compute_unswizzle_3d,
-                    descriptionId = R.string.gpu_compute_unswizzle_3d_description
-                )
-            )
-            put(
-                SwitchSetting(
-                    BooleanSetting.GPU_COMPUTE_UNSWIZZLE_PITCH,
-                    titleId = R.string.gpu_compute_unswizzle_pitch,
-                    descriptionId = R.string.gpu_compute_unswizzle_pitch_description
-                )
-            )
-            put(
                 SingleChoiceSetting(
                     IntSetting.FAST_CPU_TIME,
                     titleId = R.string.fast_cpu_time,

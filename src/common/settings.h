@@ -605,16 +605,6 @@ struct Values {
     SwitchableSetting<bool> gpu_unswizzle_enabled{linkage, false, "gpu_unswizzle_enabled",
                                                   Category::RendererHacks};
 
-    SwitchableSetting<bool> gpu_compute_unswizzle_2d{linkage, true, "gpu_compute_unswizzle_2d",
-                                                     Category::RendererHacks};
-
-    SwitchableSetting<bool> gpu_compute_unswizzle_3d{linkage, true, "gpu_compute_unswizzle_3d",
-                                                     Category::RendererHacks};
-
-    SwitchableSetting<bool> gpu_compute_unswizzle_pitch{linkage, true,
-                                                        "gpu_compute_unswizzle_pitch",
-                                                        Category::RendererHacks};
-
     SwitchableSetting<ExtendedDynamicState> dyna_state{linkage,
 #if defined(__ANDROID__)
                                            ExtendedDynamicState::Disabled,

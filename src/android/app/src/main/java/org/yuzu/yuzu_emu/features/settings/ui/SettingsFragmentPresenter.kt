@@ -308,9 +308,6 @@ class SettingsFragmentPresenter(
             add(BooleanSetting.RENDERER_ASYNCHRONOUS_GPU_EMULATION.key)
             add(BooleanSetting.RENDERER_ASYNC_PRESENTATION.key)
             add(SettingsItem.GPU_UNSWIZZLE_COMBINED)
-            add(BooleanSetting.GPU_COMPUTE_UNSWIZZLE_2D.key)
-            add(BooleanSetting.GPU_COMPUTE_UNSWIZZLE_3D.key)
-            add(BooleanSetting.GPU_COMPUTE_UNSWIZZLE_PITCH.key)
 
             add(HeaderSetting(R.string.extensions))
 
