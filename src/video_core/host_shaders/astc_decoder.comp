@@ -1407,9 +1407,8 @@ void DecompressBlock(ivec3 coord) {
                     vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) / 64);
                 p = Cf / 65535.0f;
 #ifdef VULKAN
-                if (is_srgb != 0u) {
-                    p.yzw = SRGBToLinear(p.yzw);
-                }
+                // Another test
+                p.yzw = mix(p.yzw, SRGBToLinear(p.yzw), bvec3(is_srgb != 0u));
 #endif
             }
 
