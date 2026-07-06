@@ -253,7 +253,6 @@ macro(cpm_find_program)
     if (CMAKE_HOST_WIN32)
         find_package(Git QUIET)
         if(Git_FOUND)
-            echo("Git found")
             # Search within the Git for Windows paths.
             get_filename_component(extra_search_path
                 ${GIT_EXECUTABLE} DIRECTORY)
