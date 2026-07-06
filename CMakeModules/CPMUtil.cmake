@@ -289,6 +289,8 @@ function(apply_patches patches dir)
         fatal("Could not find patch executable")
     endif()
 
+    message(STATUS "Patches: ${patches}")
+
     foreach(patch ${patches})
         get_filename_component(patch_name ${patch} NAME)
         echo("-- Applying patch ${patch_name}")
