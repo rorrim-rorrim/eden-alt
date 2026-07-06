@@ -998,18 +998,11 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
                                          compute_pass_descriptor_queue);
         }
     }
-    // Log which unswizzle passes are active, for debugging purposes.
-    LOG_INFO(Render_Vulkan, "GPU compute unswizzle passes active: 2d={}, 3d={}, pitch={}",
-             bl_unswizzle_2d_pass.has_value(), bl_unswizzle_3d_pass.has_value(),
-             pitch_unswizzle_pass.has_value());
     for (size_t index_a = 0; index_a < VideoCore::Surface::MaxPixelFormat; index_a++) {
         const auto image_format = static_cast<PixelFormat>(index_a);
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
             view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
-        } else if (HasImageUnswizzlePasses() && !IsPixelFormatASTC(image_format) &&
-                   !IsPixelFormatBCn(image_format) &&
-                   VideoCore::Surface::DefaultBlockWidth(image_format) == 1 &&
-                   VideoCore::Surface::DefaultBlockHeight(image_format) == 1 &&
+        } else if (HasImageUnswizzlePasses() && !IsPixelFormatBCn(image_format) &&
                    VideoCore::Surface::GetFormatType(image_format) ==
                        VideoCore::Surface::SurfaceType::ColorTexture) {
             const u32 bytes_per_block = VideoCore::Surface::BytesPerBlock(image_format);
