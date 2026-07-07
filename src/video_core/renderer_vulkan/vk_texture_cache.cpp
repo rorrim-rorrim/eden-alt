@@ -1635,9 +1635,6 @@ Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBas
 Image::~Image() = default;
 
 void Image::AllocateComputeUnswizzleBuffer(u32 max_slices) {
-    if (has_compute_unswizzle_buffer)
-        return;
-
     using VideoCore::Surface::BytesPerBlock;
 
     const u32 block_bytes  = BytesPerBlock(info.format); // 8 for BC1, 16 for BC6H
@@ -1654,7 +1651,12 @@ void Image::AllocateComputeUnswizzleBuffer(u32 max_slices) {
         static_cast<u64>(blocks_y) *
         static_cast<u64>(blocks_z);
 
-    compute_unswizzle_buffer_size = block_count * block_bytes;
+    const VkDeviceSize required_size = block_count * block_bytes;
+    if (has_compute_unswizzle_buffer && required_size <= compute_unswizzle_buffer_size) {
+        return;
+    }
+
+    compute_unswizzle_buffer_size = required_size;
 
     VkBufferCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
