@@ -12,6 +12,7 @@
 namespace Common::Android {
 
 JNIEnv* GetEnvForThread();
+JavaVM* GetJavaVM();
 
 /**
  * Starts a new thread to run JNI. Intended to be used when you must run JNI from a fiber.

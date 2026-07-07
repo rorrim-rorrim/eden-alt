@@ -123,6 +123,10 @@ namespace Common::Android {
         return owned.env;
     }
 
+    JavaVM *GetJavaVM() {
+        return s_java_vm;
+    }
+
     jclass GetNativeLibraryClass() {
         return s_native_library_class;
     }

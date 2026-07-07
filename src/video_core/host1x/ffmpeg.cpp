@@ -19,7 +19,15 @@ extern "C" {
 #endif
 
 #include <libavutil/hwcontext.h>
+
+#if defined(__ANDROID__)
+#include <libavcodec/jni.h>
+#endif
 }
+
+#if defined(__ANDROID__)
+#include "common/android/id_cache.h"
+#endif
 
 namespace FFmpeg {
 
@@ -290,6 +298,11 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
 
     // Enable GPU decoding if requested.
     if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
+#if defined(__ANDROID__)
+        static const int jni_vm_result =
+            av_jni_set_java_vm(Common::Android::GetJavaVM(), nullptr);
+        (void)jni_vm_result;
+#endif
         m_hardware_context.emplace();
         m_hardware_context->InitializeForDecoder(*m_decoder_context, *m_decoder);
     }
