@@ -220,29 +220,6 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     return allocator.CreateImage(image_ci);
 }
 
-[[nodiscard]] VkFormat UnswizzleStorageFormat(u32 bytes_per_block) {
-    switch (bytes_per_block) {
-    case 1:
-        return VK_FORMAT_R8_UINT;
-    case 2:
-        return VK_FORMAT_R16_UINT;
-    case 4:
-        return VK_FORMAT_R32_UINT;
-    case 8:
-        return VK_FORMAT_R32G32_UINT;
-    case 16:
-        return VK_FORMAT_R32G32B32A32_UINT;
-    default:
-        ASSERT_MSG(false, "Invalid bytes_per_block={} for accelerated unswizzle", bytes_per_block);
-        return VK_FORMAT_R32_UINT;
-    }
-}
-
-[[nodiscard]] bool IsUnswizzleStorageFormatSupported(u32 bytes_per_block) {
-    return bytes_per_block == 1 || bytes_per_block == 2 || bytes_per_block == 4 ||
-           bytes_per_block == 8 || bytes_per_block == 16;
-}
-
 [[nodiscard]] vk::ImageView MakeStorageView(const vk::Device& device, u32 level, VkImage image,
                                             VkFormat format) {
     static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
@@ -935,12 +912,6 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
     if (device.IsStorageImageMultisampleSupported()) {
         msaa_copy_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool, compute_pass_descriptor_queue);
     }
-    bl_unswizzle_2d_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
-                                 compute_pass_descriptor_queue);
-    bl_unswizzle_3d_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
-                                 compute_pass_descriptor_queue);
-    pitch_unswizzle_pass.emplace(device, scheduler, descriptor_pool, staging_buffer_pool,
-                                 compute_pass_descriptor_queue);
     if (!device.IsKhrImageFormatListSupported()) {
         return;
     }
@@ -948,14 +919,6 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, Scheduler& sched
         const auto image_format = static_cast<PixelFormat>(index_a);
         if (IsPixelFormatASTC(image_format) && !device.IsOptimalAstcSupported()) {
             view_formats[index_a].push_back(VK_FORMAT_A8B8G8R8_UNORM_PACK32);
-        } else if (!IsPixelFormatASTC(image_format) && !IsPixelFormatBCn(image_format)) {
-            // Generic block-linear/pitch accelerated unswizzle needs an alternate UINT
-            // storage view registered up-front so MakeImage() enables mutable format +
-            // storage usage for these images (see Image::Image / storage_image_views below).
-            const u32 bpp = VideoCore::Surface::BytesPerBlock(image_format);
-            if (IsUnswizzleStorageFormatSupported(bpp)) {
-                view_formats[index_a].push_back(UnswizzleStorageFormat(bpp));
-            }
         }
         for (size_t index_b = 0; index_b < VideoCore::Surface::MaxPixelFormat; index_b++) {
             const auto view_format = static_cast<PixelFormat>(index_b);
@@ -1648,15 +1611,6 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         flags |= VideoCommon::ImageFlagBits::Converted;
         flags |= VideoCommon::ImageFlagBits::CostlyLoad;
     }
-    if (!IsPixelFormatASTC(info.format) && !IsPixelFormatBCn(info.format)) {
-        if (info.type == ImageType::e2D || info.type == ImageType::e3D) {
-            flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
-        } else if (info.type == ImageType::Linear) {
-            if (IsUnswizzleStorageFormatSupported(VideoCore::Surface::BytesPerBlock(info.format))) {
-                flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
-            }
-        }
-    }
     if (runtime->device.HasDebuggingToolAttached()) {
         original_image.SetObjectNameEXT(VideoCommon::Name(*this).c_str());
     }
@@ -1672,13 +1626,6 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         for (s32 level = 0; level < info.resources.levels; ++level) {
             storage_image_views[level] =
                 MakeStorageView(device, level, *original_image, storage_format);
-        }
-    } else if (True(flags & VideoCommon::ImageFlagBits::AcceleratedUpload)) {
-        const auto& device = runtime->device.GetLogical();
-        const VkFormat storage_format =
-            UnswizzleStorageFormat(VideoCore::Surface::BytesPerBlock(info.format));
-        for (s32 level = 0; level < info.resources.levels; ++level) {
-            storage_image_views[level] = MakeStorageView(device, level, *original_image, storage_format);
         }
     }
 }
@@ -2571,24 +2518,16 @@ void TextureCacheRuntime::AccelerateImageUpload(
         return astc_decoder_pass->Assemble(image, map, swizzles);
     }
 
-    if (IsPixelFormatBCn(image.info.format)) {
-        if (Settings::values.gpu_unswizzle_enabled.GetValue() && bl3d_unswizzle_pass &&
-            image.info.type == ImageType::e3D && image.info.resources.levels == 1 &&
-            image.info.resources.layers == 1) {
-            return bl3d_unswizzle_pass->Unswizzle(image, map, swizzles, z_start, z_count);
+    if (!Settings::values.gpu_unswizzle_enabled.GetValue() || !bl3d_unswizzle_pass) {
+        if (IsPixelFormatBCn(image.info.format) && image.info.type == ImageType::e3D) {
+            ASSERT(false && "GPU unswizzle is disabled for BCn 3D texture");
         }
-        ASSERT(false && "GPU unswizzle is disabled for BCn 3D texture");
+        ASSERT(false);
         return;
     }
 
-    if (image.info.type == ImageType::e2D) {
-        return bl_unswizzle_2d_pass->Unswizzle(image, map, swizzles);
-    }
-    if (image.info.type == ImageType::e3D) {
-        return bl_unswizzle_3d_pass->Unswizzle(image, map, swizzles);
-    }
-    if (image.info.type == ImageType::Linear) {
-        return pitch_unswizzle_pass->Unswizzle(image, map, swizzles);
+    if (bl3d_unswizzle_pass && IsPixelFormatBCn(image.info.format) && image.info.type == ImageType::e3D && image.info.resources.levels == 1 && image.info.resources.layers == 1) {
+        return bl3d_unswizzle_pass->Unswizzle(image, map, swizzles, z_start, z_count);
     }
 
     ASSERT(false);
