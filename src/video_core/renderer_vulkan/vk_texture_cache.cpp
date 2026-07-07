@@ -2292,7 +2292,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                 if (uses_widened_astc_format) {
                     info.format = VK_FORMAT_R32G32B32A32_SFLOAT;
                 }
-                typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT);
+                typeless_storage_view = MakeView(info.format, VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
             }
             return *typeless_storage_view;
         }
@@ -2303,7 +2303,7 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
         auto& views{is_signed ? storage_views->signeds : storage_views->unsigneds};
         auto& view{views[size_t(texture_type)]};
         if (!view)
-            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
+            view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT, texture_type);
         return *view;
     }
     return VK_NULL_HANDLE;
@@ -2313,13 +2313,28 @@ bool ImageView::IsRescaled() const noexcept {
     return (*slot_images)[image_id].IsRescaled();
 }
 
-vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
+vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask,
+                                  std::optional<Shader::TextureType> texture_type) {
+    VkImageViewType view_type = ImageViewType(type);
+    VkImageSubresourceRange subresource_range = MakeSubresourceRange(aspect_mask, range);
+    if (texture_type) {
+        view_type = ImageViewType(*texture_type);
+        switch (view_type) {
+        case VK_IMAGE_VIEW_TYPE_1D_ARRAY:
+        case VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+        case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY:
+            break;
+        default:
+            subresource_range.layerCount = 1;
+            break;
+        }
+    }
     return device->GetLogical().CreateImageView({
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .image = image_handle,
-        .viewType = ImageViewType(type),
+        .viewType = view_type,
         .format = vk_format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -2327,7 +2342,7 @@ vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_
             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
             .a = VK_COMPONENT_SWIZZLE_IDENTITY,
         },
-        .subresourceRange = MakeSubresourceRange(aspect_mask, range),
+        .subresourceRange = subresource_range,
     });
 }
 
