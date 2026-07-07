@@ -282,7 +282,7 @@ void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_onDeviceMotionEvent(
 
 void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_reloadInputDevices(JNIEnv* env,
                                                                            jobject j_obj) {
-    EmulationSession::GetInstance().System().HIDCore().ReloadInputDevices();
+    EmulationSession::GetInstance().ReloadInputDevices();
 }
 
 void Java_org_yuzu_yuzu_1emu_features_input_NativeInput_registerController(JNIEnv* env,

@@ -45,6 +45,8 @@ public:
     void HaltEmulation();
     void RunEmulation();
     void ShutdownEmulation();
+    void ReloadInputDevices();
+    void ApplySettings();
 
     const Core::PerfStatsResults& PerfStats();
     int ShadersBuilding();

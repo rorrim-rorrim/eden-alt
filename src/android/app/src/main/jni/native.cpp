@@ -381,6 +381,23 @@ void EmulationSession::HaltEmulation() {
     m_cv.notify_one();
 }
 
+void EmulationSession::ReloadInputDevices() {
+    std::scoped_lock lock(m_mutex);
+    if (!m_is_running) {
+        return;
+    }
+    m_system.HIDCore().ReloadInputDevices();
+}
+
+void EmulationSession::ApplySettings() {
+    std::scoped_lock lock(m_mutex);
+    if (!m_is_running) {
+        return;
+    }
+    m_system.ApplySettings();
+    m_system.HIDCore().ReloadInputDevices();
+}
+
 void EmulationSession::RunEmulation() {
     {
         std::scoped_lock lock(m_mutex);
@@ -1165,8 +1182,7 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_getGpuModel(JNIEnv* env, jobject j
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_applySettings(JNIEnv* env, jobject jobj) {
-    EmulationSession::GetInstance().System().ApplySettings();
-    EmulationSession::GetInstance().System().HIDCore().ReloadInputDevices();
+    EmulationSession::GetInstance().ApplySettings();
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_logSettings(JNIEnv* env, jobject jobj) {
