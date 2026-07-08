@@ -378,19 +378,23 @@ bool DecodeApi::Initialize(Tegra::Host1x::NvdecCommon::VideoCodec codec) {
     m_decoder.emplace(codec);
     m_decoder_context.emplace(*m_decoder);
 
+    bool is_mediacodec = false;
+#if defined(__ANDROID__)
+    const std::string_view decoder_name = m_decoder->GetCodec() ? m_decoder->GetCodec()->name : "";
+    is_mediacodec = decoder_name == "h264_mediacodec" ||
+                    decoder_name == "vp8_mediacodec" ||
+                    decoder_name == "vp9_mediacodec";
+#endif
+
     // Enable GPU decoding if requested.
-    if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
+    if (!is_mediacodec &&
+        Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::Gpu) {
         m_hardware_context.emplace();
         m_hardware_context->InitializeForDecoder(*m_decoder_context, *m_decoder);
     }
 
 #if defined(__ANDROID__)
-    const std::string_view decoder_name = m_decoder->GetCodec() ? m_decoder->GetCodec()->name : "";
-
-    m_defer_android_mediacodec_open = decoder_name == "h264_mediacodec" ||
-                                      decoder_name == "vp8_mediacodec" ||
-                                      decoder_name == "vp9_mediacodec";
-
+    m_defer_android_mediacodec_open = is_mediacodec;
     m_needs_h264_extradata = decoder_name == "h264_mediacodec";
     if (m_defer_android_mediacodec_open) {
         return true;
