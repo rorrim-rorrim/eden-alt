@@ -300,6 +300,10 @@ ankerl::unordered_dense::map<VkFormat, VkFormatProperties> GetFormatProperties(v
         VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK,
         VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK,
         VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK,
+        VK_FORMAT_EAC_R11_UNORM_BLOCK,
+        VK_FORMAT_EAC_R11_SNORM_BLOCK,
+        VK_FORMAT_EAC_R11G11_UNORM_BLOCK,
+        VK_FORMAT_EAC_R11G11_SNORM_BLOCK,
     };
     ankerl::unordered_dense::map<VkFormat, VkFormatProperties> format_properties;
     for (const auto format : formats) {
