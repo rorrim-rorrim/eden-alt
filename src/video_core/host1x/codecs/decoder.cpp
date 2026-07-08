@@ -59,7 +59,7 @@ void Decoder::Decode() {
 
     while (auto result = decode_api.ReceiveFrame()) {
         auto& [frame, frame_offsets] = *result;
-        if (frame_offsets.hidden || !frame) {
+        if (!frame) {
             continue;
         }
         if (frame_offsets.interlaced) {

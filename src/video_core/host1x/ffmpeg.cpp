@@ -281,8 +281,10 @@ DecoderContext::DecoderContext(const Decoder& decoder) : m_decoder{decoder} {
     av_opt_set(m_codec_context->priv_data, "tune", "zerolatency", 0);
     m_codec_context->thread_count = 0;
     m_codec_context->thread_type &= ~FF_THREAD_FRAME;
+#if defined(__ANDROID__)
     m_codec_context->flags |= AV_CODEC_FLAG_LOW_DELAY;
     m_codec_context->flags2 |= AV_CODEC_FLAG2_FAST;
+#endif
 }
 
 DecoderContext::~DecoderContext() {
@@ -435,7 +437,9 @@ bool DecodeApi::SendPacket(std::span<const u8> packet_data, const FrameOffsets& 
         }
         m_opened = true;
     }
-    m_pending_offsets.push(offsets);
+    if (!offsets.hidden) {
+        m_pending_offsets.push(offsets);
+    }
     FFmpeg::Packet packet(packet_data);
     packet.GetPacket()->pts = m_next_pts;
     packet.GetPacket()->dts = m_next_pts;
