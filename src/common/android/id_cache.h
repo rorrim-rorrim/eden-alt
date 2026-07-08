@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright 2025 Eden Emulator Project
+// SPDX-FileCopyrightText: Copyright 2026 Eden Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -12,7 +12,6 @@
 namespace Common::Android {
 
 JNIEnv* GetEnvForThread();
-JavaVM* GetJavaVM();
 
 /**
  * Starts a new thread to run JNI. Intended to be used when you must run JNI from a fiber.

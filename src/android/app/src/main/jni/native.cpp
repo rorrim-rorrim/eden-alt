@@ -36,6 +36,10 @@
 #include <frontend_common/content_manager.h>
 #include <jni.h>
 
+extern "C" {
+#include <libavcodec/jni.h>
+}
+
 #include "common/android/multiplayer/multiplayer.h"
 #include "common/android/android_common.h"
 #include "common/android/id_cache.h"
@@ -679,6 +683,13 @@ const char* fallback_cpu_detection() {
 }
 
 } // namespace
+
+extern "C" {
+jint InitFFmpegOnLoad(JavaVM* vm) {
+    av_jni_set_java_vm(vm, nullptr);
+    return 0;
+}
+}
 
 extern "C" {
 
