@@ -316,9 +316,7 @@ bool DecoderContext::OpenContext(const Decoder& decoder, std::span<const u8> ext
         return false;
     }
 
-    if (!m_codec_context->hw_device_ctx) {
-        LOG_INFO(HW_GPU, "Using FFmpeg CPU decoder");
-    }
+    LOG_INFO(HW_GPU, "Using decoder {}", decoder.GetCodec()->name);
 
     return true;
 }
